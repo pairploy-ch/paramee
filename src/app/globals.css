@@ -1,26 +1,51 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Paramee brand palette — derived from PARAMEE-01 brand mark
+     (deep wine maroon field #491218 + warm cream-gold wordmark #DAC6AD) */
+  --color-cream: #fdf8ef;
+  --color-cream-dark: #f3e9d7;
+  --color-gold-light: #dac6ad;
+  --color-gold: #b68d52;
+  --color-gold-dark: #8f6d3c;
+  --color-maroon: #491218;
+  --color-maroon-light: #6d232c;
+  --color-maroon-dark: #2c0a0e;
+  --color-ink: #2a1013;
+
+  --background: var(--color-cream);
+  --foreground: var(--color-ink);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-cream: var(--color-cream);
+  --color-cream-dark: var(--color-cream-dark);
+  --color-gold-light: var(--color-gold-light);
+  --color-gold: var(--color-gold);
+  --color-gold-dark: var(--color-gold-dark);
+  --color-maroon: var(--color-maroon);
+  --color-maroon-light: var(--color-maroon-light);
+  --color-maroon-dark: var(--color-maroon-dark);
+  --color-ink: var(--color-ink);
+
+  --font-heading: var(--font-kanit), sans-serif;
+  --font-body: var(--font-kanit), sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+::selection {
+  background: var(--color-gold-light);
+  color: var(--color-maroon-dark);
 }
