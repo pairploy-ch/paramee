@@ -3,20 +3,26 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Mail, Phone } from "lucide-react";
+import { Mail, Phone, Heart } from "lucide-react";
 import { useState } from "react";
+import { TikTokIcon, LineIcon } from "./icons";
+import { CONTACT_EMAIL, socialLinks } from "@/lib/social";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
-const links = [
-  { href: "/", label: "หน้าแรก" },
-  { href: "/properties", label: "ทรัพย์ทั้งหมด" },
-  { href: "/mortgage-calculator", label: "คำนวณสินเชื่อ" },
-  { href: "/booking", label: "นัดชมทรัพย์" },
-  { href: "/owner-portal", label: "Owner Portal" },
-];
-
-export default function Navbar() {
+export default function Navbar({ isAdmin = false }: { isAdmin?: boolean }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { lang, setLang, t } = useTranslation();
+
+  const baseLinks = [
+    { href: "/", label: t.nav.home },
+    { href: "/properties", label: t.nav.properties },
+    { href: "/mortgage-calculator", label: t.nav.mortgageCalculator, adminOnly: true },
+    { href: "/blog", label: t.nav.blog },
+    { href: "/booking", label: t.nav.booking },
+    { href: "/owner-portal", label: t.nav.ownerPortal },
+  ];
+  const links = baseLinks.filter((l) => !l.adminOnly || isAdmin);
 
   function isActive(href: string) {
     return href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -29,19 +35,51 @@ export default function Navbar() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-2 text-xs lg:px-8">
           <div className="flex items-center gap-6">
             <span className="flex items-center gap-1.5">
-              <Mail className="h-3.5 w-3.5" strokeWidth={1.75} /> info@paramee.co.th
+              <Mail className="h-3.5 w-3.5" strokeWidth={1.75} /> {CONTACT_EMAIL}
             </span>
             <span className="flex items-center gap-1.5">
               <Phone className="h-3.5 w-3.5" strokeWidth={1.75} /> 095-789-5692
             </span>
+            <a
+              href={socialLinks.tiktok.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="TikTok"
+              className="text-cream/70 transition-colors hover:text-gold-light"
+            >
+              <TikTokIcon className="h-3.5 w-3.5" />
+            </a>
+            <a
+              href={socialLinks.line.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LINE"
+              className="text-cream/70 transition-colors hover:text-gold-light"
+            >
+              <LineIcon className="h-3.5 w-3.5" />
+            </a>
           </div>
           <div className="flex items-center gap-4">
-            {/* <span className="text-cream/50">LINE · IG · WhatsApp เร็วๆ นี้</span> */}
+            <div className="flex items-center gap-1 text-xs font-semibold">
+              <button
+                onClick={() => setLang("th")}
+                className={lang === "th" ? "text-gold-light" : "text-cream/50 hover:text-cream"}
+              >
+                TH
+              </button>
+              <span className="text-cream/30">|</span>
+              <button
+                onClick={() => setLang("en")}
+                className={lang === "en" ? "text-gold-light" : "text-cream/50 hover:text-cream"}
+              >
+                EN
+              </button>
+            </div>
             <Link
-              href="/admin/leads"
+              href={isAdmin ? "/admin/leads" : "/login"}
               className="bg-gold px-4 py-1.5 text-xs font-medium text-maroon-dark transition-colors hover:bg-gold-light"
             >
-              สำหรับทีมงาน
+              {t.nav.forStaff}
             </Link>
           </div>
         </div>
@@ -75,12 +113,22 @@ export default function Navbar() {
             ))}
           </nav>
 
-          <div className="hidden lg:block">
+          <div className="hidden items-center gap-4 lg:flex">
+            <Link
+              href="/wishlist"
+              aria-label={t.nav.wishlist}
+              title={t.nav.wishlist}
+              className={`transition-colors hover:text-maroon ${
+                isActive("/wishlist") ? "text-maroon" : "text-ink/50"
+              }`}
+            >
+              <Heart className="h-5 w-5" strokeWidth={1.75} />
+            </Link>
             <Link
               href="/booking"
               className="bg-maroon px-5 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-maroon-light"
             >
-              นัดชมทรัพย์
+              {t.nav.booking}
             </Link>
           </div>
 
@@ -110,6 +158,15 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+          <Link
+            href="/wishlist"
+            onClick={() => setOpen(false)}
+            className={`rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-cream-dark ${
+              isActive("/wishlist") ? "text-maroon font-semibold" : "text-ink/80"
+            }`}
+          >
+            {t.nav.wishlist}
+          </Link>
         </nav>
       )}
     </header>

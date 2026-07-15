@@ -2,33 +2,33 @@
 
 import Link from "next/link";
 import { useState } from "react";
-
-const slides = [
-  {
-    heading: "ค้นหาบ้านในฝัน",
-    highlight: "ที่ใช่สำหรับคุณ",
-    description:
-      "รวมทรัพย์คัดสรรกว่า 300–500 รายการทั่วกรุงเทพฯ พร้อมระบบนัดชม จองมัดจำออนไลน์ และคำนวณสินเชื่อ ครบในที่เดียว",
-    cta: { label: "ค้นหาทรัพย์ทันที", href: "/properties" },
-  },
-  {
-    heading: "ลงทุนอสังหาฯ อย่างมั่นใจ",
-    highlight: "ด้วยข้อมูลที่ครบ",
-    description:
-      "ดู ROI, Rental Yield และ Cashflow ของทุกทรัพย์ตั้งแต่หน้ารายละเอียด ไม่ต้องคำนวณเอง",
-    cta: { label: "ดูทรัพย์เพื่อการลงทุน", href: "/properties?purpose=เช่า" },
-  },
-  {
-    heading: "ฝากขายหรือปล่อยเช่า",
-    highlight: "ให้เราดูแลคุณ",
-    description:
-      "ติดตามยอดเข้าชม รายได้ค่าเช่า และสถานะทรัพย์แบบเรียลไทม์ผ่าน Owner Portal",
-    cta: { label: "เข้าสู่ Owner Portal", href: "/owner-portal" },
-  },
-];
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export default function HeroSlider() {
+  const { t } = useTranslation();
   const [index, setIndex] = useState(0);
+
+  const slides = [
+    {
+      heading: t.hero.slide1Heading,
+      highlight: t.hero.slide1Highlight,
+      description: t.hero.slide1Description,
+      cta: { label: t.hero.slide1Cta, href: "/properties" },
+    },
+    {
+      heading: t.hero.slide2Heading,
+      highlight: t.hero.slide2Highlight,
+      description: t.hero.slide2Description,
+      cta: { label: t.hero.slide2Cta, href: "/properties?purpose=เช่า" },
+    },
+    {
+      heading: t.hero.slide3Heading,
+      highlight: t.hero.slide3Highlight,
+      description: t.hero.slide3Description,
+      cta: { label: t.hero.slide3Cta, href: "/owner-portal" },
+    },
+  ];
+
   const slide = slides[index];
 
   function go(delta: number) {
@@ -38,14 +38,14 @@ export default function HeroSlider() {
   return (
     <div className="relative flex min-h-[70vh] items-center justify-center px-5 py-24 text-center lg:px-8">
       <button
-        aria-label="ก่อนหน้า"
+        aria-label={t.hero.prev}
         onClick={() => go(-1)}
         className="absolute left-4 top-1/2 hidden h-11 w-11 -translate-y-1/2 items-center justify-center border border-cream/30 text-cream/80 transition-colors hover:border-gold-light hover:text-gold-light sm:flex lg:left-8"
       >
         ←
       </button>
       <button
-        aria-label="ถัดไป"
+        aria-label={t.hero.next}
         onClick={() => go(1)}
         className="absolute right-4 top-1/2 hidden h-11 w-11 -translate-y-1/2 items-center justify-center border border-cream/30 text-cream/80 transition-colors hover:border-gold-light hover:text-gold-light sm:flex lg:right-8"
       >
@@ -69,7 +69,7 @@ export default function HeroSlider() {
           {slides.map((s, i) => (
             <button
               key={s.heading}
-              aria-label={`สไลด์ที่ ${i + 1}`}
+              aria-label={`${t.hero.slideLabel} ${i + 1}`}
               onClick={() => setIndex(i)}
               className={`h-1.5 rounded-full transition-all ${
                 i === index ? "w-7 bg-gold-light" : "w-1.5 bg-cream/30"

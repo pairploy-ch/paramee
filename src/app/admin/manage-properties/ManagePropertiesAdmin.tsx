@@ -2,53 +2,51 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Pencil, X, Download } from "lucide-react";
-import { useProperties } from "@/lib/propertyStore";
-import { owners, getOwnerById } from "@/lib/owners";
 import { propertyTypes } from "@/lib/properties";
 import { formatBaht, statusLabel } from "@/lib/format";
 import type { Property, PropertyStatus } from "@/lib/types";
+import type { Owner } from "@/lib/owners";
 import AdminNav from "@/components/AdminNav";
-
-const DEMO_EMAIL = "admin@paramee.co.th";
-const DEMO_PASSWORD = "Admin@2026";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { updatePropertyBySlug, type NewPropertyInput } from "@/lib/data/properties";
+import { useProperties } from "@/lib/propertyStore";
 
 const statuses: PropertyStatus[] = ["Available", "Reserved", "Sold", "For Rent"];
 
-function toCsv(rows: Property[]) {
-  const header = ["ชื่อ", "ประเภท", "ทำเล", "สถานะ", "ราคาขาย", "ราคาเช่า", "เจ้าของ"];
+function toCsv(rows: Property[], ownerName: (id: string) => string) {
+  const header = ["ชื่อ", "ประเภท", "ทำเล", "สถานะ", "เทียร์", "ราคาขาย", "ราคาเช่า", "เจ้าของ"];
   const lines = rows.map((p) =>
-    [
-      p.name,
-      p.type,
-      p.district,
-      statusLabel(p.status),
-      p.salePrice ?? "",
-      p.rentPrice ?? "",
-      getOwnerById(p.ownerId)?.name ?? "",
-    ]
+    [p.name, p.type, p.district, statusLabel(p.status), p.tier, p.salePrice ?? "", p.rentPrice ?? "", ownerName(p.ownerId)]
       .map((v) => `"${String(v).replace(/"/g, '""')}"`)
       .join(",")
   );
   return [header.join(","), ...lines].join("\n");
 }
 
-export default function ManagePropertiesAdmin() {
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loginError, setLoginError] = useState("");
+export default function ManagePropertiesAdmin({
+  initialProperties,
+  owners,
+}: {
+  initialProperties: Property[];
+  owners: Owner[];
+}) {
+  const router = useRouter();
+  const localStore = useProperties();
+  const properties = isSupabaseConfigured ? initialProperties : localStore.properties;
 
   const [tab, setTab] = useState<"properties" | "owners">("properties");
   const [typeFilter, setTypeFilter] = useState<"ทั้งหมด" | Property["type"]>("ทั้งหมด");
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
 
-  const { properties, overrides, updateProperty } = useProperties();
+  const ownerById = (id: string) => owners.find((o) => o.id === id);
+  const ownerName = (id: string) => ownerById(id)?.name ?? "ไม่ระบุ";
 
   const filtered = properties.filter((p) => typeFilter === "ทั้งหมด" || p.type === typeFilter);
 
   function handleExport() {
-    const csv = toCsv(properties);
+    const csv = toCsv(properties, ownerName);
     const blob = new Blob([`﻿${csv}`], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -58,63 +56,15 @@ export default function ManagePropertiesAdmin() {
     URL.revokeObjectURL(url);
   }
 
-  if (!loggedIn) {
-    return (
-      <div className="mx-auto flex min-h-[70vh] max-w-md items-center px-5">
-        <div className="w-full rounded-2xl border border-gold-light/40 bg-white p-8">
-          <h1 className="font-heading text-2xl font-semibold text-maroon-dark">
-            Admin: จัดการทรัพย์
-          </h1>
-          <p className="mt-2 text-sm text-ink/60">เข้าสู่ระบบสำหรับทีมงาน Paramee</p>
-          <div className="mt-3 rounded-lg bg-cream-dark/60 px-4 py-3 text-xs text-ink/60">
-            บัญชีสาธิต — อีเมล: <span className="font-semibold text-maroon-dark">{DEMO_EMAIL}</span>
-            <br />
-            รหัสผ่าน: <span className="font-semibold text-maroon-dark">{DEMO_PASSWORD}</span>
-          </div>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (email.trim() === DEMO_EMAIL && password === DEMO_PASSWORD) {
-                setLoginError("");
-                setLoggedIn(true);
-              } else {
-                setLoginError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
-              }
-            }}
-            className="mt-6 space-y-4"
-          >
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold text-ink/60">อีเมล</label>
-              <input
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border border-cream-dark bg-cream px-3 py-2.5 text-sm outline-none focus:border-gold"
-                placeholder="admin@paramee.co.th"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold text-ink/60">รหัสผ่าน</label>
-              <input
-                required
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg border border-cream-dark bg-cream px-3 py-2.5 text-sm outline-none focus:border-gold"
-                placeholder="••••••"
-              />
-            </div>
-            {loginError && <p className="text-xs text-red-600">{loginError}</p>}
-            <button
-              type="submit"
-              className="w-full bg-gold px-5 py-3 text-sm font-medium text-maroon-dark transition-colors hover:bg-gold-light"
-            >
-              เข้าสู่ระบบ
-            </button>
-          </form>
-        </div>
-      </div>
-    );
+  async function handleSave(slug: string, patch: Partial<NewPropertyInput>) {
+    if (isSupabaseConfigured) {
+      const supabase = createClient();
+      await updatePropertyBySlug(supabase, slug, patch);
+      router.refresh();
+    } else {
+      localStore.updateProperty(slug, patch as Partial<Property>);
+    }
+    setEditingSlug(null);
   }
 
   return (
@@ -127,7 +77,7 @@ export default function ManagePropertiesAdmin() {
             จัดการทรัพย์ / เจ้าของทรัพย์
           </h1>
           <p className="mt-2 text-sm text-ink/60">
-            แก้ไขข้อมูลทรัพย์ทั้งหมดในระบบ และดูรายชื่อเจ้าของทรัพย์
+            แก้ไขข้อมูลทรัพย์ทั้งหมดในระบบ และดูรายชื่อเจ้าของทรัพย์ที่ลงทะเบียนไว้ทุกคน
           </p>
         </div>
       </div>
@@ -178,15 +128,17 @@ export default function ManagePropertiesAdmin() {
               <PropertyRow
                 key={p.slug}
                 property={p}
+                owners={owners}
                 isEditing={editingSlug === p.slug}
-                updatedAt={overrides[p.slug]?.updatedAt}
                 onToggleEdit={() => setEditingSlug(editingSlug === p.slug ? null : p.slug)}
-                onSave={(patch) => {
-                  updateProperty(p.slug, patch);
-                  setEditingSlug(null);
-                }}
+                onSave={(patch) => handleSave(p.slug, patch)}
               />
             ))}
+            {filtered.length === 0 && (
+              <p className="rounded-2xl border border-dashed border-gold-light/50 bg-white py-16 text-center text-ink/50">
+                ไม่พบทรัพย์ในหมวดนี้
+              </p>
+            )}
           </div>
         </>
       ) : (
@@ -214,6 +166,11 @@ export default function ManagePropertiesAdmin() {
               </div>
             );
           })}
+          {owners.length === 0 && (
+            <p className="col-span-full rounded-2xl border border-dashed border-gold-light/50 bg-white py-16 text-center text-ink/50">
+              ยังไม่มีเจ้าของทรัพย์ลงทะเบียนในระบบ
+            </p>
+          )}
         </div>
       )}
     </div>
@@ -222,41 +179,39 @@ export default function ManagePropertiesAdmin() {
 
 function PropertyRow({
   property,
+  owners,
   isEditing,
-  updatedAt,
   onToggleEdit,
   onSave,
 }: {
   property: Property;
+  owners: Owner[];
   isEditing: boolean;
-  updatedAt?: string;
   onToggleEdit: () => void;
-  onSave: (patch: Partial<Property>) => void;
+  onSave: (patch: Partial<NewPropertyInput>) => void;
 }) {
   const [status, setStatus] = useState<PropertyStatus>(property.status);
+  const [tier, setTier] = useState(property.tier);
   const [salePrice, setSalePrice] = useState(String(property.salePrice ?? ""));
   const [rentPrice, setRentPrice] = useState(String(property.rentPrice ?? ""));
   const [description, setDescription] = useState(property.description);
   const [ownerId, setOwnerId] = useState(property.ownerId);
 
-  const owner = getOwnerById(property.ownerId);
+  const owner = owners.find((o) => o.id === property.ownerId);
 
   return (
     <div className="rounded-2xl border border-gold-light/40 bg-white p-4">
       <div className="flex flex-wrap items-center gap-4">
         <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg bg-cream-dark">
-          <Image src={property.images[0]} alt={property.name} fill sizes="96px" className="object-cover" />
+          {property.images[0] && (
+            <Image src={property.images[0]} alt={property.name} fill sizes="96px" className="object-cover" />
+          )}
         </div>
         <div className="min-w-[180px] flex-1">
           <p className="font-medium text-maroon-dark">{property.name}</p>
           <p className="text-xs text-ink/50">
-            {property.type} · {property.district} · เจ้าของ: {owner?.name ?? "ไม่ระบุ"}
+            {property.type} · {property.district} · Tier {property.tier} · เจ้าของ: {owner?.name ?? "ไม่ระบุ"}
           </p>
-          {updatedAt && (
-            <p className="mt-0.5 text-[11px] text-gold-dark">
-              แก้ไขล่าสุด {new Date(updatedAt).toLocaleString("th-TH")}
-            </p>
-          )}
         </div>
         <span className="rounded-full bg-cream-dark px-3 py-1 text-xs font-semibold text-maroon-dark">
           {statusLabel(property.status)}
@@ -280,13 +235,14 @@ function PropertyRow({
             e.preventDefault();
             onSave({
               status,
+              tier,
               salePrice: salePrice ? Number(salePrice) : null,
               rentPrice: rentPrice ? Number(rentPrice) : null,
               description,
               ownerId,
             });
           }}
-          className="mt-4 grid gap-4 border-t border-cream-dark pt-4 sm:grid-cols-2 lg:grid-cols-4"
+          className="mt-4 grid gap-4 border-t border-cream-dark pt-4 sm:grid-cols-2 lg:grid-cols-5"
         >
           <div>
             <label className="mb-1.5 block text-xs font-semibold text-ink/60">สถานะ</label>
@@ -300,6 +256,18 @@ function PropertyRow({
                   {statusLabel(s)}
                 </option>
               ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-ink/60">เทียร์</label>
+            <select
+              value={tier}
+              onChange={(e) => setTier(Number(e.target.value) as Property["tier"])}
+              className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
+            >
+              <option value={1}>Tier 1</option>
+              <option value={2}>Tier 2</option>
+              <option value={3}>Tier 3</option>
             </select>
           </div>
           <div>
@@ -325,6 +293,7 @@ function PropertyRow({
               onChange={(e) => setOwnerId(e.target.value)}
               className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
             >
+              <option value="">— ไม่ระบุ —</option>
               {owners.map((o) => (
                 <option key={o.id} value={o.id}>
                   {o.name}
@@ -332,7 +301,7 @@ function PropertyRow({
               ))}
             </select>
           </div>
-          <div className="sm:col-span-2 lg:col-span-4">
+          <div className="sm:col-span-2 lg:col-span-5">
             <label className="mb-1.5 block text-xs font-semibold text-ink/60">รายละเอียด</label>
             <textarea
               value={description}
@@ -341,7 +310,7 @@ function PropertyRow({
               className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
             />
           </div>
-          <div className="sm:col-span-2 lg:col-span-4">
+          <div className="sm:col-span-2 lg:col-span-5">
             <button
               type="submit"
               className="bg-maroon px-5 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-maroon-light"

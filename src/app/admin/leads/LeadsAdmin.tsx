@@ -1,9 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { leads as initialLeads, leadsPerDay, topByField, type Lead } from "@/lib/leads";
+import { useRouter } from "next/navigation";
+import { leadsPerDay, topByField, type Lead } from "@/lib/leads";
 import { propertyTypes } from "@/lib/properties";
 import AdminNav from "@/components/AdminNav";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { insertLead } from "@/lib/data/leads";
+import { useLeads } from "@/lib/leadStore";
 
 const followUpStyles: Record<Lead["followUp"], string> = {
   Hot: "bg-red-100 text-red-700",
@@ -43,30 +47,36 @@ function toCsv(rows: Lead[]) {
   return [header.join(","), ...lines].join("\n");
 }
 
-const DEMO_EMAIL = "admin@paramee.co.th";
-const DEMO_PASSWORD = "Admin@2026";
+export default function LeadsAdmin({ initialLeads }: { initialLeads: Lead[] }) {
+  const router = useRouter();
+  const localStore = useLeads();
+  const leads = isSupabaseConfigured ? initialLeads : localStore.leads;
 
-export default function LeadsAdmin() {
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loginError, setLoginError] = useState("");
-
-  const [leads, setLeads] = useState<Lead[]>(initialLeads);
   const [form, setForm] = useState(emptyForm);
+  const [submitting, setSubmitting] = useState(false);
 
-  const byDay = leadsPerDay();
+  const byDay = leadsPerDay(leads);
   const maxDay = Math.max(...byDay.map(([, c]) => c), 1);
-  const topArea = topByField("area");
-  const topType = topByField("interestedType");
-  const topBudget = topByField("budget");
-  const topSize = topByField("sizeNeeded");
+  const topArea = topByField(leads, "area");
+  const topType = topByField(leads, "interestedType");
+  const topBudget = topByField(leads, "budget");
+  const topSize = topByField(leads, "sizeNeeded");
 
-  function handleAdd(e: React.FormEvent) {
+  async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!form.area) return;
-    setLeads((prev) => [{ ...form }, ...prev]);
+    setSubmitting(true);
+
+    if (isSupabaseConfigured) {
+      const supabase = createClient();
+      await insertLead(supabase, form);
+      router.refresh();
+    } else {
+      localStore.addLead(form);
+    }
+
     setForm(emptyForm);
+    setSubmitting(false);
   }
 
   function handleExport() {
@@ -80,65 +90,6 @@ export default function LeadsAdmin() {
     URL.revokeObjectURL(url);
   }
 
-  if (!loggedIn) {
-    return (
-      <div className="mx-auto flex min-h-[70vh] max-w-md items-center px-5">
-        <div className="w-full rounded-2xl border border-gold-light/40 bg-white p-8">
-          <h1 className="font-heading text-2xl font-semibold text-maroon-dark">
-            Admin: Track Lead
-          </h1>
-          <p className="mt-2 text-sm text-ink/60">เข้าสู่ระบบสำหรับทีมงาน Paramee</p>
-          <div className="mt-3 rounded-lg bg-cream-dark/60 px-4 py-3 text-xs text-ink/60">
-            บัญชีสาธิต — อีเมล: <span className="font-semibold text-maroon-dark">{DEMO_EMAIL}</span>
-            <br />
-            รหัสผ่าน: <span className="font-semibold text-maroon-dark">{DEMO_PASSWORD}</span>
-          </div>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (email.trim() === DEMO_EMAIL && password === DEMO_PASSWORD) {
-                setLoginError("");
-                setLoggedIn(true);
-              } else {
-                setLoginError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
-              }
-            }}
-            className="mt-6 space-y-4"
-          >
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold text-ink/60">อีเมล</label>
-              <input
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border border-cream-dark bg-cream px-3 py-2.5 text-sm outline-none focus:border-gold"
-                placeholder="admin@paramee.co.th"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold text-ink/60">รหัสผ่าน</label>
-              <input
-                required
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg border border-cream-dark bg-cream px-3 py-2.5 text-sm outline-none focus:border-gold"
-                placeholder="••••••"
-              />
-            </div>
-            {loginError && <p className="text-xs text-red-600">{loginError}</p>}
-            <button
-              type="submit"
-              className="w-full bg-gold px-5 py-3 text-sm font-medium text-maroon-dark transition-colors hover:bg-gold-light"
-            >
-              เข้าสู่ระบบ
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="mx-auto max-w-6xl px-5 py-10 lg:px-8">
       <AdminNav />
@@ -149,6 +100,7 @@ export default function LeadsAdmin() {
           </h1>
           <p className="mt-2 text-sm text-ink/60">
             บันทึกและวิเคราะห์ความต้องการตลาดจากข้อมูล Lead ที่รับในแต่ละวัน
+            {!isSupabaseConfigured && " (โหมดสาธิต — บันทึกไว้ในเบราว์เซอร์นี้เท่านั้น)"}
           </p>
         </div>
         <button
@@ -301,9 +253,10 @@ export default function LeadsAdmin() {
         <div className="flex items-end">
           <button
             type="submit"
-            className="w-full bg-maroon px-4 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-maroon-light"
+            disabled={submitting}
+            className="w-full bg-maroon px-4 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-maroon-light disabled:opacity-50"
           >
-            บันทึก Lead
+            {submitting ? "กำลังบันทึก..." : "บันทึก Lead"}
           </button>
         </div>
       </form>

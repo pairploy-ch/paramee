@@ -1,4 +1,7 @@
+"use client";
+
 import { statusLabel } from "@/lib/format";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import type { PropertyStatus } from "@/lib/types";
 
 const styles: Record<PropertyStatus, string> = {
@@ -9,11 +12,12 @@ const styles: Record<PropertyStatus, string> = {
 };
 
 export default function StatusBadge({ status }: { status: PropertyStatus }) {
+  const { lang } = useTranslation();
   return (
     <span
       className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${styles[status]}`}
     >
-      {statusLabel(status)}
+      {statusLabel(status, lang)}
     </span>
   );
 }

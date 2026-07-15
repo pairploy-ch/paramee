@@ -1,4 +1,5 @@
 import type { PropertyType } from "./types";
+import type { Lang } from "@/i18n/dictionaries";
 
 export const amenitiesByType: Record<PropertyType, string[]> = {
   คอนโด: [
@@ -32,3 +33,40 @@ export const amenitiesByType: Record<PropertyType, string[]> = {
     "ผังเมืองรองรับการพัฒนาเชิงพาณิชย์",
   ],
 };
+
+const amenitiesByTypeEn: Record<PropertyType, string[]> = {
+  คอนโด: [
+    "Common swimming pool",
+    "Fitness center",
+    "24-hour security",
+    "Common parking",
+    "CCTV on every floor",
+    "Wi-Fi in common areas",
+  ],
+  บ้าน: [
+    "In-house parking",
+    "Private garden",
+    "Village security system",
+    "Separate kitchen",
+    "Balcony / outdoor sitting area",
+    "Air conditioning in every room",
+  ],
+  ทาวน์โฮม: [
+    "1-2 car parking",
+    "Village security guard",
+    "Rear laundry area",
+    "Upper-floor balcony",
+    "Air conditioning in every room",
+    "Internet ready",
+  ],
+  ที่ดิน: [
+    "Filled land, ready to build",
+    "Access to a main road",
+    "Land title ready for transfer",
+    "Zoning supports commercial development",
+  ],
+};
+
+export function getAmenities(type: PropertyType, lang: Lang = "th"): string[] {
+  return lang === "en" ? amenitiesByTypeEn[type] : amenitiesByType[type];
+}

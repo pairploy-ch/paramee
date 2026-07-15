@@ -5,6 +5,7 @@ export const properties: Property[] = [
   {
     slug: "the-parkview-thonglor-3502",
     ownerId: "owner-1",
+    tier: 1,
     name: "The Parkview Thonglor",
     type: "คอนโด",
     address: "สุขุมวิท 55, คลองตันเหนือ",
@@ -34,6 +35,7 @@ export const properties: Property[] = [
   {
     slug: "baan-sivalai-ramintra-129",
     ownerId: "owner-2",
+    tier: 2,
     name: "บ้านศิวาลัย รามอินทรา",
     type: "บ้าน",
     address: "รามอินทรา กม.10",
@@ -63,6 +65,7 @@ export const properties: Property[] = [
   {
     slug: "noble-around-ari-0812",
     ownerId: "owner-1",
+    tier: 1,
     name: "Noble Around Ari",
     type: "คอนโด",
     address: "พหลโยธิน ซอย 7",
@@ -92,6 +95,7 @@ export const properties: Property[] = [
   {
     slug: "townplus-bangna-km7-2201",
     ownerId: "owner-2",
+    tier: 2,
     name: "Town Plus บางนา กม.7",
     type: "ทาวน์โฮม",
     address: "บางนา-ตราด กม.7",
@@ -121,6 +125,7 @@ export const properties: Property[] = [
   {
     slug: "land-bangkok-ratchada-plot-410",
     ownerId: "owner-3",
+    tier: 1,
     name: "ที่ดินเปล่า ถนนรัชดาภิเษก",
     type: "ที่ดิน",
     address: "ถนนรัชดาภิเษก ใกล้ห้วยขวาง",
@@ -150,6 +155,7 @@ export const properties: Property[] = [
   {
     slug: "the-lumpini-24-1904",
     ownerId: "owner-1",
+    tier: 2,
     name: "The Lumpini 24",
     type: "คอนโด",
     address: "สุขุมวิท 24",
@@ -179,6 +185,7 @@ export const properties: Property[] = [
   {
     slug: "baan-panya-indra-rangsit-88",
     ownerId: "owner-3",
+    tier: 3,
     name: "บ้านปัญญาอินทรา รังสิต",
     type: "บ้าน",
     address: "คลองสี่ ธัญบุรี",
@@ -208,6 +215,7 @@ export const properties: Property[] = [
   {
     slug: "ideo-mobi-sukhumvit-eastpoint-2105",
     ownerId: "owner-2",
+    tier: 3,
     name: "Ideo Mobi Sukhumvit Eastpoint",
     type: "คอนโด",
     address: "สุขุมวิท 64",
@@ -237,6 +245,7 @@ export const properties: Property[] = [
   {
     slug: "townplus-watcharaphon-3306",
     ownerId: "owner-3",
+    tier: 3,
     name: "Town Plus วัชรพล",
     type: "ทาวน์โฮม",
     address: "วัชรพล-รามอินทรา",
@@ -266,6 +275,7 @@ export const properties: Property[] = [
   {
     slug: "the-esse-asoke-4801",
     ownerId: "owner-1",
+    tier: 1,
     name: "The Esse Asoke",
     type: "คอนโด",
     address: "สุขุมวิท 21 (อโศก)",

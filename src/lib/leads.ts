@@ -25,15 +25,15 @@ export const leads: Lead[] = [
   { date: "2026-07-12", channel: "Website", interestedType: "บ้าน", area: "รามอินทรา", budget: "6-6.5 ล้าน", sizeNeeded: "170-190 ตร.ม.", purpose: "ซื้อเอง", followUp: "Hot", note: "นัดชมสัปดาห์หน้า" },
 ];
 
-export function leadsPerDay() {
+export function leadsPerDay(rows: Lead[] = leads) {
   const map = new Map<string, number>();
-  for (const l of leads) map.set(l.date, (map.get(l.date) ?? 0) + 1);
+  for (const l of rows) map.set(l.date, (map.get(l.date) ?? 0) + 1);
   return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
 }
 
-export function topByField<K extends keyof Lead>(field: K, limit = 3) {
+export function topByField<K extends keyof Lead>(rows: Lead[], field: K, limit = 3) {
   const map = new Map<string, number>();
-  for (const l of leads) {
+  for (const l of rows) {
     const key = String(l[field]);
     map.set(key, (map.get(key) ?? 0) + 1);
   }

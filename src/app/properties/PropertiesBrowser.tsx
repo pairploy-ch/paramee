@@ -2,11 +2,22 @@
 
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { properties, propertyTypes, districts } from "@/lib/properties";
+import { propertyTypes } from "@/lib/properties";
 import PropertyCard from "@/components/PropertyCard";
-import type { PropertyType } from "@/lib/types";
+import { propertyTypeLabel } from "@/lib/format";
+import { useTranslation } from "@/i18n/LanguageProvider";
+import type { Property, PropertyType } from "@/lib/types";
 
-export default function PropertiesBrowser() {
+const MIN_PRICE = 0;
+const MAX_PRICE = 50_000_000;
+
+export default function PropertiesBrowser({ initialProperties }: { initialProperties: Property[] }) {
+  const { t: tr, lang } = useTranslation();
+  const properties = initialProperties;
+  const districts = useMemo(
+    () => Array.from(new Set(properties.map((p) => p.district))),
+    [properties]
+  );
   const searchParams = useSearchParams();
   const initialType = searchParams.get("type") as PropertyType | null;
   const initialDistrict = searchParams.get("district");
@@ -15,7 +26,8 @@ export default function PropertiesBrowser() {
   const [type, setType] = useState<PropertyType | "ทั้งหมด">(initialType ?? "ทั้งหมด");
   const [district, setDistrict] = useState(initialDistrict ?? "ทั้งหมด");
   const [purpose, setPurpose] = useState<"ทั้งหมด" | "ซื้อ" | "เช่า">(initialPurpose ?? "ทั้งหมด");
-  const [maxPrice, setMaxPrice] = useState(50_000_000);
+  const [minPrice, setMinPrice] = useState(MIN_PRICE);
+  const [maxPrice, setMaxPrice] = useState(MAX_PRICE);
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -24,27 +36,23 @@ export default function PropertiesBrowser() {
       if (district !== "ทั้งหมด" && p.district !== district) return false;
       if (purpose === "ซื้อ" && !p.salePrice) return false;
       if (purpose === "เช่า" && !p.rentPrice) return false;
-      if (p.salePrice && p.salePrice > maxPrice) return false;
-      if (
-        query &&
-        !`${p.name} ${p.district} ${p.address}`
-          .toLowerCase()
-          .includes(query.toLowerCase())
-      )
-        return false;
+      const effectivePrice = p.salePrice ?? p.rentPrice ?? 0;
+      if (effectivePrice < minPrice || effectivePrice > maxPrice) return false;
+      if (query && !p.name.toLowerCase().includes(query.toLowerCase())) return false;
       return true;
     });
-  }, [type, district, purpose, maxPrice, query]);
+  }, [type, district, purpose, minPrice, maxPrice, query]);
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8">
       <div className="mb-8">
         <h1 className="font-heading text-3xl font-semibold text-maroon-dark">
-          ทรัพย์ทั้งหมด
+          {tr.properties.title}
         </h1>
         <p className="mt-2 text-sm text-ink/60">
-          พบ {filtered.length} รายการ จากทั้งหมด {properties.length} รายการตัวอย่าง
-          (ระบบเต็มรองรับ 300–500 รายการ)
+          {tr.properties.resultsSummary
+            .replace("{count}", String(filtered.length))
+            .replace("{total}", String(properties.length))}
         </p>
       </div>
 
@@ -52,82 +60,98 @@ export default function PropertiesBrowser() {
       <div className="mb-10 grid gap-4 border border-gold-light/40 bg-white p-5 sm:grid-cols-2 lg:grid-cols-5">
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-ink/60">
-            ค้นหา
+            {tr.properties.searchLabel}
           </label>
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="ชื่อโครงการ, ทำเล..."
+            placeholder={tr.properties.searchPlaceholder}
             className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
           />
         </div>
 
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-ink/60">
-            ประเภททรัพย์
+            {tr.properties.typeLabel}
           </label>
           <select
             value={type}
             onChange={(e) => setType(e.target.value as PropertyType | "ทั้งหมด")}
             className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
           >
-            <option>ทั้งหมด</option>
-            {propertyTypes.map((t) => (
-              <option key={t}>{t}</option>
+            <option value="ทั้งหมด">{tr.properties.all}</option>
+            {propertyTypes.map((pt) => (
+              <option key={pt} value={pt}>
+                {propertyTypeLabel(pt, lang)}
+              </option>
             ))}
           </select>
         </div>
 
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-ink/60">
-            ทำเล
+            {tr.properties.districtLabel}
           </label>
           <select
             value={district}
             onChange={(e) => setDistrict(e.target.value)}
             className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
           >
-            <option>ทั้งหมด</option>
+            <option value="ทั้งหมด">{tr.properties.all}</option>
             {districts.map((d) => (
-              <option key={d}>{d}</option>
+              <option key={d} value={d}>
+                {d}
+              </option>
             ))}
           </select>
         </div>
 
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-ink/60">
-            วัตถุประสงค์
+            {tr.properties.purposeLabel}
           </label>
           <select
             value={purpose}
             onChange={(e) => setPurpose(e.target.value as "ทั้งหมด" | "ซื้อ" | "เช่า")}
             className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
           >
-            <option>ทั้งหมด</option>
-            <option>ซื้อ</option>
-            <option>เช่า</option>
+            <option value="ทั้งหมด">{tr.properties.all}</option>
+            <option value="ซื้อ">{tr.search.buyOption}</option>
+            <option value="เช่า">{tr.search.rentOption}</option>
           </select>
         </div>
 
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-ink/60">
-            ราคาสูงสุด: {maxPrice.toLocaleString("th-TH")} บาท
+            {tr.properties.priceRangeLabel}
           </label>
-          <input
-            type="range"
-            min={1_000_000}
-            max={50_000_000}
-            step={500_000}
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(Number(e.target.value))}
-            className="mt-2.5 w-full accent-gold"
-          />
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min={0}
+              step={100_000}
+              value={minPrice}
+              onChange={(e) => setMinPrice(Math.max(0, Number(e.target.value) || 0))}
+              placeholder={tr.properties.minPlaceholder}
+              className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
+            />
+            <span className="text-ink/40">—</span>
+            <input
+              type="number"
+              min={0}
+              step={100_000}
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(Number(e.target.value) || 0)}
+              placeholder={tr.properties.maxPlaceholder}
+              className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
+            />
+          </div>
         </div>
       </div>
 
       {filtered.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-gold-light/50 bg-white py-16 text-center text-ink/50">
-          ไม่พบทรัพย์ที่ตรงกับเงื่อนไข ลองปรับตัวกรองใหม่
+          {tr.properties.noResults}
         </p>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

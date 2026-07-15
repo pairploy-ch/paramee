@@ -4,6 +4,9 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BackToTop from "@/components/BackToTop";
+import LineFloatingButton from "@/components/LineFloatingButton";
+import { getSessionProfile } from "@/lib/supabase/server";
+import { LanguageProvider } from "@/i18n/LanguageProvider";
 
 const kanit = Kanit({
   variable: "--font-kanit",
@@ -17,18 +20,24 @@ export const metadata: Metadata = {
     "Paramee แพลตฟอร์มอสังหาริมทรัพย์ครบวงจร ค้นหา คอนโด บ้าน ทาวน์โฮม และที่ดิน พร้อมระบบนัดชม จองมัดจำ และคำนวณสินเชื่อ",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { profile } = await getSessionProfile();
+  const isAdmin = profile?.role === "admin";
+
   return (
     <html lang="th" className={`${kanit.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-cream text-ink">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
-        <BackToTop />
+        <LanguageProvider>
+          <Navbar isAdmin={isAdmin} />
+          <main className="flex-1">{children}</main>
+          <Footer isAdmin={isAdmin} />
+          <BackToTop />
+          <LineFloatingButton />
+        </LanguageProvider>
       </body>
     </html>
   );
