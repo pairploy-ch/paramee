@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Check, CalendarPlus } from "lucide-react";
-import { properties } from "@/lib/properties";
+import { Check } from "lucide-react";
+import PropertySearchSelect from "@/components/PropertySearchSelect";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import type { Property } from "@/lib/types";
 
 const TIME_SLOTS = Array.from({ length: 17 }, (_, i) => {
   const totalMinutes = 9 * 60 + i * 30; // 09:00 to 17:00 in 30-minute steps
@@ -13,7 +14,7 @@ const TIME_SLOTS = Array.from({ length: 17 }, (_, i) => {
   return `${h}:${m}`;
 });
 
-export default function BookingForm() {
+export default function BookingForm({ properties }: { properties: Property[] }) {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode") === "financing" ? "financing" : "view";
@@ -33,7 +34,6 @@ export default function BookingForm() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [calendarLink, setCalendarLink] = useState<string | undefined>();
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -87,7 +87,6 @@ export default function BookingForm() {
         setShowConfirm(false);
         return;
       }
-      setCalendarLink(data.calendarLink);
       setSubmitted(true);
     } catch {
       setError(t.booking.errorGeneric);
@@ -109,17 +108,6 @@ export default function BookingForm() {
         <p className="mt-3 text-sm text-ink/60">
           {t.booking.successBody} {form.email}
         </p>
-        {calendarLink && (
-          <a
-            href={calendarLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-5 inline-flex items-center gap-2 bg-maroon px-5 py-3 text-sm font-medium text-cream hover:bg-maroon-light"
-          >
-            <CalendarPlus className="h-4 w-4" strokeWidth={1.75} />
-            {t.booking.addToCalendar}
-          </a>
-        )}
       </div>
     );
   }
@@ -180,18 +168,13 @@ export default function BookingForm() {
           <label className="mb-1.5 block text-sm font-semibold text-maroon-dark">
             {t.booking.propertyLabel}
           </label>
-          <select
+          <PropertySearchSelect
+            properties={properties}
             value={form.property}
-            onChange={(e) => update("property", e.target.value)}
-            className="w-full rounded-lg border border-cream-dark bg-cream px-3 py-2.5 text-sm outline-none focus:border-gold"
-          >
-            <option value="">{t.booking.propertyUnset}</option>
-            {properties.map((p) => (
-              <option key={p.slug} value={p.slug}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+            onChange={(slug) => update("property", slug)}
+            placeholder={t.booking.propertySearchPlaceholder}
+            emptyLabel={t.booking.propertyNoResults}
+          />
         </div>
 
         {mode === "view" && (

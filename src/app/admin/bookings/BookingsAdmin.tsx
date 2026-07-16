@@ -1,8 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2 } from "lucide-react";
-import AdminNav from "@/components/AdminNav";
+import { Trash2, Loader2 } from "lucide-react";
 import { getPropertyBySlug } from "@/lib/properties";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { updateBookingStatus, deleteBooking, type BookingRow, type BookingStatus } from "@/lib/data/bookings";
@@ -26,25 +26,28 @@ const statusStyle: Record<BookingStatus, string> = {
 
 export default function BookingsAdmin({ initialBookings }: { initialBookings: BookingRow[] }) {
   const router = useRouter();
+  const [pendingId, setPendingId] = useState<string | null>(null);
 
   async function handleStatusChange(id: string, status: BookingStatus) {
     if (!isSupabaseConfigured) return;
+    setPendingId(id);
     const supabase = createClient();
     await updateBookingStatus(supabase, id, status);
     router.refresh();
+    setPendingId(null);
   }
 
   async function handleDelete(id: string) {
     if (!isSupabaseConfigured) return;
+    setPendingId(id);
     const supabase = createClient();
     await deleteBooking(supabase, id);
     router.refresh();
+    setPendingId(null);
   }
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10 lg:px-8">
-      <AdminNav />
-
       <div className="mb-8">
         <h1 className="font-heading text-3xl font-semibold text-maroon-dark">
           รายการนัดชม / จอง / ขอสินเชื่อ
@@ -87,7 +90,8 @@ export default function BookingsAdmin({ initialBookings }: { initialBookings: Bo
                 <select
                   value={b.status}
                   onChange={(e) => handleStatusChange(b.id, e.target.value as BookingStatus)}
-                  className={`rounded-full border-0 px-3 py-1 text-xs font-semibold outline-none ${statusStyle[b.status]}`}
+                  disabled={pendingId === b.id}
+                  className={`rounded-full border-0 px-3 py-1 text-xs font-semibold outline-none disabled:opacity-50 ${statusStyle[b.status]}`}
                 >
                   {(Object.keys(statusLabel) as BookingStatus[]).map((s) => (
                     <option key={s} value={s}>
@@ -98,10 +102,15 @@ export default function BookingsAdmin({ initialBookings }: { initialBookings: Bo
 
                 <button
                   onClick={() => handleDelete(b.id)}
+                  disabled={pendingId === b.id}
                   aria-label="ลบรายการ"
-                  className="flex h-9 w-9 shrink-0 items-center justify-center border border-cream-dark text-ink/40 hover:border-red-400 hover:text-red-500"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center border border-cream-dark text-ink/40 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
                 >
-                  <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+                  {pendingId === b.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" strokeWidth={1.75} />
+                  ) : (
+                    <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+                  )}
                 </button>
               </div>
             </div>

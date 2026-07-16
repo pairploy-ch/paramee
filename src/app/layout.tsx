@@ -6,6 +6,10 @@ import Footer from "@/components/Footer";
 import BackToTop from "@/components/BackToTop";
 import LineFloatingButton from "@/components/LineFloatingButton";
 import { getSessionProfile } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
+import { createPublicClient } from "@/lib/supabase/publicClient";
+import { fetchAllOwnerContacts } from "@/lib/data/owners";
+import { OwnerContactsProvider } from "@/components/OwnerContactsProvider";
 import { LanguageProvider } from "@/i18n/LanguageProvider";
 
 const kanit = Kanit({
@@ -27,16 +31,22 @@ export default async function RootLayout({
 }>) {
   const { profile } = await getSessionProfile();
   const isAdmin = profile?.role === "admin";
+  const role = profile?.role ?? null;
+  const ownerContacts = await fetchAllOwnerContacts(
+    isSupabaseConfigured ? createPublicClient() : undefined
+  );
 
   return (
     <html lang="th" className={`${kanit.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-cream text-ink">
         <LanguageProvider>
-          <Navbar isAdmin={isAdmin} />
-          <main className="flex-1">{children}</main>
-          <Footer isAdmin={isAdmin} />
-          <BackToTop />
-          <LineFloatingButton />
+          <OwnerContactsProvider contacts={ownerContacts}>
+            <Navbar role={role} />
+            <main className="flex-1">{children}</main>
+            <Footer isAdmin={isAdmin} />
+            <BackToTop />
+            <LineFloatingButton />
+          </OwnerContactsProvider>
         </LanguageProvider>
       </body>
     </html>

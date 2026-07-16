@@ -3,26 +3,38 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Mail, Phone, Heart } from "lucide-react";
+import { Mail, Phone, Heart, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { TikTokIcon, LineIcon } from "./icons";
 import { CONTACT_EMAIL, socialLinks } from "@/lib/social";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import LogoutButton from "./LogoutButton";
 
-export default function Navbar({ isAdmin = false }: { isAdmin?: boolean }) {
+const adminLinks = [
+  { href: "/admin/leads", label: "Track Lead" },
+  { href: "/admin/properties", label: "เพิ่มทรัพย์" },
+  { href: "/admin/manage-properties", label: "จัดการทรัพย์ / เจ้าของ" },
+  { href: "/admin/bookings", label: "นัดชม / จอง" },
+  { href: "/admin/blog", label: "จัดการบทความ" },
+  { href: "/admin/testimonials", label: "รีวิวลูกค้า" },
+  { href: "/mortgage-calculator", label: "คำนวณสินเชื่อ" },
+];
+
+export default function Navbar({ role = null }: { role?: "admin" | "owner" | null }) {
   const [open, setOpen] = useState(false);
+  const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const pathname = usePathname();
   const { lang, setLang, t } = useTranslation();
+  const isAdmin = role === "admin";
+  const isOwner = role === "owner";
 
   const baseLinks = [
     { href: "/", label: t.nav.home },
     { href: "/properties", label: t.nav.properties },
-    { href: "/mortgage-calculator", label: t.nav.mortgageCalculator, adminOnly: true },
     { href: "/blog", label: t.nav.blog },
-    { href: "/booking", label: t.nav.booking },
-    { href: "/owner-portal", label: t.nav.ownerPortal },
+    { href: "/owner-portal", label: t.nav.ownerPortal, ownerOnly: true },
   ];
-  const links = baseLinks.filter((l) => !l.adminOnly || isAdmin);
+  const links = baseLinks.filter((l) => !l.ownerOnly || isOwner);
 
   function isActive(href: string) {
     return href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -81,6 +93,9 @@ export default function Navbar({ isAdmin = false }: { isAdmin?: boolean }) {
             >
               {t.nav.forStaff}
             </Link>
+            {isAdmin && (
+              <LogoutButton className="border border-cream/30 px-4 py-1.5 text-xs font-medium text-cream/80 transition-colors hover:border-gold-light hover:text-gold-light" />
+            )}
           </div>
         </div>
       </div>
@@ -111,6 +126,43 @@ export default function Navbar({ isAdmin = false }: { isAdmin?: boolean }) {
                 {link.label}
               </Link>
             ))}
+
+            {isAdmin && (
+              <div className="relative">
+                <button
+                  onClick={() => setAdminMenuOpen((v) => !v)}
+                  className={`flex items-center gap-1 text-sm font-medium transition-colors hover:text-maroon ${
+                    pathname.startsWith("/admin") ? "text-maroon font-semibold" : "text-ink/70"
+                  }`}
+                >
+                  เมนูแอดมิน
+                  <ChevronDown className="h-3.5 w-3.5" strokeWidth={2} />
+                </button>
+                {adminMenuOpen && (
+                  <>
+                    <button
+                      aria-label="ปิดเมนู"
+                      className="fixed inset-0 z-40 cursor-default"
+                      onClick={() => setAdminMenuOpen(false)}
+                    />
+                    <div className="absolute right-0 top-full z-50 mt-2 w-56 border border-gold-light/40 bg-white py-1.5 shadow-lg">
+                      {adminLinks.map((link) => (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          onClick={() => setAdminMenuOpen(false)}
+                          className={`block px-4 py-2 text-sm transition-colors hover:bg-cream-dark ${
+                            isActive(link.href) ? "font-semibold text-maroon" : "text-ink/70"
+                          }`}
+                        >
+                          {link.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </nav>
 
           <div className="hidden items-center gap-4 lg:flex">
@@ -167,6 +219,33 @@ export default function Navbar({ isAdmin = false }: { isAdmin?: boolean }) {
           >
             {t.nav.wishlist}
           </Link>
+          <Link
+            href="/booking"
+            onClick={() => setOpen(false)}
+            className="mt-1 rounded-lg bg-maroon px-3 py-2.5 text-center text-sm font-medium text-cream hover:bg-maroon-light"
+          >
+            {t.nav.booking}
+          </Link>
+
+          {isAdmin && (
+            <>
+              <p className="mt-3 px-3 text-xs font-semibold uppercase tracking-wide text-ink/40">
+                เมนูแอดมิน
+              </p>
+              {adminLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setOpen(false)}
+                  className={`rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-cream-dark ${
+                    isActive(link.href) ? "text-maroon font-semibold" : "text-ink/80"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </>
+          )}
         </nav>
       )}
     </header>

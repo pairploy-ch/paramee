@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { properties as seedProperties } from "@/lib/properties";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
-import type { Property, PropertyStatus, PropertyTier, PropertyType, TransitLine } from "@/lib/types";
+import type { Property, PropertyStatus, PropertyTier, PropertyType, TransitInfo } from "@/lib/types";
 
 export interface PropertyRow {
   id: string;
@@ -12,6 +12,7 @@ export interface PropertyRow {
   type: PropertyType;
   address: string;
   district: string;
+  map_url: string | null;
   status: PropertyStatus;
   sale_price: number | null;
   rent_price: number | null;
@@ -24,9 +25,7 @@ export interface PropertyRow {
   common_fee_per_sqm: number;
   avg_rent_in_area: number;
   transfer_fee_estimate: number;
-  transit_station: string | null;
-  transit_line: TransitLine | null;
-  transit_distance_meters: number;
+  transit: TransitInfo[] | null;
   investor_roi_percent: number;
   investor_rental_yield_percent: number;
   investor_occupancy_percent: number;
@@ -43,6 +42,7 @@ export function rowToProperty(row: PropertyRow): Property {
     type: row.type,
     address: row.address,
     district: row.district,
+    mapUrl: row.map_url,
     status: row.status,
     salePrice: row.sale_price,
     rentPrice: row.rent_price,
@@ -55,11 +55,7 @@ export function rowToProperty(row: PropertyRow): Property {
     commonFeePerSqm: row.common_fee_per_sqm,
     avgRentInArea: row.avg_rent_in_area,
     transferFeeEstimate: row.transfer_fee_estimate,
-    transit: {
-      station: row.transit_station ?? "",
-      line: row.transit_line ?? "BTS",
-      distanceMeters: row.transit_distance_meters,
-    },
+    transit: row.transit ?? [],
     investor: {
       roiPercent: row.investor_roi_percent,
       rentalYieldPercent: row.investor_rental_yield_percent,
@@ -89,6 +85,7 @@ export function propertyToRow(input: NewPropertyInput): Omit<PropertyRow, "id"> 
     type: input.type,
     address: input.address,
     district: input.district,
+    map_url: input.mapUrl,
     status: input.status,
     sale_price: input.salePrice,
     rent_price: input.rentPrice,
@@ -101,9 +98,7 @@ export function propertyToRow(input: NewPropertyInput): Omit<PropertyRow, "id"> 
     common_fee_per_sqm: input.commonFeePerSqm,
     avg_rent_in_area: input.avgRentInArea,
     transfer_fee_estimate: input.transferFeeEstimate,
-    transit_station: input.transit.station,
-    transit_line: input.transit.line,
-    transit_distance_meters: input.transit.distanceMeters,
+    transit: input.transit,
     investor_roi_percent: input.investor.roiPercent,
     investor_rental_yield_percent: input.investor.rentalYieldPercent,
     investor_occupancy_percent: input.investor.occupancyPercent,
@@ -156,15 +151,39 @@ export async function updatePropertyBySlug(
   patch: Partial<NewPropertyInput>
 ) {
   const row: Record<string, unknown> = {};
+  if (patch.name !== undefined) row.name = patch.name;
+  if (patch.type !== undefined) row.type = patch.type;
+  if (patch.address !== undefined) row.address = patch.address;
+  if (patch.district !== undefined) row.district = patch.district;
+  if (patch.mapUrl !== undefined) row.map_url = patch.mapUrl;
   if (patch.tier !== undefined) row.tier = patch.tier;
   if (patch.status !== undefined) row.status = patch.status;
   if (patch.salePrice !== undefined) row.sale_price = patch.salePrice;
   if (patch.rentPrice !== undefined) row.rent_price = patch.rentPrice;
+  if (patch.areaSqm !== undefined) row.area_sqm = patch.areaSqm;
+  if (patch.bedrooms !== undefined) row.bedrooms = patch.bedrooms;
+  if (patch.bathrooms !== undefined) row.bathrooms = patch.bathrooms;
+  if (patch.floor !== undefined) row.floor = patch.floor;
+  if (patch.facing !== undefined) row.facing = patch.facing;
   if (patch.description !== undefined) row.description = patch.description;
   if (patch.ownerId !== undefined) row.owner_id = patch.ownerId || null;
   if (patch.images !== undefined) row.images = patch.images;
+  if (patch.commonFeePerSqm !== undefined) row.common_fee_per_sqm = patch.commonFeePerSqm;
+  if (patch.avgRentInArea !== undefined) row.avg_rent_in_area = patch.avgRentInArea;
+  if (patch.transferFeeEstimate !== undefined) row.transfer_fee_estimate = patch.transferFeeEstimate;
+  if (patch.transit !== undefined) row.transit = patch.transit;
+  if (patch.investor !== undefined) {
+    row.investor_roi_percent = patch.investor.roiPercent;
+    row.investor_rental_yield_percent = patch.investor.rentalYieldPercent;
+    row.investor_occupancy_percent = patch.investor.occupancyPercent;
+    row.investor_cashflow_per_month = patch.investor.cashflowPerMonth;
+  }
 
   return supabase.from("properties").update(row).eq("slug", slug).select("*").single();
+}
+
+export async function deletePropertyBySlug(supabase: SupabaseClient, slug: string) {
+  return supabase.from("properties").delete().eq("slug", slug);
 }
 
 export async function fetchOwnerProperties(supabase: SupabaseClient, ownerId: string) {

@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2 } from "lucide-react";
-import AdminNav from "@/components/AdminNav";
+import { Trash2, Loader2 } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { insertTestimonial, updateTestimonial, deleteTestimonial } from "@/lib/data/testimonials";
 import { useTestimonials } from "@/lib/testimonialStore";
@@ -26,6 +25,7 @@ export default function TestimonialsAdmin({
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [pendingId, setPendingId] = useState<string | null>(null);
 
   function update<K extends keyof typeof emptyForm>(key: K, value: (typeof emptyForm)[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -54,6 +54,7 @@ export default function TestimonialsAdmin({
   }
 
   async function handleTogglePublish(t: Testimonial) {
+    setPendingId(t.id);
     if (isSupabaseConfigured) {
       const supabase = createClient();
       await updateTestimonial(supabase, t.id, { isPublished: !t.isPublished });
@@ -61,9 +62,11 @@ export default function TestimonialsAdmin({
     } else {
       localStore.updateTestimonial(t.id, { isPublished: !t.isPublished });
     }
+    setPendingId(null);
   }
 
   async function handleDelete(t: Testimonial) {
+    setPendingId(t.id);
     if (isSupabaseConfigured) {
       const supabase = createClient();
       await deleteTestimonial(supabase, t.id);
@@ -71,12 +74,11 @@ export default function TestimonialsAdmin({
     } else {
       localStore.deleteTestimonial(t.id);
     }
+    setPendingId(null);
   }
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-10 lg:px-8">
-      <AdminNav />
-
       <div className="mb-8">
         <h1 className="font-heading text-3xl font-semibold text-maroon-dark">จัดการรีวิวลูกค้า</h1>
         <p className="mt-2 text-sm text-ink/60">
@@ -155,7 +157,8 @@ export default function TestimonialsAdmin({
               <button
                 type="button"
                 onClick={() => handleTogglePublish(t)}
-                className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
+                disabled={pendingId === t.id}
+                className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold disabled:opacity-50 ${
                   t.isPublished ? "bg-emerald-100 text-emerald-700" : "bg-neutral-200 text-neutral-600"
                 }`}
               >
@@ -163,10 +166,15 @@ export default function TestimonialsAdmin({
               </button>
               <button
                 onClick={() => handleDelete(t)}
+                disabled={pendingId === t.id}
                 aria-label="ลบรีวิว"
-                className="flex h-9 w-9 shrink-0 items-center justify-center border border-cream-dark text-ink/40 hover:border-red-400 hover:text-red-500"
+                className="flex h-9 w-9 shrink-0 items-center justify-center border border-cream-dark text-ink/40 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
               >
-                <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+                {pendingId === t.id ? (
+                  <Loader2 className="h-4 w-4 animate-spin" strokeWidth={1.75} />
+                ) : (
+                  <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+                )}
               </button>
             </div>
           </div>

@@ -11,6 +11,11 @@ create table if not exists public.profiles (
   name text,
   phone text,
   email text,
+  avatar_url text,
+  line_id text,
+  facebook_url text,
+  instagram_url text,
+  tiktok_url text,
   created_at timestamptz not null default now()
 );
 
@@ -76,6 +81,7 @@ create table if not exists public.properties (
   type text not null check (type in ('คอนโด', 'บ้าน', 'ทาวน์โฮม', 'ที่ดิน')),
   address text not null,
   district text not null,
+  map_url text,
   status text not null default 'Available' check (status in ('Available', 'Reserved', 'Sold', 'For Rent')),
   sale_price numeric,
   rent_price numeric,
@@ -88,9 +94,7 @@ create table if not exists public.properties (
   common_fee_per_sqm numeric not null default 0,
   avg_rent_in_area numeric not null default 0,
   transfer_fee_estimate numeric not null default 0,
-  transit_station text,
-  transit_line text check (transit_line in ('BTS', 'MRT', 'ARL')),
-  transit_distance_meters int not null default 0,
+  transit jsonb not null default '[]',
   investor_roi_percent numeric not null default 0,
   investor_rental_yield_percent numeric not null default 0,
   investor_occupancy_percent numeric not null default 0,
@@ -260,3 +264,60 @@ create policy "leads: admins manage all" on public.leads
 -- 2. Then run, replacing the email:
 --   update public.profiles set role = 'admin'
 --   where id = (select id from auth.users where email = 'you@example.com');
+
+-- ============================================================
+-- Grants — required in addition to RLS policies above.
+-- Fresh Supabase projects don't always pre-grant table privileges to
+-- anon/authenticated, so RLS alone isn't enough; run this once.
+-- ============================================================
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on
+  public.profiles,
+  public.properties,
+  public.bookings,
+  public.posts,
+  public.testimonials,
+  public.leads
+to anon, authenticated;
+
+alter default privileges in schema public
+  grant select, insert, update, delete on tables to anon, authenticated;
+
+-- ============================================================
+-- Migration — run this if you already executed the script above before
+-- this section existed (adds multi-station transit + owner contact fields).
+-- Safe to re-run; no existing property/profile rows are touched beyond
+-- backfilling the new transit column from the old single-station ones.
+-- ============================================================
+alter table public.properties add column if not exists transit jsonb not null default '[]';
+
+update public.properties
+set transit = jsonb_build_array(
+  jsonb_build_object('station', transit_station, 'line', transit_line, 'distanceMeters', transit_distance_meters)
+)
+where transit = '[]' and transit_station is not null;
+
+alter table public.properties drop column if exists transit_station;
+alter table public.properties drop column if exists transit_line;
+alter table public.properties drop column if exists transit_distance_meters;
+
+alter table public.profiles add column if not exists avatar_url text;
+alter table public.profiles add column if not exists line_id text;
+alter table public.profiles add column if not exists facebook_url text;
+alter table public.profiles add column if not exists instagram_url text;
+alter table public.profiles add column if not exists tiktok_url text;
+
+alter table public.properties add column if not exists map_url text;
+
+-- ============================================================
+-- owner_contacts — public-safe view so the property detail page can show
+-- the actual listing owner's name/photo/contact instead of hardcoding the
+-- Paramee team. Exposes only the fields meant to be public (no email, no
+-- role) since `profiles` itself has no public read policy.
+-- ============================================================
+create or replace view public.owner_contacts as
+select id, name, phone, avatar_url, line_id, facebook_url, instagram_url, tiktok_url
+from public.profiles
+where role = 'owner';
+
+grant select on public.owner_contacts to anon, authenticated;

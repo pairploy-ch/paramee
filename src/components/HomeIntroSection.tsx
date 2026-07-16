@@ -10,8 +10,8 @@ export default function HomeIntroSection({
   spotlight,
   spotlightThumb,
 }: {
-  spotlight: Property;
-  spotlightThumb: Property;
+  spotlight?: Property;
+  spotlightThumb?: Property;
 }) {
   const { t } = useTranslation();
 
@@ -55,29 +55,33 @@ export default function HomeIntroSection({
               ))}
             </div>
 
-            <div className="rounded-2xl border border-gold-light/40 bg-white p-3 shadow-lg">
-              <PropertyImage
-                images={spotlight.images}
-                name={spotlight.name}
-                className="h-80 w-full rounded-xl sm:h-96"
-              />
-            </div>
-
-            <div className="absolute bottom-0 left-0 w-2/5 min-w-[160px] rounded-2xl border-4 border-cream bg-white p-1.5 shadow-xl">
-              <div className="relative">
+            {spotlight && (
+              <div className="rounded-2xl border border-gold-light/40 bg-white p-3 shadow-lg">
                 <PropertyImage
-                  images={spotlightThumb.images}
-                  name={spotlightThumb.name}
-                  index={1}
-                  className="h-28 w-full rounded-lg sm:h-36"
+                  images={spotlight.images}
+                  name={spotlight.name}
+                  className="h-80 w-full rounded-xl sm:h-96"
                 />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-gold-dark shadow-md sm:h-12 sm:w-12">
-                    <Play className="h-4 w-4 translate-x-0.5 fill-current" strokeWidth={0} />
-                  </span>
+              </div>
+            )}
+
+            {spotlightThumb && (
+              <div className="absolute bottom-0 left-0 w-2/5 min-w-[160px] rounded-2xl border-4 border-cream bg-white p-1.5 shadow-xl">
+                <div className="relative">
+                  <PropertyImage
+                    images={spotlightThumb.images}
+                    name={spotlightThumb.name}
+                    index={1}
+                    className="h-28 w-full rounded-lg sm:h-36"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-gold-dark shadow-md sm:h-12 sm:w-12">
+                      <Play className="h-4 w-4 translate-x-0.5 fill-current" strokeWidth={0} />
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           <div>

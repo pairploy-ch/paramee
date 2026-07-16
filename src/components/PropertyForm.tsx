@@ -6,6 +6,12 @@ import { propertyTypes } from "@/lib/properties";
 import type { Property, PropertyStatus, PropertyTier, PropertyType, TransitLine } from "@/lib/types";
 import type { Owner } from "@/lib/owners";
 
+interface TransitFormRow {
+  station: string;
+  line: TransitLine;
+  distanceMeters: string;
+}
+
 const statuses: PropertyStatus[] = ["Available", "Reserved", "Sold", "For Rent"];
 const transitLines: TransitLine[] = ["BTS", "MRT", "ARL"];
 
@@ -16,6 +22,7 @@ export interface PropertyFormValues {
   tier: PropertyTier;
   address: string;
   district: string;
+  mapUrl: string;
   description: string;
   salePrice: string;
   rentPrice: string;
@@ -28,9 +35,7 @@ export interface PropertyFormValues {
   commonFeePerSqm: string;
   avgRentInArea: string;
   transferFeeEstimate: string;
-  transitStation: string;
-  transitLine: TransitLine;
-  transitDistanceMeters: string;
+  transit: TransitFormRow[];
   roiPercent: string;
   rentalYieldPercent: string;
   occupancyPercent: string;
@@ -45,6 +50,7 @@ export const emptyPropertyFormValues: PropertyFormValues = {
   tier: 2,
   address: "",
   district: "",
+  mapUrl: "",
   description: "",
   salePrice: "",
   rentPrice: "",
@@ -57,9 +63,7 @@ export const emptyPropertyFormValues: PropertyFormValues = {
   commonFeePerSqm: "",
   avgRentInArea: "",
   transferFeeEstimate: "",
-  transitStation: "",
-  transitLine: "BTS",
-  transitDistanceMeters: "",
+  transit: [{ station: "", line: "BTS", distanceMeters: "" }],
   roiPercent: "",
   rentalYieldPercent: "",
   occupancyPercent: "",
@@ -76,6 +80,7 @@ export function valuesToProperty(v: PropertyFormValues): Omit<Property, "slug"> 
     type: v.type,
     address: v.address,
     district: v.district,
+    mapUrl: v.mapUrl.trim() || null,
     status: v.status,
     salePrice: v.salePrice.trim() === "" ? null : Number(v.salePrice),
     rentPrice: v.rentPrice.trim() === "" ? null : Number(v.rentPrice),
@@ -88,11 +93,9 @@ export function valuesToProperty(v: PropertyFormValues): Omit<Property, "slug"> 
     commonFeePerSqm: num(v.commonFeePerSqm),
     avgRentInArea: num(v.avgRentInArea),
     transferFeeEstimate: num(v.transferFeeEstimate),
-    transit: {
-      station: v.transitStation,
-      line: v.transitLine,
-      distanceMeters: num(v.transitDistanceMeters),
-    },
+    transit: v.transit
+      .filter((row) => row.station.trim())
+      .map((row) => ({ station: row.station, line: row.line, distanceMeters: num(row.distanceMeters) })),
     investor: {
       roiPercent: num(v.roiPercent),
       rentalYieldPercent: num(v.rentalYieldPercent),
@@ -100,6 +103,38 @@ export function valuesToProperty(v: PropertyFormValues): Omit<Property, "slug"> 
       cashflowPerMonth: num(v.cashflowPerMonth),
     },
     description: v.description,
+  };
+}
+
+export function propertyToFormValues(p: Property): PropertyFormValues {
+  return {
+    name: p.name,
+    type: p.type,
+    status: p.status,
+    tier: p.tier,
+    address: p.address,
+    district: p.district,
+    mapUrl: p.mapUrl ?? "",
+    description: p.description,
+    salePrice: p.salePrice != null ? String(p.salePrice) : "",
+    rentPrice: p.rentPrice != null ? String(p.rentPrice) : "",
+    areaSqm: String(p.areaSqm),
+    bedrooms: String(p.bedrooms),
+    bathrooms: String(p.bathrooms),
+    floor: p.floor,
+    facing: p.facing,
+    images: p.images.length ? p.images : [""],
+    commonFeePerSqm: String(p.commonFeePerSqm),
+    avgRentInArea: String(p.avgRentInArea),
+    transferFeeEstimate: String(p.transferFeeEstimate),
+    transit: p.transit.length
+      ? p.transit.map((t) => ({ station: t.station, line: t.line, distanceMeters: String(t.distanceMeters) }))
+      : [{ station: "", line: "BTS", distanceMeters: "" }],
+    roiPercent: String(p.investor.roiPercent),
+    rentalYieldPercent: String(p.investor.rentalYieldPercent),
+    occupancyPercent: String(p.investor.occupancyPercent),
+    cashflowPerMonth: String(p.investor.cashflowPerMonth),
+    ownerId: p.ownerId,
   };
 }
 
@@ -120,30 +155,39 @@ export default function PropertyForm({
   ownerLocked,
   onSubmit,
   submitLabel = "บันทึกทรัพย์",
+  initialProperty,
+  resetOnSuccess = true,
   children,
 }: {
   /** Admin mode: pass the list of owners to choose from. */
   owners?: Owner[];
   /** Owner mode: the property is always attributed to this signed-in owner. */
   ownerLocked?: { id: string; name: string };
-  onSubmit: (property: Omit<Property, "slug">) => Promise<{ error?: string } | void>;
+  onSubmit: (property: Omit<Property, "slug">) => Promise<{ error?: string; slug?: string } | void>;
   submitLabel?: string;
+  /** Edit mode: pre-fills the form with an existing property's values. */
+  initialProperty?: Property;
+  /** Set to false in edit mode so a successful save doesn't blank the form. */
+  resetOnSuccess?: boolean;
   /** Optional extra panel rendered next to the form (e.g. admin's caption preview). */
   children?: (values: PropertyFormValues) => React.ReactNode;
 }) {
-  const [values, setValues] = useState<PropertyFormValues>({
-    ...emptyPropertyFormValues,
-    ownerId: ownerLocked?.id ?? "",
-  });
+  const [values, setValues] = useState<PropertyFormValues>(() =>
+    initialProperty
+      ? propertyToFormValues(initialProperty)
+      : { ...emptyPropertyFormValues, ownerId: ownerLocked?.id ?? "" }
+  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [savedSlug, setSavedSlug] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
 
   function update<K extends keyof PropertyFormValues>(key: K, value: PropertyFormValues[K]) {
     setValues((v) => ({ ...v, [key]: value }));
     setSuccess(false);
+    setSavedSlug(null);
   }
 
   function updateImage(index: number, value: string) {
@@ -156,6 +200,24 @@ export default function PropertyForm({
 
   function removeImageRow(index: number) {
     setValues((v) => ({ ...v, images: v.images.filter((_, i) => i !== index) }));
+  }
+
+  function updateTransit<K extends keyof TransitFormRow>(index: number, key: K, value: TransitFormRow[K]) {
+    setValues((v) => ({
+      ...v,
+      transit: v.transit.map((row, i) => (i === index ? { ...row, [key]: value } : row)),
+    }));
+  }
+
+  function addTransitRow() {
+    setValues((v) => ({
+      ...v,
+      transit: [...v.transit, { station: "", line: "BTS", distanceMeters: "" }],
+    }));
+  }
+
+  function removeTransitRow(index: number) {
+    setValues((v) => ({ ...v, transit: v.transit.filter((_, i) => i !== index) }));
   }
 
   async function handleUploadFiles(files: FileList | null) {
@@ -197,7 +259,10 @@ export default function PropertyForm({
       return;
     }
     setSuccess(true);
-    setValues({ ...emptyPropertyFormValues, ownerId: ownerLocked?.id ?? "" });
+    setSavedSlug(result?.slug ?? null);
+    if (resetOnSuccess) {
+      setValues({ ...emptyPropertyFormValues, ownerId: ownerLocked?.id ?? "" });
+    }
   }
 
   return (
@@ -238,17 +303,19 @@ export default function PropertyForm({
                 ))}
               </select>
             </Field>
-            <Field label="เทียร์ทรัพย์">
-              <select
-                value={values.tier}
-                onChange={(e) => update("tier", Number(e.target.value) as PropertyTier)}
-                className={inputClass}
-              >
-                <option value={1}>Tier 1 (พรีเมียม)</option>
-                <option value={2}>Tier 2 (มาตรฐาน)</option>
-                <option value={3}>Tier 3 (ทั่วไป)</option>
-              </select>
-            </Field>
+            {owners && (
+              <Field label="เทียร์ทรัพย์">
+                <select
+                  value={values.tier}
+                  onChange={(e) => update("tier", Number(e.target.value) as PropertyTier)}
+                  className={inputClass}
+                >
+                  <option value={1}>Tier 1 (พรีเมียม)</option>
+                  <option value={2}>Tier 2 (มาตรฐาน)</option>
+                  <option value={3}>Tier 3 (ทั่วไป)</option>
+                </select>
+              </Field>
+            )}
             <Field label="ที่อยู่">
               <input
                 required
@@ -262,6 +329,15 @@ export default function PropertyForm({
                 required
                 value={values.district}
                 onChange={(e) => update("district", e.target.value)}
+                className={inputClass}
+              />
+            </Field>
+            <Field label="ลิงก์ Google Maps">
+              <input
+                type="url"
+                value={values.mapUrl}
+                onChange={(e) => update("mapUrl", e.target.value)}
+                placeholder="https://maps.app.goo.gl/..."
                 className={inputClass}
               />
             </Field>
@@ -410,48 +486,92 @@ export default function PropertyForm({
         </div>
 
         <div className="rounded-2xl border border-gold-light/40 bg-white p-6">
-          <h2 className="font-heading text-lg font-semibold text-maroon-dark">ระบบขนส่งและทำเล</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            <Field label="สถานีใกล้ที่สุด">
-              <input value={values.transitStation} onChange={(e) => update("transitStation", e.target.value)} className={inputClass} />
-            </Field>
-            <Field label="สายรถไฟฟ้า">
-              <select
-                value={values.transitLine}
-                onChange={(e) => update("transitLine", e.target.value as TransitLine)}
-                className={inputClass}
-              >
-                {transitLines.map((l) => (
-                  <option key={l}>{l}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="ระยะทาง (เมตร)">
-              <input value={values.transitDistanceMeters} onChange={(e) => update("transitDistanceMeters", e.target.value)} className={inputClass} />
-            </Field>
+          <div className="flex items-center justify-between">
+            <h2 className="font-heading text-lg font-semibold text-maroon-dark">ระบบขนส่งและทำเล</h2>
+            <button
+              type="button"
+              onClick={addTransitRow}
+              className="flex items-center gap-1 border border-gold-dark px-3 py-1.5 text-xs font-medium text-gold-dark hover:bg-cream-dark"
+            >
+              <Plus className="h-3.5 w-3.5" strokeWidth={1.75} /> เพิ่มสถานี
+            </button>
+          </div>
+
+          <div className="mt-4 space-y-3">
+            {values.transit.map((row, i) => (
+              <div key={i} className="grid gap-3 sm:grid-cols-[1fr_140px_140px_auto]">
+                <input
+                  value={row.station}
+                  onChange={(e) => updateTransit(i, "station", e.target.value)}
+                  placeholder="สถานีใกล้ที่สุด"
+                  className={inputClass}
+                />
+                <select
+                  value={row.line}
+                  onChange={(e) => updateTransit(i, "line", e.target.value as TransitLine)}
+                  className={inputClass}
+                >
+                  {transitLines.map((l) => (
+                    <option key={l}>{l}</option>
+                  ))}
+                </select>
+                <input
+                  value={row.distanceMeters}
+                  onChange={(e) => updateTransit(i, "distanceMeters", e.target.value)}
+                  placeholder="ระยะทาง (เมตร)"
+                  className={inputClass}
+                />
+                <button
+                  type="button"
+                  aria-label="ลบสถานี"
+                  onClick={() => removeTransitRow(i)}
+                  className="border border-cream-dark px-3 text-ink/40 hover:border-red-400 hover:text-red-500"
+                >
+                  <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+                </button>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div className="rounded-2xl border border-gold-light/40 bg-white p-6">
-          <h2 className="font-heading text-lg font-semibold text-maroon-dark">ข้อมูลสำหรับนักลงทุน</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-4">
-            <Field label="ROI (%)">
-              <input value={values.roiPercent} onChange={(e) => update("roiPercent", e.target.value)} className={inputClass} />
-            </Field>
-            <Field label="Rental Yield (%)">
-              <input value={values.rentalYieldPercent} onChange={(e) => update("rentalYieldPercent", e.target.value)} className={inputClass} />
-            </Field>
-            <Field label="Occupancy (%)">
-              <input value={values.occupancyPercent} onChange={(e) => update("occupancyPercent", e.target.value)} className={inputClass} />
-            </Field>
-            <Field label="Cashflow / เดือน (บาท)">
-              <input value={values.cashflowPerMonth} onChange={(e) => update("cashflowPerMonth", e.target.value)} className={inputClass} />
-            </Field>
+        {/* Investor info — commented out for now
+        {owners && (
+          <div className="rounded-2xl border border-gold-light/40 bg-white p-6">
+            <h2 className="font-heading text-lg font-semibold text-maroon-dark">ข้อมูลสำหรับนักลงทุน</h2>
+            <div className="mt-4 grid gap-4 sm:grid-cols-4">
+              <Field label="ROI (%)">
+                <input value={values.roiPercent} onChange={(e) => update("roiPercent", e.target.value)} className={inputClass} />
+              </Field>
+              <Field label="Rental Yield (%)">
+                <input value={values.rentalYieldPercent} onChange={(e) => update("rentalYieldPercent", e.target.value)} className={inputClass} />
+              </Field>
+              <Field label="Occupancy (%)">
+                <input value={values.occupancyPercent} onChange={(e) => update("occupancyPercent", e.target.value)} className={inputClass} />
+              </Field>
+              <Field label="Cashflow / เดือน (บาท)">
+                <input value={values.cashflowPerMonth} onChange={(e) => update("cashflowPerMonth", e.target.value)} className={inputClass} />
+              </Field>
+            </div>
           </div>
-        </div>
+        )}
+        */}
 
         {error && <p className="text-sm text-red-600">{error}</p>}
-        {success && <p className="text-sm text-emerald-700">บันทึกทรัพย์เรียบร้อยแล้ว</p>}
+        {success && (
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm">
+            <p className="text-emerald-700">บันทึกทรัพย์เรียบร้อยแล้ว</p>
+            {savedSlug && (
+              <a
+                href={`/properties/${savedSlug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-block font-semibold text-maroon-dark underline hover:text-maroon"
+              >
+                ดูหน้ารายละเอียดทรัพย์ (เหมือนที่ลูกค้าเห็น พร้อมลายน้ำ) ↗
+              </a>
+            )}
+          </div>
+        )}
 
         <button
           type="submit"

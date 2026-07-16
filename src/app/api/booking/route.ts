@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { fetchPropertyBySlug } from "@/lib/data/properties";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { createPublicClient } from "@/lib/supabase/publicClient";
-import { buildGoogleCalendarLink } from "@/lib/googleCalendar";
 import { sendMail } from "@/lib/mailer";
 
 const modeCopy: Record<string, string> = {
@@ -59,19 +58,6 @@ export async function POST(request: Request) {
     ? await fetchPropertyBySlug(propertySlug, isSupabaseConfigured ? createPublicClient() : undefined)
     : undefined;
 
-  let calendarLink: string | undefined;
-  if (mode === "view" && date && time) {
-    const start = new Date(`${date}T${time}:00`);
-    const end = new Date(start.getTime() + 60 * 60 * 1000);
-    calendarLink = buildGoogleCalendarLink({
-      title: `นัดชมทรัพย์: ${property?.name ?? "Paramee Asset"}`,
-      description: `ลูกค้า: ${name}\nโทร: ${phone}\nอีเมล: ${email}${note ? `\nหมายเหตุ: ${note}` : ""}`,
-      location: property ? `${property.address}, ${property.district}` : undefined,
-      start,
-      end,
-    });
-  }
-
   if (isSupabaseConfigured) {
     const supabase = createPublicClient();
     await supabase.from("bookings").insert({
@@ -96,7 +82,6 @@ export async function POST(request: Request) {
     property ? `ทรัพย์ที่สนใจ: ${property.name}` : null,
     mode === "view" ? `วันเวลานัด: ${date} ${time} น.` : null,
     note ? `หมายเหตุ: ${note}` : null,
-    calendarLink ? `เพิ่มลง Google Calendar: ${calendarLink}` : null,
   ].filter(Boolean);
 
   await sendMail({
@@ -117,5 +102,5 @@ export async function POST(request: Request) {
     ].join("\n"),
   });
 
-  return NextResponse.json({ ok: true, calendarLink });
+  return NextResponse.json({ ok: true });
 }

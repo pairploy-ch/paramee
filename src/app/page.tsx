@@ -19,6 +19,7 @@ export default async function Home() {
   const availableProperties = properties.filter(
     (p) => p.status === "Available" || p.status === "For Rent"
   );
+  const featuredProperties = availableProperties.filter((p) => p.tier === 1);
   const spotlight = availableProperties[0] ?? properties[0];
   const spotlightThumb = availableProperties[1] ?? availableProperties[0] ?? properties[0];
 
@@ -41,7 +42,7 @@ export default async function Home() {
 
       <MainFocusSection />
 
-      <FeaturedSection properties={availableProperties} />
+      <FeaturedSection properties={featuredProperties} />
 
       <HomeClosingSection testimonials={testimonials} articles={articles} />
     </>

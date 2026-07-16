@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { properties } from "@/lib/properties";
 import { fetchAllProperties, fetchPropertyBySlug } from "@/lib/data/properties";
+import { fetchOwnerContact } from "@/lib/data/owners";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { createPublicClient } from "@/lib/supabase/publicClient";
 import { getSessionProfile } from "@/lib/supabase/server";
@@ -39,8 +40,14 @@ export default async function PropertyDetailPage({
   const relatedProperties = allProperties
     .filter((p) => p.slug !== property.slug && (p.district === property.district || p.type === property.type))
     .slice(0, 3);
+  const ownerContact = await fetchOwnerContact(property.ownerId, supabase);
 
   return (
-    <PropertyDetailView property={property} relatedProperties={relatedProperties} isAdmin={isAdmin} />
+    <PropertyDetailView
+      property={property}
+      relatedProperties={relatedProperties}
+      isAdmin={isAdmin}
+      ownerContact={ownerContact}
+    />
   );
 }

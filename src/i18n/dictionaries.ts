@@ -109,6 +109,7 @@ interface Dictionary {
     amenities: string;
     costs: string;
     transit: string;
+    openInMaps: string;
     investorInfo: string;
     bookViewing: string;
     calculateMortgage: string;
@@ -133,6 +134,7 @@ interface Dictionary {
     distanceLabel: string;
     cashflowLabel: string;
     estateAgent: string;
+    propertyOwner: string;
     callButton: string;
   };
   booking: {
@@ -147,6 +149,8 @@ interface Dictionary {
     emailLabel: string;
     propertyLabel: string;
     propertyUnset: string;
+    propertySearchPlaceholder: string;
+    propertyNoResults: string;
     dateLabel: string;
     timeLabel: string;
     timePlaceholder: string;
@@ -170,7 +174,6 @@ interface Dictionary {
     sending: string;
     successHeading: string;
     successBody: string;
-    addToCalendar: string;
   };
   mortgage: {
     heading: string;
@@ -277,7 +280,7 @@ export const dictionaries: Record<Lang, Dictionary> = {
       sellDescription: "ให้ทีม Paramee ช่วยวิเคราะห์ราคาแนะนำ Rental Yield และดูแลทรัพย์ของคุณผ่าน Owner Portal",
       featuredBadge: "ทรัพย์",
       featuredHeading: "ทรัพย์แนะนำ",
-      featuredSubtitle: "คัดสรรทำเลดี ราคาคุ้มค่า พร้อมข้อมูลนักลงทุนครบถ้วน",
+      featuredSubtitle: "คัดสรรทำเลดี ราคาคุ้มค่า จากทรัพย์ระดับพรีเมียม",
       viewAll: "ดูทรัพย์ทั้งหมด →",
       statsPropertiesLabel: "ทรัพย์ในระบบ",
       statsPropertiesValue: "300–500+",
@@ -331,6 +334,7 @@ export const dictionaries: Record<Lang, Dictionary> = {
       amenities: "สิ่งอำนวยความสะดวก",
       costs: "ค่าใช้จ่าย",
       transit: "ระบบขนส่งและทำเล",
+      openInMaps: "เปิดใน Google Maps",
       investorInfo: "ข้อมูลสำหรับนักลงทุน",
       bookViewing: "นัดชมทรัพย์นี้",
       calculateMortgage: "คำนวณสินเชื่อสำหรับทรัพย์นี้",
@@ -355,6 +359,7 @@ export const dictionaries: Record<Lang, Dictionary> = {
       distanceLabel: "ระยะทาง",
       cashflowLabel: "Cashflow ต่อเดือน",
       estateAgent: "Estate Agent",
+      propertyOwner: "เจ้าของทรัพย์",
       callButton: "โทร",
     },
     booking: {
@@ -369,6 +374,8 @@ export const dictionaries: Record<Lang, Dictionary> = {
       emailLabel: "อีเมล",
       propertyLabel: "ทรัพย์ที่สนใจ",
       propertyUnset: "— ยังไม่ระบุ —",
+      propertySearchPlaceholder: "พิมพ์เพื่อค้นหาชื่อโครงการ...",
+      propertyNoResults: "ไม่พบทรัพย์ที่ตรงกัน",
       dateLabel: "วันที่นัด",
       timeLabel: "เวลานัด (09:00-17:00 น.)",
       timePlaceholder: "— เลือกเวลา —",
@@ -393,7 +400,6 @@ export const dictionaries: Record<Lang, Dictionary> = {
       sending: "กำลังส่ง...",
       successHeading: "ส่งคำขอเรียบร้อยแล้ว",
       successBody: "ทีมงาน Paramee Asset ได้รับข้อมูลของคุณแล้ว และได้ส่งอีเมลยืนยันไปที่",
-      addToCalendar: "เพิ่มนัดหมายลง Google Calendar",
     },
     mortgage: {
       heading: "คำนวณสินเชื่อ",
@@ -500,7 +506,7 @@ export const dictionaries: Record<Lang, Dictionary> = {
       sellDescription: "Let the Paramee team analyze pricing, rental yield, and manage your property via the Owner Portal.",
       featuredBadge: "Listings",
       featuredHeading: "Featured Properties",
-      featuredSubtitle: "Great locations, good value, with full investor data.",
+      featuredSubtitle: "Great locations, good value — hand-picked premium listings.",
       viewAll: "View all properties →",
       statsPropertiesLabel: "Properties listed",
       statsPropertiesValue: "300–500+",
@@ -554,6 +560,7 @@ export const dictionaries: Record<Lang, Dictionary> = {
       amenities: "Amenities",
       costs: "Costs",
       transit: "Transit & Location",
+      openInMaps: "Open in Google Maps",
       investorInfo: "Investor Information",
       bookViewing: "Book a Viewing",
       calculateMortgage: "Calculate Mortgage for This Property",
@@ -578,6 +585,7 @@ export const dictionaries: Record<Lang, Dictionary> = {
       distanceLabel: "Distance",
       cashflowLabel: "Cashflow / month",
       estateAgent: "Estate Agent",
+      propertyOwner: "Property Owner",
       callButton: "Call",
     },
     booking: {
@@ -592,6 +600,8 @@ export const dictionaries: Record<Lang, Dictionary> = {
       emailLabel: "Email",
       propertyLabel: "Property of Interest",
       propertyUnset: "— Not specified —",
+      propertySearchPlaceholder: "Type to search property name...",
+      propertyNoResults: "No matching properties",
       dateLabel: "Appointment Date",
       timeLabel: "Appointment Time (09:00-17:00)",
       timePlaceholder: "— Select a time —",
@@ -616,7 +626,6 @@ export const dictionaries: Record<Lang, Dictionary> = {
       sending: "Sending...",
       successHeading: "Request Submitted",
       successBody: "The Paramee Asset team has received your information and sent a confirmation email to",
-      addToCalendar: "Add to Google Calendar",
     },
     mortgage: {
       heading: "Mortgage Calculator",

@@ -1,16 +1,18 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { CheckCircle2, MapPin, Phone, Star } from "lucide-react";
+import { CheckCircle2, MapPin, Phone, Star, User, ExternalLink } from "lucide-react";
 import type { Property } from "@/lib/types";
+import type { OwnerContactInfo } from "@/lib/data/owners";
 import { getAmenities } from "@/lib/amenities";
 import { formatBaht, propertyTypeLabel } from "@/lib/format";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import PropertyCard from "@/components/PropertyCard";
 import PropertyGallery from "@/components/PropertyGallery";
 import ShareButton from "@/components/ShareButton";
-import { FacebookIcon, InstagramIcon, LineIcon } from "@/components/icons";
-import { socialLinks } from "@/lib/social";
+import { FacebookIcon, InstagramIcon, TikTokIcon, LineIcon } from "@/components/icons";
+import { socialLinks, CONTACT_PHONE } from "@/lib/social";
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
@@ -25,10 +27,12 @@ export default function PropertyDetailView({
   property,
   relatedProperties,
   isAdmin,
+  ownerContact,
 }: {
   property: Property;
   relatedProperties: Property[];
   isAdmin: boolean;
+  ownerContact: OwnerContactInfo | null;
 }) {
   const { t, lang } = useTranslation();
 
@@ -42,6 +46,22 @@ export default function PropertyDetailView({
   const mapQuery = encodeURIComponent(`${property.address}, ${property.district}, กรุงเทพฯ`);
   const amenities = getAmenities(property.type, lang);
   const mapTitle = lang === "en" ? `Map of ${property.name}` : `แผนที่ ${property.name}`;
+
+  const hasOwnerContact = Boolean(ownerContact?.name?.trim());
+  const displayName = ownerContact?.name?.trim() || t.propertyDetail.salesTeam;
+  const displayPhone = ownerContact?.phone?.trim() || CONTACT_PHONE;
+  const displayPhoneHref = `tel:${displayPhone.replace(/[^0-9+]/g, "")}`;
+  const ownerLineId = ownerContact?.lineId?.trim();
+  const lineHref = ownerLineId
+    ? /^https?:\/\//i.test(ownerLineId)
+      ? ownerLineId
+      : `https://line.me/ti/p/~${encodeURIComponent(ownerLineId.replace(/^@/, ""))}`
+    : socialLinks.line.href;
+  const ownerSocialLinks = [
+    { Icon: FacebookIcon, href: ownerContact?.facebookUrl },
+    { Icon: InstagramIcon, href: ownerContact?.instagramUrl },
+    { Icon: TikTokIcon, href: ownerContact?.tiktokUrl },
+  ].filter((s): s is { Icon: typeof FacebookIcon; href: string } => Boolean(s.href?.trim()));
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10 lg:px-8">
@@ -159,14 +179,13 @@ export default function PropertyDetailView({
               {t.propertyDetail.transit}
             </h2>
             <div className="mt-3 grid gap-x-8 sm:grid-cols-2">
-              <InfoRow
-                label={t.propertyDetail.nearestStationLabel}
-                value={`${property.transit.line} ${property.transit.station}`}
-              />
-              <InfoRow
-                label={t.propertyDetail.distanceLabel}
-                value={`${property.transit.distanceMeters.toLocaleString()} ${t.units.meterSuffix}`}
-              />
+              {property.transit.map((entry, i) => (
+                <InfoRow
+                  key={i}
+                  label={`${t.propertyDetail.nearestStationLabel}${property.transit.length > 1 ? ` ${i + 1}` : ""}`}
+                  value={`${entry.line} ${entry.station} · ${entry.distanceMeters.toLocaleString()} ${t.units.meterSuffix}`}
+                />
+              ))}
             </div>
             <div className="mt-4 overflow-hidden rounded-xl">
               <iframe
@@ -177,9 +196,19 @@ export default function PropertyDetailView({
                 title={mapTitle}
               />
             </div>
+            <a
+              href={property.mapUrl || `https://www.google.com/maps?q=${mapQuery}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 flex items-center justify-center gap-1.5 border border-gold-dark px-4 py-2.5 text-sm font-medium text-gold-dark transition-colors hover:bg-cream-dark"
+            >
+              <MapPin className="h-4 w-4" strokeWidth={1.75} />
+              {t.propertyDetail.openInMaps}
+              <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.75} />
+            </a>
           </section>
 
-          {/* Investor data */}
+          {/* Investor data — commented out for now
           <section className="mt-6 rounded-2xl border border-gold-light/40 bg-maroon p-6 text-cream">
             <h2 className="font-heading text-lg font-semibold text-gold-light">
               {t.propertyDetail.investorInfo}
@@ -195,6 +224,7 @@ export default function PropertyDetailView({
               ))}
             </div>
           </section>
+          */}
         </div>
 
         {/* Sidebar */}
@@ -233,27 +263,37 @@ export default function PropertyDetailView({
 
           {/* Agent card */}
           <div className="rounded-2xl border border-gold-light/40 bg-white p-6 text-center">
-            <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-maroon font-heading text-xl font-semibold text-gold-light">
-              P
-            </span>
-            <p className="mt-3 font-heading text-base font-semibold text-maroon-dark">
-              {t.propertyDetail.salesTeam}
+            {hasOwnerContact && ownerContact?.avatarUrl ? (
+              <span className="relative mx-auto block h-16 w-16 overflow-hidden rounded-full">
+                <Image src={ownerContact.avatarUrl} alt={displayName} fill sizes="64px" className="object-cover" />
+              </span>
+            ) : hasOwnerContact ? (
+              <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-maroon text-gold-light">
+                <User className="h-7 w-7" strokeWidth={1.5} />
+              </span>
+            ) : (
+              <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-maroon font-heading text-xl font-semibold text-gold-light">
+                P
+              </span>
+            )}
+            <p className="mt-3 font-heading text-base font-semibold text-maroon-dark">{displayName}</p>
+            <p className="text-xs text-ink/50">
+              {hasOwnerContact ? t.propertyDetail.propertyOwner : t.propertyDetail.estateAgent}
             </p>
-            <p className="text-xs text-ink/50">{t.propertyDetail.estateAgent}</p>
             <div className="mt-2 flex items-center justify-center gap-1 text-gold-dark">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Star key={i} className="h-3.5 w-3.5 fill-current" strokeWidth={0} />
               ))}
             </div>
             <a
-              href="tel:0957895692"
+              href={displayPhoneHref}
               className="mt-4 flex items-center justify-center gap-2 border border-gold-dark px-5 py-2.5 text-sm font-medium text-gold-dark transition-colors hover:bg-cream-dark"
             >
               <Phone className="h-4 w-4" strokeWidth={1.75} />
-              095-789-5692
+              {displayPhone}
             </a>
             <a
-              href={socialLinks.line.href}
+              href={lineHref}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-2.5 flex items-center justify-center gap-2 bg-[#06C755] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:opacity-90"
@@ -262,14 +302,27 @@ export default function PropertyDetailView({
               {t.propertyDetail.contactLine}
             </a>
             <div className="mt-4 flex justify-center gap-2.5">
-              {[FacebookIcon, InstagramIcon].map((Icon, i) => (
-                <span
-                  key={i}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-cream-dark text-ink/50 transition-colors hover:border-gold-dark hover:text-gold-dark"
-                >
-                  <Icon className="h-4 w-4" strokeWidth={1.75} />
-                </span>
-              ))}
+              {(hasOwnerContact ? ownerSocialLinks : [{ Icon: FacebookIcon, href: null }, { Icon: InstagramIcon, href: null }]).map(
+                ({ Icon, href }, i) =>
+                  href ? (
+                    <a
+                      key={i}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-cream-dark text-ink/50 transition-colors hover:border-gold-dark hover:text-gold-dark"
+                    >
+                      <Icon className="h-4 w-4" strokeWidth={1.75} />
+                    </a>
+                  ) : (
+                    <span
+                      key={i}
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-cream-dark text-ink/50 transition-colors hover:border-gold-dark hover:text-gold-dark"
+                    >
+                      <Icon className="h-4 w-4" strokeWidth={1.75} />
+                    </span>
+                  )
+              )}
             </div>
           </div>
         </aside>

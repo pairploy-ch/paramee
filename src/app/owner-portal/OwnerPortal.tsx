@@ -1,59 +1,73 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { User, Pencil, Trash2 } from "lucide-react";
 import { formatBaht } from "@/lib/format";
 import PropertyImage from "@/components/PropertyImage";
 import PropertyForm from "@/components/PropertyForm";
 import LogoutButton from "@/components/LogoutButton";
-import { createClient } from "@/lib/supabase/client";
-import { insertProperty } from "@/lib/data/properties";
+import ConfirmModal from "@/components/ConfirmModal";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { insertProperty, deletePropertyBySlug } from "@/lib/data/properties";
+import { useProperties } from "@/lib/propertyStore";
 import type { Property } from "@/lib/types";
 
-const viewsByWeek = [
-  { label: "สัปดาห์ที่ 1", views: 42 },
-  { label: "สัปดาห์ที่ 2", views: 58 },
-  { label: "สัปดาห์ที่ 3", views: 35 },
-  { label: "สัปดาห์ที่ 4", views: 71 },
-];
-
-const appointments = [
-  { date: "2026-07-08", time: "14:00", name: "คุณสมชาย", status: "เข้าชมแล้ว" },
-  { date: "2026-07-10", time: "10:30", name: "คุณพิมพ์ใจ", status: "เข้าชมแล้ว" },
-  { date: "2026-07-14", time: "16:00", name: "คุณอนันต์", status: "รอยืนยัน" },
-];
-
-const paymentHistory = [
-  { period: "มิ.ย. 2569", amount: 38000, status: "ชำระแล้ว" },
-  { period: "พ.ค. 2569", amount: 38000, status: "ชำระแล้ว" },
-  { period: "เม.ย. 2569", amount: 38000, status: "ชำระแล้ว" },
-];
+export interface OwnerContact {
+  name: string;
+  phone: string;
+  avatarUrl: string;
+  lineId: string;
+  facebookUrl: string;
+  instagramUrl: string;
+  tiktokUrl: string;
+}
 
 export default function OwnerPortal({
   ownerName,
   ownerId,
   initialProperties,
+  contact,
 }: {
   ownerName: string;
   ownerId: string;
   initialProperties: Property[];
+  contact: OwnerContact;
 }) {
   const router = useRouter();
+  const localStore = useProperties();
+  const [tab, setTab] = useState<"properties" | "contact">("properties");
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ slug: string; name: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const selectedProperty =
     initialProperties.find((p) => p.slug === selectedSlug) ?? initialProperties[0];
 
-  const maxViews = Math.max(...viewsByWeek.map((v) => v.views));
-
   async function handleAddProperty(property: Omit<Property, "slug">) {
     const supabase = createClient();
-    const { error } = await insertProperty(supabase, { ...property, ownerId });
+    const { data, error } = await insertProperty(supabase, { ...property, ownerId });
     if (error) return { error: error.message };
     router.refresh();
-    setShowAddForm(false);
-    return {};
+    return { slug: data?.slug };
+  }
+
+  async function confirmDeleteProperty() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    if (isSupabaseConfigured) {
+      const supabase = createClient();
+      await deletePropertyBySlug(supabase, deleteTarget.slug);
+      router.refresh();
+    } else {
+      localStore.deleteProperty(deleteTarget.slug);
+    }
+    setDeleting(false);
+    setDeleteTarget(null);
+    setSelectedSlug(null);
   }
 
   return (
@@ -68,16 +82,41 @@ export default function OwnerPortal({
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowAddForm((v) => !v)}
-            className="bg-gold px-4 py-2 text-sm font-medium text-maroon-dark hover:bg-gold-light"
-          >
-            {showAddForm ? "ปิดฟอร์ม" : "+ เพิ่มทรัพย์ใหม่"}
-          </button>
+          {tab === "properties" && (
+            <button
+              onClick={() => setShowAddForm((v) => !v)}
+              className="bg-gold px-4 py-2 text-sm font-medium text-maroon-dark hover:bg-gold-light"
+            >
+              {showAddForm ? "ปิดฟอร์ม" : "+ เพิ่มทรัพย์ใหม่"}
+            </button>
+          )}
           <LogoutButton />
         </div>
       </div>
 
+      <div className="mb-6 flex gap-2">
+        <button
+          onClick={() => setTab("properties")}
+          className={`px-4 py-2 text-sm font-medium ${
+            tab === "properties" ? "bg-maroon text-cream" : "border border-cream-dark text-ink/60"
+          }`}
+        >
+          ทรัพย์ของฉัน
+        </button>
+        <button
+          onClick={() => setTab("contact")}
+          className={`px-4 py-2 text-sm font-medium ${
+            tab === "contact" ? "bg-maroon text-cream" : "border border-cream-dark text-ink/60"
+          }`}
+        >
+          ข้อมูลติดต่อ
+        </button>
+      </div>
+
+      {tab === "contact" ? (
+        <OwnerContactForm ownerId={ownerId} initial={contact} />
+      ) : (
+        <>
       {showAddForm && (
         <div className="mb-10 rounded-2xl border border-gold-light/40 bg-white p-6">
           <h2 className="font-heading text-lg font-semibold text-maroon-dark">เพิ่มทรัพย์ของฉัน</h2>
@@ -139,74 +178,44 @@ export default function OwnerPortal({
                 }
               />
               <StatCard label="ทำเล" value={selectedProperty.district} />
-              <StatCard label="เทียร์ทรัพย์" value={`Tier ${selectedProperty.tier}`} />
+              <a
+                href={`/properties/${selectedProperty.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="col-span-2 flex items-center justify-center gap-1.5 border border-gold-dark px-4 py-3 text-sm font-medium text-gold-dark transition-colors hover:bg-cream-dark"
+              >
+                ดูหน้ารายละเอียดทรัพย์ (เหมือนที่ลูกค้าเห็น พร้อมลายน้ำ) ↗
+              </a>
+              <Link
+                href={`/owner-portal/properties/${selectedProperty.slug}/edit`}
+                className="flex items-center justify-center gap-1.5 bg-gold px-4 py-3 text-sm font-medium text-maroon-dark transition-colors hover:bg-gold-light"
+              >
+                <Pencil className="h-4 w-4" strokeWidth={1.75} />
+                แก้ไขทรัพย์
+              </Link>
+              <button
+                onClick={() => setDeleteTarget({ slug: selectedProperty.slug, name: selectedProperty.name })}
+                className="flex items-center justify-center gap-1.5 border border-cream-dark px-4 py-3 text-sm font-medium text-ink/60 transition-colors hover:border-red-400 hover:text-red-500"
+              >
+                <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+                ลบทรัพย์
+              </button>
             </div>
-          </div>
-
-          <div className="mt-6 grid gap-6 lg:grid-cols-2">
-            <div className="rounded-2xl border border-gold-light/40 bg-white p-6">
-              <h2 className="font-heading text-lg font-semibold text-maroon-dark">
-                จำนวนคนที่สนใจ (เปิดดูประกาศ)
-              </h2>
-              <div className="mt-6 flex h-36 items-end gap-4">
-                {viewsByWeek.map((v) => (
-                  <div key={v.label} className="flex flex-1 flex-col items-center gap-2">
-                    <div
-                      className="w-full rounded-t-md bg-gradient-to-t from-maroon to-gold"
-                      style={{ height: `${Math.round((v.views / maxViews) * 96)}px` }}
-                    />
-                    <span className="text-[10px] text-ink/50">{v.label}</span>
-                    <span className="text-xs font-semibold text-maroon-dark">{v.views}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-gold-light/40 bg-white p-6">
-              <h2 className="font-heading text-lg font-semibold text-maroon-dark">การนัดดูห้อง</h2>
-              <ul className="mt-4 space-y-3 text-sm">
-                {appointments.map((a, i) => (
-                  <li key={i} className="flex items-center justify-between border-b border-cream-dark pb-3 last:border-none">
-                    <div>
-                      <p className="font-medium text-maroon-dark">{a.name}</p>
-                      <p className="text-xs text-ink/50">{a.date} · {a.time}</p>
-                    </div>
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                        a.status === "เข้าชมแล้ว" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
-                      }`}
-                    >
-                      {a.status}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-6 rounded-2xl border border-gold-light/40 bg-white p-6">
-            <h2 className="font-heading text-lg font-semibold text-maroon-dark">ประวัติการจ่ายค่าเช่า</h2>
-            <table className="mt-4 w-full text-left text-sm">
-              <thead className="text-xs uppercase tracking-wide text-ink/50">
-                <tr>
-                  <th className="py-2">งวด</th>
-                  <th className="py-2">จำนวนเงิน</th>
-                  <th className="py-2">สถานะ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paymentHistory.map((p, i) => (
-                  <tr key={i} className="border-t border-cream-dark">
-                    <td className="py-2.5">{p.period}</td>
-                    <td className="py-2.5">{formatBaht(p.amount)}</td>
-                    <td className="py-2.5 text-emerald-700">{p.status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </>
       )}
+        </>
+      )}
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="ยืนยันลบทรัพย์"
+        message={`ยืนยันลบทรัพย์ "${deleteTarget?.name}" ออกจากระบบ? การลบนี้ไม่สามารถย้อนกลับได้`}
+        confirmLabel="ลบทรัพย์"
+        loading={deleting}
+        onConfirm={confirmDeleteProperty}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }
@@ -223,5 +232,174 @@ function StatCard({ label, value, accent }: { label: string; value: string; acce
         {value}
       </p>
     </div>
+  );
+}
+
+const contactInputClass =
+  "w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold";
+
+function OwnerContactForm({ ownerId, initial }: { ownerId: string; initial: OwnerContact }) {
+  const router = useRouter();
+  const [values, setValues] = useState(initial);
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
+
+  function update<K extends keyof OwnerContact>(key: K, value: OwnerContact[K]) {
+    setValues((v) => ({ ...v, [key]: value }));
+    setSaved(false);
+  }
+
+  async function handleAvatarUpload(file: File | null) {
+    if (!file) return;
+    setUploading(true);
+    setError("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("watermark", "false");
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "อัปโหลดรูปไม่สำเร็จ");
+        return;
+      }
+      update("avatarUrl", data.url);
+    } catch {
+      setError("อัปโหลดรูปไม่สำเร็จ กรุณาลองใหม่");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+    const supabase = createClient();
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({
+        name: values.name || null,
+        phone: values.phone,
+        avatar_url: values.avatarUrl || null,
+        line_id: values.lineId || null,
+        facebook_url: values.facebookUrl || null,
+        instagram_url: values.instagramUrl || null,
+        tiktok_url: values.tiktokUrl || null,
+      })
+      .eq("id", ownerId);
+    setSaving(false);
+    if (updateError) {
+      setError(updateError.message);
+      return;
+    }
+    setSaved(true);
+    router.refresh();
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-2xl space-y-6 rounded-2xl border border-gold-light/40 bg-white p-6"
+    >
+      <div>
+        <h2 className="font-heading text-lg font-semibold text-maroon-dark">ข้อมูลติดต่อของฉัน</h2>
+        <p className="mt-1 text-xs text-ink/50">
+          ข้อมูลนี้ใช้สำหรับให้ทีมงานติดต่อกลับ และอาจแสดงกับลูกค้าที่สนใจทรัพย์ของคุณ
+        </p>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-cream-dark">
+          {values.avatarUrl ? (
+            <Image src={values.avatarUrl} alt="รูปโปรไฟล์" fill sizes="64px" className="object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-ink/30">
+              <User className="h-7 w-7" strokeWidth={1.5} />
+            </div>
+          )}
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-ink/60">รูปโปรไฟล์</label>
+          <input
+            type="file"
+            accept="image/*"
+            disabled={uploading}
+            onChange={(e) => handleAvatarUpload(e.target.files?.[0] ?? null)}
+            className="text-xs text-ink/60 file:mr-3 file:border-0 file:bg-gold file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-maroon-dark disabled:opacity-50"
+          />
+          {uploading && <p className="mt-1 text-xs text-ink/50">กำลังอัปโหลด...</p>}
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-ink/60">ชื่อที่แสดง</label>
+          <input
+            value={values.name}
+            onChange={(e) => update("name", e.target.value)}
+            placeholder="ชื่อ-นามสกุล ที่จะแสดงในหน้ารายละเอียดทรัพย์"
+            className={contactInputClass}
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-ink/60">เบอร์โทร</label>
+          <input
+            value={values.phone}
+            onChange={(e) => update("phone", e.target.value)}
+            className={contactInputClass}
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-ink/60">LINE ID</label>
+          <input
+            value={values.lineId}
+            onChange={(e) => update("lineId", e.target.value)}
+            placeholder="@yourline"
+            className={contactInputClass}
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-ink/60">Facebook</label>
+          <input
+            value={values.facebookUrl}
+            onChange={(e) => update("facebookUrl", e.target.value)}
+            placeholder="https://facebook.com/..."
+            className={contactInputClass}
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-ink/60">Instagram</label>
+          <input
+            value={values.instagramUrl}
+            onChange={(e) => update("instagramUrl", e.target.value)}
+            placeholder="https://instagram.com/..."
+            className={contactInputClass}
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-ink/60">TikTok</label>
+          <input
+            value={values.tiktokUrl}
+            onChange={(e) => update("tiktokUrl", e.target.value)}
+            placeholder="https://tiktok.com/@..."
+            className={contactInputClass}
+          />
+        </div>
+      </div>
+
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      {saved && <p className="text-sm text-emerald-700">บันทึกข้อมูลเรียบร้อยแล้ว</p>}
+
+      <button
+        type="submit"
+        disabled={saving}
+        className="bg-maroon px-5 py-3 text-sm font-medium text-cream transition-colors hover:bg-maroon-light disabled:opacity-50"
+      >
+        {saving ? "กำลังบันทึก..." : "บันทึกข้อมูลติดต่อ"}
+      </button>
+    </form>
   );
 }

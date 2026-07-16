@@ -6,6 +6,12 @@ export type TransitLine = "BTS" | "MRT" | "ARL";
 
 export type PropertyTier = 1 | 2 | 3;
 
+export interface TransitInfo {
+  station: string;
+  line: TransitLine;
+  distanceMeters: number;
+}
+
 export interface Property {
   slug: string;
   ownerId: string;
@@ -14,6 +20,7 @@ export interface Property {
   type: PropertyType;
   address: string;
   district: string;
+  mapUrl: string | null;
   status: PropertyStatus;
   salePrice: number | null;
   rentPrice: number | null;
@@ -26,11 +33,7 @@ export interface Property {
   commonFeePerSqm: number;
   avgRentInArea: number;
   transferFeeEstimate: number;
-  transit: {
-    station: string;
-    line: TransitLine;
-    distanceMeters: number;
-  };
+  transit: TransitInfo[];
   investor: {
     roiPercent: number;
     rentalYieldPercent: number;

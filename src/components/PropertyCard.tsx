@@ -1,16 +1,20 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { MapPin, BedDouble, Bath, Ruler, ArrowRight } from "lucide-react";
+import { MapPin, BedDouble, Bath, Ruler, ArrowRight, User } from "lucide-react";
 import type { Property } from "@/lib/types";
 import { formatCompactBaht, formatBaht, propertyTypeLabel } from "@/lib/format";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { useOwnerContact } from "./OwnerContactsProvider";
 import PropertyImage from "./PropertyImage";
 import StatusBadge from "./StatusBadge";
 import BookmarkButton from "./BookmarkButton";
 
 export default function PropertyCard({ property }: { property: Property }) {
   const { t, lang } = useTranslation();
+  const ownerContact = useOwnerContact(property.ownerId);
+  const ownerName = ownerContact?.name?.trim();
 
   return (
     <Link
@@ -30,8 +34,15 @@ export default function PropertyCard({ property }: { property: Property }) {
         </div>
         <div className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/60 to-transparent px-4 py-2.5 text-xs text-cream/90">
           <MapPin className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden />
-          {property.district} · {property.transit.line} {property.transit.station} ·{" "}
-          {property.transit.distanceMeters} {t.units.meterSuffix}
+          {property.district}
+          {property.transit[0] && (
+            <>
+              {" "}
+              · {property.transit[0].line} {property.transit[0].station} ·{" "}
+              {property.transit[0].distanceMeters} {t.units.meterSuffix}
+              {property.transit.length > 1 && ` +${property.transit.length - 1}`}
+            </>
+          )}
         </div>
       </div>
 
@@ -74,12 +85,26 @@ export default function PropertyCard({ property }: { property: Property }) {
 
         <div className="mt-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-maroon font-heading text-xs font-semibold text-gold-light">
-              P
-            </span>
-            <div className="leading-tight">
-              <p className="text-xs font-semibold text-ink/80">{t.propertyDetail.salesTeam}</p>
-              <p className="text-[11px] text-ink/45">{t.propertyDetail.estateAgent}</p>
+            {ownerName && ownerContact?.avatarUrl ? (
+              <span className="relative block h-8 w-8 shrink-0 overflow-hidden rounded-full">
+                <Image src={ownerContact.avatarUrl} alt={ownerName} fill sizes="32px" className="object-cover" />
+              </span>
+            ) : ownerName ? (
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-maroon text-gold-light">
+                <User className="h-4 w-4" strokeWidth={1.75} />
+              </span>
+            ) : (
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-maroon font-heading text-xs font-semibold text-gold-light">
+                P
+              </span>
+            )}
+            <div className="min-w-0 leading-tight">
+              <p className="truncate text-xs font-semibold text-ink/80">
+                {ownerName || t.propertyDetail.salesTeam}
+              </p>
+              <p className="text-[11px] text-ink/45">
+                {ownerName ? t.propertyDetail.propertyOwner : t.propertyDetail.estateAgent}
+              </p>
             </div>
           </div>
           <span className="flex h-8 w-8 items-center justify-center rounded-full border border-gold-light/50 text-gold-dark transition-colors group-hover:bg-gold group-hover:text-maroon-dark">

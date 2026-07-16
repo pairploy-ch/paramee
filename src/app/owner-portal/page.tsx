@@ -38,6 +38,15 @@ export default async function OwnerPortalPage() {
       ownerName={profile?.name ?? user?.email ?? "เจ้าของทรัพย์"}
       ownerId={user?.id ?? ""}
       initialProperties={ownedProperties}
+      contact={{
+        name: profile?.name ?? "",
+        phone: profile?.phone ?? "",
+        avatarUrl: profile?.avatarUrl ?? "",
+        lineId: profile?.lineId ?? "",
+        facebookUrl: profile?.facebookUrl ?? "",
+        instagramUrl: profile?.instagramUrl ?? "",
+        tiktokUrl: profile?.tiktokUrl ?? "",
+      }}
     />
   );
 }

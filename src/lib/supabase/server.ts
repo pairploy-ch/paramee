@@ -42,6 +42,11 @@ export interface Profile {
   name: string | null;
   phone: string | null;
   email: string | null;
+  avatarUrl: string | null;
+  lineId: string | null;
+  facebookUrl: string | null;
+  instagramUrl: string | null;
+  tiktokUrl: string | null;
 }
 
 export async function getSessionProfile(): Promise<{
@@ -58,7 +63,9 @@ export async function getSessionProfile(): Promise<{
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, role, name, phone, email")
+    .select(
+      "id, role, name, phone, email, avatarUrl:avatar_url, lineId:line_id, facebookUrl:facebook_url, instagramUrl:instagram_url, tiktokUrl:tiktok_url"
+    )
     .eq("id", user.id)
     .maybeSingle();
 

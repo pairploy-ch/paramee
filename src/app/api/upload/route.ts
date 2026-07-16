@@ -29,10 +29,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "ไฟล์ต้องมีขนาดไม่เกิน 10MB" }, { status: 400 });
   }
 
-  let watermarked: Buffer;
+  const shouldWatermark = formData.get("watermark") !== "false";
+
+  let processed: Buffer;
   try {
     const bytes = Buffer.from(await file.arrayBuffer());
-    watermarked = await applyWatermark(bytes);
+    processed = shouldWatermark ? await applyWatermark(bytes) : bytes;
   } catch {
     return NextResponse.json({ error: "ไม่สามารถประมวลผลรูปภาพนี้ได้" }, { status: 400 });
   }
@@ -42,7 +44,7 @@ export async function POST(request: Request) {
 
   const { error: uploadError } = await supabase.storage
     .from("property-images")
-    .upload(objectPath, watermarked, { contentType: "image/jpeg", upsert: false });
+    .upload(objectPath, processed, { contentType: shouldWatermark ? "image/jpeg" : file.type, upsert: false });
 
   if (uploadError) {
     return NextResponse.json({ error: uploadError.message }, { status: 500 });

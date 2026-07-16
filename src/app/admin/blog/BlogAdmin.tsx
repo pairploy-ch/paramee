@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, X, Trash2 } from "lucide-react";
-import AdminNav from "@/components/AdminNav";
+import { Pencil, X, Trash2, Loader2 } from "lucide-react";
 import { formatThaiDate } from "@/lib/format";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { insertPost, updatePostBySlug, deletePostBySlug, type NewPostInput } from "@/lib/data/posts";
@@ -41,6 +40,7 @@ export default function BlogAdmin({ initialPosts }: { initialPosts: BlogPost[] }
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
+  const [pendingSlug, setPendingSlug] = useState<string | null>(null);
 
   function update<K extends keyof typeof emptyForm>(key: K, value: (typeof emptyForm)[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -80,6 +80,7 @@ export default function BlogAdmin({ initialPosts }: { initialPosts: BlogPost[] }
   }
 
   async function handleTogglePublish(post: BlogPost) {
+    setPendingSlug(post.slug);
     const patch: Partial<NewPostInput> = { isPublished: !post.isPublished };
     if (isSupabaseConfigured) {
       const supabase = createClient();
@@ -88,9 +89,11 @@ export default function BlogAdmin({ initialPosts }: { initialPosts: BlogPost[] }
     } else {
       localStore.updatePost(post.slug, patch);
     }
+    setPendingSlug(null);
   }
 
   async function handleDelete(post: BlogPost) {
+    setPendingSlug(post.slug);
     if (isSupabaseConfigured) {
       const supabase = createClient();
       await deletePostBySlug(supabase, post.slug);
@@ -98,9 +101,11 @@ export default function BlogAdmin({ initialPosts }: { initialPosts: BlogPost[] }
     } else {
       localStore.deletePost(post.slug);
     }
+    setPendingSlug(null);
   }
 
   async function handleSaveEdit(post: BlogPost, patch: Partial<NewPostInput>) {
+    setPendingSlug(post.slug);
     if (isSupabaseConfigured) {
       const supabase = createClient();
       await updatePostBySlug(supabase, post.slug, patch);
@@ -108,13 +113,12 @@ export default function BlogAdmin({ initialPosts }: { initialPosts: BlogPost[] }
     } else {
       localStore.updatePost(post.slug, patch);
     }
+    setPendingSlug(null);
     setEditingSlug(null);
   }
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-10 lg:px-8">
-      <AdminNav />
-
       <div className="mb-8">
         <h1 className="font-heading text-3xl font-semibold text-maroon-dark">จัดการบทความ</h1>
         <p className="mt-2 text-sm text-ink/60">
@@ -210,6 +214,7 @@ export default function BlogAdmin({ initialPosts }: { initialPosts: BlogPost[] }
             key={post.slug}
             post={post}
             isEditing={editingSlug === post.slug}
+            pending={pendingSlug === post.slug}
             onToggleEdit={() => setEditingSlug(editingSlug === post.slug ? null : post.slug)}
             onTogglePublish={() => handleTogglePublish(post)}
             onDelete={() => handleDelete(post)}
@@ -229,6 +234,7 @@ export default function BlogAdmin({ initialPosts }: { initialPosts: BlogPost[] }
 function PostRow({
   post,
   isEditing,
+  pending,
   onToggleEdit,
   onTogglePublish,
   onDelete,
@@ -236,6 +242,7 @@ function PostRow({
 }: {
   post: BlogPost;
   isEditing: boolean;
+  pending: boolean;
   onToggleEdit: () => void;
   onTogglePublish: () => void;
   onDelete: () => void;
@@ -258,7 +265,8 @@ function PostRow({
         <button
           type="button"
           onClick={onTogglePublish}
-          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+          disabled={pending}
+          className={`rounded-full px-3 py-1 text-xs font-semibold disabled:opacity-50 ${
             post.isPublished ? "bg-emerald-100 text-emerald-700" : "bg-neutral-200 text-neutral-600"
           }`}
         >
@@ -266,17 +274,23 @@ function PostRow({
         </button>
         <button
           onClick={onToggleEdit}
+          disabled={pending}
           aria-label="แก้ไข"
-          className="flex h-9 w-9 items-center justify-center border border-gold-dark text-gold-dark hover:bg-cream-dark"
+          className="flex h-9 w-9 items-center justify-center border border-gold-dark text-gold-dark hover:bg-cream-dark disabled:opacity-50"
         >
           {isEditing ? <X className="h-4 w-4" strokeWidth={1.75} /> : <Pencil className="h-4 w-4" strokeWidth={1.75} />}
         </button>
         <button
           onClick={onDelete}
+          disabled={pending}
           aria-label="ลบบทความ"
-          className="flex h-9 w-9 items-center justify-center border border-cream-dark text-ink/40 hover:border-red-400 hover:text-red-500"
+          className="flex h-9 w-9 items-center justify-center border border-cream-dark text-ink/40 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
         >
-          <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+          {pending ? (
+            <Loader2 className="h-4 w-4 animate-spin" strokeWidth={1.75} />
+          ) : (
+            <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+          )}
         </button>
       </div>
 
@@ -313,9 +327,10 @@ function PostRow({
           </div>
           <button
             type="submit"
-            className="bg-maroon px-5 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-maroon-light"
+            disabled={pending}
+            className="bg-maroon px-5 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-maroon-light disabled:opacity-50"
           >
-            บันทึกการเปลี่ยนแปลง
+            {pending ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
           </button>
         </form>
       )}
