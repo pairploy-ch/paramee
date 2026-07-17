@@ -2,7 +2,7 @@ export type PropertyType = "คอนโด" | "บ้าน" | "ทาวน์
 
 export type PropertyStatus = "Available" | "Reserved" | "Sold" | "For Rent";
 
-export type TransitLine = "BTS" | "MRT" | "ARL";
+export type TransitLine = "BTS" | "MRT" | "ARL" | "อื่นๆ";
 
 export type PropertyTier = 1 | 2 | 3;
 
@@ -53,6 +53,10 @@ export interface Property {
   leaseTerms: LeaseTerm[];
   landDeedType: string | null;
   landTransferFeeParty: LandTransferFeeParty | null;
+  unitCode: string;
+  rentalMinTermMonths: number;
+  rentalDepositMonths: number;
+  rentalAdvanceMonths: number;
 }
 
 export interface NewLaunchProject {

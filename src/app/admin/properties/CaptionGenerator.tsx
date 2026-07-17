@@ -12,20 +12,44 @@ function buildCaption(values: PropertyFormValues): string {
 
   const blocks: string[] = [];
 
-  blocks.push(`${isRent ? "ให้เช่า" : "ประกาศขาย"}${values.type}\nCondo: ${values.name || "..."}`);
+  const firstTransit = values.transit.find((row) => row.station.trim());
+  const nearbyHighlight = firstTransit
+    ? ` ใกล้ ${firstTransit.station} ${firstTransit.distanceMeters || "-"} ม.`
+    : "";
+  const bedHighlight = !isLand && values.bedrooms.trim() ? ` ${values.bedrooms} Bed` : "";
 
-  const locationLine = [values.address, values.district].filter((s) => s.trim()).join(" ");
-  if (locationLine) blocks.push(locationLine);
+  const headline = `${isRent ? "ให้เช่า" : "ประกาศขาย"}${values.type} ${values.district} ${
+    values.name || "..."
+  }${bedHighlight}${nearbyHighlight}`
+    .replace(/\s+/g, " ")
+    .trim();
+  blocks.push(headline);
 
-  if (values.description.trim()) blocks.push(values.description.trim());
+  const unitCodeSuffix = values.unitCode.trim() ? ` (${values.unitCode.trim()})` : "";
+  blocks.push(`Condo : ${values.name || "..."}${unitCodeSuffix}`);
 
-  const roomDetail = isLand
-    ? `พื้นที่ ${values.areaSqm || "-"} ไร่ ${values.bedrooms || "-"} งาน ${values.bathrooms || "-"} ตร.ว.`
-    : `${values.areaSqm || "-"} ตร.ม. • ${values.bedrooms || "-"} ห้องนอน • ${values.bathrooms || "-"} ห้องน้ำ • ชั้น ${values.floor || "-"} • วิว ${values.facing || "-"}`;
-  blocks.push(`รายละเอียดห้อง:\n${roomDetail}`);
+  const roomDetailParts = isLand
+    ? [`${values.areaSqm || "-"} ไร่`, `${values.bedrooms || "-"} งาน`, `${values.bathrooms || "-"} ตร.ว.`]
+    : [
+        `${values.areaSqm || "-"} ตร.ม.`,
+        `${values.bedrooms || "-"} ห้องนอน`,
+        `${values.bathrooms || "-"} ห้องน้ำ`,
+        `ชั้น ${values.floor || "-"}`,
+        values.facing.trim() ? `วิว ${values.facing.trim()}` : "",
+      ].filter(Boolean);
+  blocks.push(`รายละเอียดห้อง:\n${roomDetailParts.join(" • ")}`);
 
   if (price.trim()) {
-    blocks.push(`${isRent ? "ราคาเช่า" : "ราคาขาย"} ${price} บาท${isRent ? "/เดือน" : ""}`);
+    const conditionLines = [`${price} บาท${isRent ? "/เดือน" : ""}`];
+    if (isRent) {
+      const termParts = [
+        values.rentalMinTermMonths.trim() && `สัญญาเช่าขั้นต่ำ ${values.rentalMinTermMonths} เดือน`,
+        values.rentalDepositMonths.trim() && `เงินประกันความเสียหาย ${values.rentalDepositMonths} เดือน`,
+        values.rentalAdvanceMonths.trim() && `ค่าเช่าล่วงหน้า ${values.rentalAdvanceMonths} เดือน`,
+      ].filter(Boolean);
+      if (termParts.length > 0) conditionLines.push(termParts.join(" + "));
+    }
+    blocks.push(`${isRent ? "เงื่อนไขการเช่า" : "ราคาขาย"}:\n${conditionLines.join("\n")}`);
   }
 
   const validLeaseTerms = values.leaseTerms.filter((row) => row.duration.trim());
@@ -39,13 +63,13 @@ function buildCaption(values: PropertyFormValues): string {
   const validTransit = values.transit.filter((row) => row.station.trim());
   if (validTransit.length > 0) {
     const nearbyLines = validTransit
-      .map((row) => `${row.line} ${row.station} (${row.distanceMeters || "-"} ม.)`)
+      .map((row) => `📍 ${row.station} (~${row.distanceMeters || "-"} ม.)`)
       .join("\n");
     blocks.push(`Nearby:\n${nearbyLines}`);
   }
 
   blocks.push(
-    `สนใจติดต่อสอบถามรายละเอียดเพิ่มเติม / นัดชมห้องจริง\nโทร ${CONTACT_PHONE} | LINE: ${socialLinks.line.handle}`
+    `สนใจติดต่อสอบถามรายละเอียดเพิ่มเติม / นัดชมห้องจริง\nโทร ${CONTACT_PHONE} | LINE: ${socialLinks.line.handle} | WhatsApp: ${CONTACT_PHONE}`
   );
 
   return blocks.join("\n\n");

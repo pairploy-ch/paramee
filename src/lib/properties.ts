@@ -1,7 +1,17 @@
 import type { Property } from "./types";
 import { img } from "./propertyImages";
 
-type SeedProperty = Omit<Property, "remarks" | "leaseTerms" | "landDeedType" | "landTransferFeeParty">;
+type SeedProperty = Omit<
+  Property,
+  | "remarks"
+  | "leaseTerms"
+  | "landDeedType"
+  | "landTransferFeeParty"
+  | "unitCode"
+  | "rentalMinTermMonths"
+  | "rentalDepositMonths"
+  | "rentalAdvanceMonths"
+>;
 
 const seedProperties: SeedProperty[] = [
   {
@@ -322,6 +332,10 @@ export const properties: Property[] = seedProperties.map((p) => ({
   leaseTerms: [],
   landDeedType: p.type === "ที่ดิน" ? "โฉนดที่ดิน (น.ส.4 จ.)" : null,
   landTransferFeeParty: p.type === "ที่ดิน" ? "50/50" : null,
+  unitCode: "",
+  rentalMinTermMonths: p.rentPrice ? 1 : 0,
+  rentalDepositMonths: p.rentPrice ? 2 : 0,
+  rentalAdvanceMonths: p.rentPrice ? 1 : 0,
 }));
 
 export function getPropertyBySlug(slug: string): Property | undefined {

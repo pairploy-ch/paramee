@@ -28,7 +28,7 @@ interface LeaseTermFormRow {
 }
 
 const statuses: PropertyStatus[] = ["Available", "Reserved", "Sold", "For Rent"];
-const transitLines: TransitLine[] = ["BTS", "MRT", "ARL"];
+const transitLines: TransitLine[] = ["BTS", "MRT", "ARL", "อื่นๆ"];
 const yesNoOptions = ["มี", "ไม่มี"];
 
 export interface PropertyFormValues {
@@ -41,9 +41,13 @@ export interface PropertyFormValues {
   mapUrl: string;
   description: string;
   remarks: string;
+  unitCode: string;
   salePrice: string;
   rentPrice: string;
   leaseTerms: LeaseTermFormRow[];
+  rentalMinTermMonths: string;
+  rentalDepositMonths: string;
+  rentalAdvanceMonths: string;
   areaSqm: string;
   bedrooms: string;
   bathrooms: string;
@@ -73,9 +77,13 @@ export const emptyPropertyFormValues: PropertyFormValues = {
   mapUrl: "",
   description: "",
   remarks: "",
+  unitCode: "",
   salePrice: "",
   rentPrice: "",
   leaseTerms: [],
+  rentalMinTermMonths: "",
+  rentalDepositMonths: "",
+  rentalAdvanceMonths: "",
   areaSqm: "",
   bedrooms: "1",
   bathrooms: "1",
@@ -129,9 +137,13 @@ export function valuesToProperty(v: PropertyFormValues): Omit<Property, "slug"> 
     },
     description: v.description,
     remarks: v.remarks,
+    unitCode: v.unitCode.trim(),
     leaseTerms: v.leaseTerms
       .filter((row) => row.duration.trim())
       .map((row) => ({ duration: `${row.duration.trim()} ปี`, price: num(row.price) })),
+    rentalMinTermMonths: num(v.rentalMinTermMonths),
+    rentalDepositMonths: num(v.rentalDepositMonths),
+    rentalAdvanceMonths: num(v.rentalAdvanceMonths),
     landDeedType: isLand ? v.landDeedType.trim() || null : null,
     landTransferFeeParty: isLand ? v.landTransferFeeParty || null : null,
   };
@@ -148,12 +160,16 @@ export function propertyToFormValues(p: Property): PropertyFormValues {
     mapUrl: p.mapUrl ?? "",
     description: p.description,
     remarks: p.remarks ?? "",
+    unitCode: p.unitCode ?? "",
     salePrice: p.salePrice != null ? String(p.salePrice) : "",
     rentPrice: p.rentPrice != null ? String(p.rentPrice) : "",
     leaseTerms: (p.leaseTerms ?? []).map((l) => ({
       duration: l.duration.replace(/\s*ปี\s*$/, ""),
       price: String(l.price),
     })),
+    rentalMinTermMonths: p.rentalMinTermMonths ? String(p.rentalMinTermMonths) : "",
+    rentalDepositMonths: p.rentalDepositMonths ? String(p.rentalDepositMonths) : "",
+    rentalAdvanceMonths: p.rentalAdvanceMonths ? String(p.rentalAdvanceMonths) : "",
     areaSqm: String(p.areaSqm),
     bedrooms: String(p.bedrooms),
     bathrooms: String(p.bathrooms),
@@ -347,6 +363,14 @@ export default function PropertyForm({
                 ))}
               </select>
             </Field>
+            <Field label="รหัสห้อง (สำหรับอ้างอิง)">
+              <input
+                value={values.unitCode}
+                onChange={(e) => update("unitCode", e.target.value)}
+                placeholder="เช่น CPT063"
+                className={inputClass}
+              />
+            </Field>
             <Field label="สถานะ">
               <select
                 value={values.status}
@@ -472,6 +496,34 @@ export default function PropertyForm({
               />
             </Field>
           </div>
+          {values.rentPrice.trim() && (
+            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+              <Field label="สัญญาเช่าขั้นต่ำ (เดือน)">
+                <input
+                  type="number"
+                  value={values.rentalMinTermMonths}
+                  onChange={(e) => update("rentalMinTermMonths", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="เงินประกันความเสียหาย (เดือน)">
+                <input
+                  type="number"
+                  value={values.rentalDepositMonths}
+                  onChange={(e) => update("rentalDepositMonths", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="ค่าเช่าล่วงหน้า (เดือน)">
+                <input
+                  type="number"
+                  value={values.rentalAdvanceMonths}
+                  onChange={(e) => update("rentalAdvanceMonths", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+            </div>
+          )}
         </div>
 
         <div className="rounded-2xl border border-gold-light/40 bg-white p-6">

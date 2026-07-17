@@ -345,6 +345,11 @@ alter table public.properties add column if not exists land_deed_type text;
 alter table public.properties add column if not exists land_transfer_fee_party text
   check (land_transfer_fee_party is null or land_transfer_fee_party in ('เจ้าของออก', '50/50', 'ลูกค้าออก'));
 
+alter table public.properties add column if not exists unit_code text;
+alter table public.properties add column if not exists rental_min_term_months numeric not null default 0;
+alter table public.properties add column if not exists rental_deposit_months numeric not null default 0;
+alter table public.properties add column if not exists rental_advance_months numeric not null default 0;
+
 alter table public.bookings add column if not exists line_or_whatsapp text;
 alter table public.bookings add column if not exists unit_code text;
 alter table public.bookings add column if not exists budget_min numeric;

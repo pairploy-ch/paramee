@@ -85,6 +85,11 @@ export default function PropertyDetailView({
             </span>
             <h1 className="mt-1 font-heading text-3xl font-semibold text-maroon-dark">
               {property.name}
+              {property.unitCode?.trim() && (
+                <span className="ml-2 align-middle text-sm font-medium text-ink/40">
+                  ({property.unitCode})
+                </span>
+              )}
             </h1>
             <p className="mt-2 flex items-center gap-1.5 text-sm text-ink/60">
               <MapPin className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden />
@@ -156,6 +161,21 @@ export default function PropertyDetailView({
                   value={`${formatBaht(property.rentPrice)}${t.propertyDetail.rentPriceSuffix}`}
                 />
               )}
+              {property.rentPrice != null &&
+                (property.rentalMinTermMonths > 0 ||
+                  property.rentalDepositMonths > 0 ||
+                  property.rentalAdvanceMonths > 0) && (
+                  <InfoRow
+                    label="เงื่อนไขการเช่า"
+                    value={[
+                      property.rentalMinTermMonths > 0 && `สัญญาขั้นต่ำ ${property.rentalMinTermMonths} เดือน`,
+                      property.rentalDepositMonths > 0 && `เงินประกัน ${property.rentalDepositMonths} เดือน`,
+                      property.rentalAdvanceMonths > 0 && `ค่าเช่าล่วงหน้า ${property.rentalAdvanceMonths} เดือน`,
+                    ]
+                      .filter(Boolean)
+                      .join(" + ")}
+                  />
+                )}
             </div>
           </section>
 
@@ -230,7 +250,7 @@ export default function PropertyDetailView({
                 <InfoRow
                   key={i}
                   label={`${t.propertyDetail.nearestStationLabel}${property.transit.length > 1 ? ` ${i + 1}` : ""}`}
-                  value={`${entry.line} ${entry.station} · ${entry.distanceMeters.toLocaleString()} ${t.units.meterSuffix}`}
+                  value={`${entry.line === "อื่นๆ" ? "" : `${entry.line} `}${entry.station} · ${entry.distanceMeters.toLocaleString()} ${t.units.meterSuffix}`}
                 />
               ))}
             </div>

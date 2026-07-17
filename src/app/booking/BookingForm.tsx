@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Check } from "lucide-react";
 import PropertySearchSelect from "@/components/PropertySearchSelect";
@@ -55,6 +55,12 @@ export default function BookingForm({ properties }: { properties: Property[] }) 
   }
 
   const selectedProperty = properties.find((p) => p.slug === form.property);
+
+  useEffect(() => {
+    if (selectedProperty?.unitCode) {
+      setForm((f) => ({ ...f, unitCode: selectedProperty.unitCode }));
+    }
+  }, [selectedProperty]);
 
   function validate(): string | null {
     if (!/^\d{10}$/.test(form.phone)) return t.booking.errorPhone;

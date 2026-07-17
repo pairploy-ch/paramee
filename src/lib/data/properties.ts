@@ -43,6 +43,10 @@ export interface PropertyRow {
   lease_terms: LeaseTerm[] | null;
   land_deed_type: string | null;
   land_transfer_fee_party: LandTransferFeeParty | null;
+  unit_code: string | null;
+  rental_min_term_months: number | null;
+  rental_deposit_months: number | null;
+  rental_advance_months: number | null;
 }
 
 export function rowToProperty(row: PropertyRow): Property {
@@ -79,6 +83,10 @@ export function rowToProperty(row: PropertyRow): Property {
     leaseTerms: row.lease_terms ?? [],
     landDeedType: row.land_deed_type,
     landTransferFeeParty: row.land_transfer_fee_party,
+    unitCode: row.unit_code ?? "",
+    rentalMinTermMonths: row.rental_min_term_months ?? 0,
+    rentalDepositMonths: row.rental_deposit_months ?? 0,
+    rentalAdvanceMonths: row.rental_advance_months ?? 0,
   };
 }
 
@@ -124,6 +132,10 @@ export function propertyToRow(input: NewPropertyInput): Omit<PropertyRow, "id"> 
     lease_terms: input.leaseTerms,
     land_deed_type: input.landDeedType,
     land_transfer_fee_party: input.landTransferFeeParty,
+    unit_code: input.unitCode || null,
+    rental_min_term_months: input.rentalMinTermMonths,
+    rental_deposit_months: input.rentalDepositMonths,
+    rental_advance_months: input.rentalAdvanceMonths,
   };
 }
 
@@ -196,6 +208,10 @@ export async function updatePropertyBySlug(
   if (patch.leaseTerms !== undefined) row.lease_terms = patch.leaseTerms;
   if (patch.landDeedType !== undefined) row.land_deed_type = patch.landDeedType;
   if (patch.landTransferFeeParty !== undefined) row.land_transfer_fee_party = patch.landTransferFeeParty;
+  if (patch.unitCode !== undefined) row.unit_code = patch.unitCode || null;
+  if (patch.rentalMinTermMonths !== undefined) row.rental_min_term_months = patch.rentalMinTermMonths;
+  if (patch.rentalDepositMonths !== undefined) row.rental_deposit_months = patch.rentalDepositMonths;
+  if (patch.rentalAdvanceMonths !== undefined) row.rental_advance_months = patch.rentalAdvanceMonths;
   if (patch.investor !== undefined) {
     row.investor_roi_percent = patch.investor.roiPercent;
     row.investor_rental_yield_percent = patch.investor.rentalYieldPercent;
