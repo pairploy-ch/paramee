@@ -3,7 +3,17 @@
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { propertyTypes } from "@/lib/properties";
-import type { Property, PropertyStatus, PropertyTier, PropertyType, TransitLine } from "@/lib/types";
+import { thaiProvinces } from "@/lib/thaiProvinces";
+import { landDeedTypes, landDeedColorClass } from "@/lib/landDeedTypes";
+import type {
+  Property,
+  PropertyStatus,
+  PropertyTier,
+  PropertyType,
+  TransitLine,
+  LandTransferFeeParty,
+} from "@/lib/types";
+import { landTransferFeeParties } from "@/lib/types";
 import type { Owner } from "@/lib/owners";
 
 interface TransitFormRow {
@@ -12,8 +22,14 @@ interface TransitFormRow {
   distanceMeters: string;
 }
 
+interface LeaseTermFormRow {
+  duration: string;
+  price: string;
+}
+
 const statuses: PropertyStatus[] = ["Available", "Reserved", "Sold", "For Rent"];
 const transitLines: TransitLine[] = ["BTS", "MRT", "ARL"];
+const yesNoOptions = ["มี", "ไม่มี"];
 
 export interface PropertyFormValues {
   name: string;
@@ -24,13 +40,17 @@ export interface PropertyFormValues {
   district: string;
   mapUrl: string;
   description: string;
+  remarks: string;
   salePrice: string;
   rentPrice: string;
+  leaseTerms: LeaseTermFormRow[];
   areaSqm: string;
   bedrooms: string;
   bathrooms: string;
   floor: string;
   facing: string;
+  landDeedType: string;
+  landTransferFeeParty: LandTransferFeeParty | "";
   images: string[];
   commonFeePerSqm: string;
   avgRentInArea: string;
@@ -52,13 +72,17 @@ export const emptyPropertyFormValues: PropertyFormValues = {
   district: "",
   mapUrl: "",
   description: "",
+  remarks: "",
   salePrice: "",
   rentPrice: "",
+  leaseTerms: [],
   areaSqm: "",
   bedrooms: "1",
   bathrooms: "1",
   floor: "",
   facing: "",
+  landDeedType: "",
+  landTransferFeeParty: "",
   images: [""],
   commonFeePerSqm: "",
   avgRentInArea: "",
@@ -73,6 +97,7 @@ export const emptyPropertyFormValues: PropertyFormValues = {
 
 export function valuesToProperty(v: PropertyFormValues): Omit<Property, "slug"> {
   const num = (s: string) => (s.trim() === "" ? 0 : Number(s));
+  const isLand = v.type === "ที่ดิน";
   return {
     ownerId: v.ownerId,
     tier: v.tier,
@@ -103,6 +128,12 @@ export function valuesToProperty(v: PropertyFormValues): Omit<Property, "slug"> 
       cashflowPerMonth: num(v.cashflowPerMonth),
     },
     description: v.description,
+    remarks: v.remarks,
+    leaseTerms: v.leaseTerms
+      .filter((row) => row.duration.trim())
+      .map((row) => ({ duration: `${row.duration.trim()} ปี`, price: num(row.price) })),
+    landDeedType: isLand ? v.landDeedType.trim() || null : null,
+    landTransferFeeParty: isLand ? v.landTransferFeeParty || null : null,
   };
 }
 
@@ -116,13 +147,20 @@ export function propertyToFormValues(p: Property): PropertyFormValues {
     district: p.district,
     mapUrl: p.mapUrl ?? "",
     description: p.description,
+    remarks: p.remarks ?? "",
     salePrice: p.salePrice != null ? String(p.salePrice) : "",
     rentPrice: p.rentPrice != null ? String(p.rentPrice) : "",
+    leaseTerms: (p.leaseTerms ?? []).map((l) => ({
+      duration: l.duration.replace(/\s*ปี\s*$/, ""),
+      price: String(l.price),
+    })),
     areaSqm: String(p.areaSqm),
     bedrooms: String(p.bedrooms),
     bathrooms: String(p.bathrooms),
     floor: p.floor,
     facing: p.facing,
+    landDeedType: p.landDeedType ?? "",
+    landTransferFeeParty: p.landTransferFeeParty ?? "",
     images: p.images.length ? p.images : [""],
     commonFeePerSqm: String(p.commonFeePerSqm),
     avgRentInArea: String(p.avgRentInArea),
@@ -218,6 +256,25 @@ export default function PropertyForm({
 
   function removeTransitRow(index: number) {
     setValues((v) => ({ ...v, transit: v.transit.filter((_, i) => i !== index) }));
+  }
+
+  function updateLeaseTerm<K extends keyof LeaseTermFormRow>(
+    index: number,
+    key: K,
+    value: LeaseTermFormRow[K]
+  ) {
+    setValues((v) => ({
+      ...v,
+      leaseTerms: v.leaseTerms.map((row, i) => (i === index ? { ...row, [key]: value } : row)),
+    }));
+  }
+
+  function addLeaseTermRow() {
+    setValues((v) => ({ ...v, leaseTerms: [...v.leaseTerms, { duration: "", price: "" }] }));
+  }
+
+  function removeLeaseTermRow(index: number) {
+    setValues((v) => ({ ...v, leaseTerms: v.leaseTerms.filter((_, i) => i !== index) }));
   }
 
   async function handleUploadFiles(files: FileList | null) {
@@ -316,13 +373,20 @@ export default function PropertyForm({
                 </select>
               </Field>
             )}
-            <Field label="ที่อยู่">
-              <input
+            <Field label="จังหวัด">
+              <select
                 required
                 value={values.address}
                 onChange={(e) => update("address", e.target.value)}
                 className={inputClass}
-              />
+              >
+                <option value="">— เลือกจังหวัด —</option>
+                {thaiProvinces.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
             </Field>
             <Field label="ทำเล / เขต">
               <input
@@ -374,6 +438,17 @@ export default function PropertyForm({
                 />
               </Field>
             </div>
+            <div className="sm:col-span-2">
+              <Field label="หมายเหตุ">
+                <textarea
+                  rows={2}
+                  value={values.remarks}
+                  onChange={(e) => update("remarks", e.target.value)}
+                  placeholder="เช่น ไม่รับคนสูบบุหรี่"
+                  className={inputClass}
+                />
+              </Field>
+            </div>
           </div>
         </div>
 
@@ -400,24 +475,146 @@ export default function PropertyForm({
         </div>
 
         <div className="rounded-2xl border border-gold-light/40 bg-white p-6">
-          <h2 className="font-heading text-lg font-semibold text-maroon-dark">รายละเอียดพื้นที่</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            <Field label="ตร.ม.">
-              <input value={values.areaSqm} onChange={(e) => update("areaSqm", e.target.value)} className={inputClass} />
-            </Field>
-            <Field label="ห้องนอน">
-              <input value={values.bedrooms} onChange={(e) => update("bedrooms", e.target.value)} className={inputClass} />
-            </Field>
-            <Field label="ห้องน้ำ">
-              <input value={values.bathrooms} onChange={(e) => update("bathrooms", e.target.value)} className={inputClass} />
-            </Field>
-            <Field label="ชั้น">
-              <input value={values.floor} onChange={(e) => update("floor", e.target.value)} className={inputClass} />
-            </Field>
-            <Field label="ทิศ / วิว">
-              <input value={values.facing} onChange={(e) => update("facing", e.target.value)} className={inputClass} />
-            </Field>
+          <div className="flex items-center justify-between">
+            <h2 className="font-heading text-lg font-semibold text-maroon-dark">ระยะสัญญาเช่า</h2>
+            <button
+              type="button"
+              onClick={addLeaseTermRow}
+              className="flex items-center gap-1 border border-gold-dark px-3 py-1.5 text-xs font-medium text-gold-dark hover:bg-cream-dark"
+            >
+              <Plus className="h-3.5 w-3.5" strokeWidth={1.75} /> เพิ่มระยะสัญญา
+            </button>
           </div>
+          {values.leaseTerms.length === 0 ? (
+            <p className="mt-3 text-xs text-ink/50">
+              เช่น สัญญา 3 ปี ราคา 15,000 บาท และ 1 ปี ราคา 18,000 บาท
+            </p>
+          ) : (
+            <div className="mt-4 space-y-3">
+              {values.leaseTerms.map((row, i) => (
+                <div key={i} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      value={row.duration}
+                      onChange={(e) => updateLeaseTerm(i, "duration", e.target.value)}
+                      placeholder="ระยะสัญญา เช่น 3"
+                      className={`${inputClass} pr-9`}
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink/50">
+                      ปี
+                    </span>
+                  </div>
+                  <input
+                    value={row.price}
+                    onChange={(e) => updateLeaseTerm(i, "price", e.target.value)}
+                    placeholder="ราคา (บาท)"
+                    className={inputClass}
+                  />
+                  <button
+                    type="button"
+                    aria-label="ลบระยะสัญญา"
+                    onClick={() => removeLeaseTermRow(i)}
+                    className="border border-cream-dark px-3 text-ink/40 hover:border-red-400 hover:text-red-500"
+                  >
+                    <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-gold-light/40 bg-white p-6">
+          <h2 className="font-heading text-lg font-semibold text-maroon-dark">รายละเอียดพื้นที่</h2>
+          {values.type === "ที่ดิน" ? (
+            <>
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                <Field label="ขนาดพื้นที่ (ไร่)">
+                  <input value={values.areaSqm} onChange={(e) => update("areaSqm", e.target.value)} className={inputClass} />
+                </Field>
+                <Field label="งาน">
+                  <input value={values.bedrooms} onChange={(e) => update("bedrooms", e.target.value)} className={inputClass} />
+                </Field>
+                <Field label="ตร.ว.">
+                  <input value={values.bathrooms} onChange={(e) => update("bathrooms", e.target.value)} className={inputClass} />
+                </Field>
+                <Field label="ไฟฟ้า">
+                  <select value={values.floor} onChange={(e) => update("floor", e.target.value)} className={inputClass}>
+                    <option value="">— เลือก —</option>
+                    {yesNoOptions.map((o) => (
+                      <option key={o}>{o}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="น้ำประปา">
+                  <select value={values.facing} onChange={(e) => update("facing", e.target.value)} className={inputClass}>
+                    <option value="">— เลือก —</option>
+                    {yesNoOptions.map((o) => (
+                      <option key={o}>{o}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="ประเภทเอกสารสิทธิ์ (โฉนด)">
+                  <select
+                    value={values.landDeedType}
+                    onChange={(e) => update("landDeedType", e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">— เลือก —</option>
+                    {landDeedTypes.map((d) => (
+                      <option key={d.value} value={d.value}>
+                        {d.value}
+                      </option>
+                    ))}
+                  </select>
+                  {values.landDeedType && (
+                    <span className="mt-1.5 flex items-center gap-1.5 text-xs text-ink/60">
+                      <span
+                        className={`h-2.5 w-2.5 rounded-full ${
+                          landDeedColorClass[
+                            landDeedTypes.find((d) => d.value === values.landDeedType)?.color ?? "gray"
+                          ]
+                        }`}
+                      />
+                      {values.landDeedType}
+                    </span>
+                  )}
+                </Field>
+                <Field label="ค่าโอน">
+                  <select
+                    value={values.landTransferFeeParty}
+                    onChange={(e) => update("landTransferFeeParty", e.target.value as LandTransferFeeParty | "")}
+                    className={inputClass}
+                  >
+                    <option value="">— เลือก —</option>
+                    {landTransferFeeParties.map((o) => (
+                      <option key={o}>{o}</option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+            </>
+          ) : (
+            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+              <Field label="ตร.ม.">
+                <input value={values.areaSqm} onChange={(e) => update("areaSqm", e.target.value)} className={inputClass} />
+              </Field>
+              <Field label="ห้องนอน">
+                <input value={values.bedrooms} onChange={(e) => update("bedrooms", e.target.value)} className={inputClass} />
+              </Field>
+              <Field label="ห้องน้ำ">
+                <input value={values.bathrooms} onChange={(e) => update("bathrooms", e.target.value)} className={inputClass} />
+              </Field>
+              <Field label="ชั้น">
+                <input value={values.floor} onChange={(e) => update("floor", e.target.value)} className={inputClass} />
+              </Field>
+              <Field label="ทิศ / วิว">
+                <input value={values.facing} onChange={(e) => update("facing", e.target.value)} className={inputClass} />
+              </Field>
+            </div>
+          )}
         </div>
 
         <div className="rounded-2xl border border-gold-light/40 bg-white p-6">
@@ -470,6 +667,7 @@ export default function PropertyForm({
           </div>
         </div>
 
+        {/* Costs — commented out for now
         <div className="rounded-2xl border border-gold-light/40 bg-white p-6">
           <h2 className="font-heading text-lg font-semibold text-maroon-dark">ค่าใช้จ่าย</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
@@ -484,6 +682,7 @@ export default function PropertyForm({
             </Field>
           </div>
         </div>
+        */}
 
         <div className="rounded-2xl border border-gold-light/40 bg-white p-6">
           <div className="flex items-center justify-between">

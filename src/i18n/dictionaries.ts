@@ -151,6 +151,12 @@ interface Dictionary {
     propertyUnset: string;
     propertySearchPlaceholder: string;
     propertyNoResults: string;
+    unitCodeLabel: string;
+    unitCodePlaceholder: string;
+    lineOrWhatsappLabel: string;
+    budgetLabel: string;
+    budgetMinPlaceholder: string;
+    budgetMaxPlaceholder: string;
     dateLabel: string;
     timeLabel: string;
     timePlaceholder: string;
@@ -167,6 +173,9 @@ interface Dictionary {
     confirmPhone: string;
     confirmEmail: string;
     confirmProperty: string;
+    confirmUnitCode: string;
+    confirmLineOrWhatsapp: string;
+    confirmBudget: string;
     confirmDateTime: string;
     confirmNote: string;
     editButton: string;
@@ -254,7 +263,7 @@ export const dictionaries: Record<Lang, Dictionary> = {
       prev: "ก่อนหน้า",
       next: "ถัดไป",
       slideLabel: "สไลด์ที่",
-      slide1Heading: "ค้นหาบ้านในฝัน",
+      slide1Heading: "ค้นหาอสังหาริมทรัพย์",
       slide1Highlight: "ที่ใช่สำหรับคุณ",
       slide1Description:
         "รวมทรัพย์คัดสรรกว่า 300–500 รายการทั่วกรุงเทพฯ พร้อมระบบนัดชม จองมัดจำออนไลน์ และคำนวณสินเชื่อ ครบในที่เดียว",
@@ -310,7 +319,7 @@ export const dictionaries: Record<Lang, Dictionary> = {
       articlesHeading: "เกร็ดความรู้เรื่องอสังหาริมทรัพย์",
       articlesEmpty: "ยังไม่มีบทความในขณะนี้",
       readMore: "อ่านต่อ",
-      ctaHeading: "กำลังมองหาบ้านในฝันอยู่ใช่ไหม?",
+      ctaHeading: "ค้นหาทรัพย์ที่ตรงใจ",
       ctaSubtitle: "ให้ทีม Paramee ช่วยคุณค้นหาทรัพย์ที่ใช่ วันนี้",
       ctaButton: "ค้นหาทรัพย์ →",
     },
@@ -376,6 +385,12 @@ export const dictionaries: Record<Lang, Dictionary> = {
       propertyUnset: "— ยังไม่ระบุ —",
       propertySearchPlaceholder: "พิมพ์เพื่อค้นหาชื่อโครงการ...",
       propertyNoResults: "ไม่พบทรัพย์ที่ตรงกัน",
+      unitCodeLabel: "รหัสห้อง",
+      unitCodePlaceholder: "เช่น CPT051",
+      lineOrWhatsappLabel: "LINE หรือ WhatsApp",
+      budgetLabel: "งบประมาณ (บาท)",
+      budgetMinPlaceholder: "ต่ำสุด",
+      budgetMaxPlaceholder: "สูงสุด",
       dateLabel: "วันที่นัด",
       timeLabel: "เวลานัด (09:00-17:00 น.)",
       timePlaceholder: "— เลือกเวลา —",
@@ -393,6 +408,9 @@ export const dictionaries: Record<Lang, Dictionary> = {
       confirmPhone: "เบอร์โทร",
       confirmEmail: "อีเมล",
       confirmProperty: "ทรัพย์ที่สนใจ",
+      confirmUnitCode: "รหัสห้อง",
+      confirmLineOrWhatsapp: "LINE / WhatsApp",
+      confirmBudget: "งบประมาณ",
       confirmDateTime: "วันเวลานัด",
       confirmNote: "หมายเหตุ",
       editButton: "แก้ไขข้อมูล",
@@ -602,6 +620,12 @@ export const dictionaries: Record<Lang, Dictionary> = {
       propertyUnset: "— Not specified —",
       propertySearchPlaceholder: "Type to search property name...",
       propertyNoResults: "No matching properties",
+      unitCodeLabel: "Unit Code",
+      unitCodePlaceholder: "e.g. CPT051",
+      lineOrWhatsappLabel: "LINE or WhatsApp",
+      budgetLabel: "Budget (THB)",
+      budgetMinPlaceholder: "Min",
+      budgetMaxPlaceholder: "Max",
       dateLabel: "Appointment Date",
       timeLabel: "Appointment Time (09:00-17:00)",
       timePlaceholder: "— Select a time —",
@@ -619,6 +643,9 @@ export const dictionaries: Record<Lang, Dictionary> = {
       confirmPhone: "Phone",
       confirmEmail: "Email",
       confirmProperty: "Property of Interest",
+      confirmUnitCode: "Unit Code",
+      confirmLineOrWhatsapp: "LINE / WhatsApp",
+      confirmBudget: "Budget",
       confirmDateTime: "Date & Time",
       confirmNote: "Note",
       editButton: "Edit",

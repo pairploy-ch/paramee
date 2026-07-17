@@ -3,6 +3,13 @@ import { readFile } from "fs/promises";
 import path from "path";
 import { CONTACT_PHONE, socialLinks } from "./social";
 
+// libvips' native binary becomes unstable on Windows when many sharp()
+// instances run back-to-back in a short burst (the same root cause behind
+// the earlier ERR_DLOPEN_FAILED crash) — serializing calls and disabling the
+// operation cache avoids it piling up file handles across a batch upload.
+sharp.cache(false);
+sharp.concurrency(1);
+
 const LOGO_PATH = path.join(process.cwd(), "public", "logo-paramee-gold.png");
 
 function escapeXml(value: string) {

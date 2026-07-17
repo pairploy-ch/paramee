@@ -7,6 +7,7 @@ import type { Property } from "@/lib/types";
 import type { OwnerContactInfo } from "@/lib/data/owners";
 import { getAmenities } from "@/lib/amenities";
 import { formatBaht, propertyTypeLabel } from "@/lib/format";
+import { landDeedTypes, landDeedColorClass } from "@/lib/landDeedTypes";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import PropertyCard from "@/components/PropertyCard";
 import PropertyGallery from "@/components/PropertyGallery";
@@ -90,6 +91,11 @@ export default function PropertyDetailView({
               {property.address}
             </p>
             <p className="mt-4 leading-relaxed text-ink/80">{property.description}</p>
+            {property.remarks?.trim() && (
+              <p className="mt-3 rounded-lg border border-gold-light/40 bg-cream-dark/40 px-4 py-3 text-sm text-ink/70">
+                หมายเหตุ: {property.remarks}
+              </p>
+            )}
           </div>
 
           {/* General info */}
@@ -98,22 +104,50 @@ export default function PropertyDetailView({
               {t.propertyDetail.generalInfo}
             </h2>
             <div className="mt-3 grid gap-x-8 sm:grid-cols-2">
-              <InfoRow
-                label={t.propertyDetail.areaLabel}
-                value={`${property.areaSqm} ${t.units.sqmSuffix}`}
-              />
-              <InfoRow
-                label={t.propertyDetail.bedroomsBathroomsLabel}
-                value={`${property.bedrooms} / ${property.bathrooms}`}
-              />
-              <InfoRow label={t.propertyDetail.floorLabel} value={property.floor} />
-              <InfoRow label={t.propertyDetail.facingLabel} value={property.facing} />
+              {property.type === "ที่ดิน" ? (
+                <>
+                  <InfoRow label="ขนาดพื้นที่" value={`${property.areaSqm} ไร่ ${property.bedrooms} งาน ${property.bathrooms} ตร.ว.`} />
+                  <InfoRow label="ไฟฟ้า" value={property.floor || t.propertyDetail.noData} />
+                  <InfoRow label="น้ำประปา" value={property.facing || t.propertyDetail.noData} />
+                  <InfoRow label="ประเภทเอกสารสิทธิ์" value={property.landDeedType || t.propertyDetail.noData} />
+                  {property.landDeedType && (
+                    <div className="flex items-center gap-1.5 py-1 text-xs text-ink/60">
+                      <span
+                        className={`h-2.5 w-2.5 rounded-full ${
+                          landDeedColorClass[
+                            landDeedTypes.find((d) => d.value === property.landDeedType)?.color ?? "gray"
+                          ]
+                        }`}
+                      />
+                      {property.landDeedType}
+                    </div>
+                  )}
+                  <InfoRow label="ค่าโอน" value={property.landTransferFeeParty || t.propertyDetail.noData} />
+                </>
+              ) : (
+                <>
+                  <InfoRow
+                    label={t.propertyDetail.areaLabel}
+                    value={`${property.areaSqm} ${t.units.sqmSuffix}`}
+                  />
+                  <InfoRow
+                    label={t.propertyDetail.bedroomsBathroomsLabel}
+                    value={`${property.bedrooms} / ${property.bathrooms}`}
+                  />
+                  <InfoRow label={t.propertyDetail.floorLabel} value={property.floor} />
+                  <InfoRow label={t.propertyDetail.facingLabel} value={property.facing} />
+                </>
+              )}
               {property.salePrice && (
                 <InfoRow
                   label={t.propertyDetail.salePriceLabel}
-                  value={`${formatBaht(property.salePrice)} (${formatBaht(
-                    Math.round(property.salePrice / property.areaSqm)
-                  )}/${t.units.sqmSuffix})`}
+                  value={
+                    property.type === "ที่ดิน"
+                      ? formatBaht(property.salePrice)
+                      : `${formatBaht(property.salePrice)} (${formatBaht(
+                          Math.round(property.salePrice / property.areaSqm)
+                        )}/${t.units.sqmSuffix})`
+                  }
                 />
               )}
               {property.rentPrice && (
@@ -124,6 +158,18 @@ export default function PropertyDetailView({
               )}
             </div>
           </section>
+
+          {/* Lease terms */}
+          {property.leaseTerms?.length > 0 && (
+            <section className="mt-6 rounded-2xl border border-gold-light/40 bg-white p-6">
+              <h2 className="font-heading text-lg font-semibold text-maroon-dark">ระยะสัญญาเช่า</h2>
+              <div className="mt-3 grid gap-x-8 sm:grid-cols-2">
+                {property.leaseTerms.map((term, i) => (
+                  <InfoRow key={i} label={`สัญญา ${term.duration}`} value={formatBaht(term.price)} />
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Amenities */}
           <section className="mt-6 rounded-2xl border border-gold-light/40 bg-white p-6">
@@ -140,7 +186,7 @@ export default function PropertyDetailView({
             </div>
           </section>
 
-          {/* Costs */}
+          {/* Costs — commented out for now
           <section className="mt-6 rounded-2xl border border-gold-light/40 bg-white p-6">
             <h2 className="font-heading text-lg font-semibold text-maroon-dark">
               {t.propertyDetail.costs}
@@ -172,6 +218,7 @@ export default function PropertyDetailView({
               />
             </div>
           </section>
+          */}
 
           {/* Transit + location */}
           <section className="mt-6 rounded-2xl border border-gold-light/40 bg-white p-6">

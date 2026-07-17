@@ -12,23 +12,36 @@ function buildCaption(values: PropertyFormValues): string {
 
   const blocks: string[] = [];
 
-  blocks.push(`${isRent ? "ให้เช่า" : "ประกาศขาย"}${values.type} ${values.name || "..."}`);
+  blocks.push(`${isRent ? "ให้เช่า" : "ประกาศขาย"}${values.type}\nCondo: ${values.name || "..."}`);
 
   const locationLine = [values.address, values.district].filter((s) => s.trim()).join(" ");
   if (locationLine) blocks.push(locationLine);
 
   if (values.description.trim()) blocks.push(values.description.trim());
 
-  if (!isLand) {
-    blocks.push(
-      `${values.areaSqm || "-"} ตร.ม. • ${values.bedrooms || "-"} ห้องนอน • ${values.bathrooms || "-"} ห้องน้ำ • ชั้น ${values.floor || "-"} • วิว ${values.facing || "-"}`
-    );
-  } else {
-    blocks.push(`พื้นที่ ${values.areaSqm || "-"} ตร.ม.`);
-  }
+  const roomDetail = isLand
+    ? `พื้นที่ ${values.areaSqm || "-"} ไร่ ${values.bedrooms || "-"} งาน ${values.bathrooms || "-"} ตร.ว.`
+    : `${values.areaSqm || "-"} ตร.ม. • ${values.bedrooms || "-"} ห้องนอน • ${values.bathrooms || "-"} ห้องน้ำ • ชั้น ${values.floor || "-"} • วิว ${values.facing || "-"}`;
+  blocks.push(`รายละเอียดห้อง:\n${roomDetail}`);
 
   if (price.trim()) {
     blocks.push(`${isRent ? "ราคาเช่า" : "ราคาขาย"} ${price} บาท${isRent ? "/เดือน" : ""}`);
+  }
+
+  const validLeaseTerms = values.leaseTerms.filter((row) => row.duration.trim());
+  if (validLeaseTerms.length > 0) {
+    const leaseLines = validLeaseTerms
+      .map((row) => `สัญญา ${row.duration} ปี ราคา ${row.price || "-"} บาท`)
+      .join("\n");
+    blocks.push(`สัญญาเช่าเริ่มต้น:\n${leaseLines}`);
+  }
+
+  const validTransit = values.transit.filter((row) => row.station.trim());
+  if (validTransit.length > 0) {
+    const nearbyLines = validTransit
+      .map((row) => `${row.line} ${row.station} (${row.distanceMeters || "-"} ม.)`)
+      .join("\n");
+    blocks.push(`Nearby:\n${nearbyLines}`);
   }
 
   blocks.push(

@@ -14,6 +14,14 @@ const followUpStyles: Record<Lead["followUp"], string> = {
   Cold: "bg-sky-100 text-sky-700",
 };
 
+const followUpLabels: Record<Lead["followUp"], string> = {
+  Hot: "ร้อนแรง (พร้อมตัดสินใจเร็ว)",
+  Warm: "อุ่น (สนใจจริง ต้องติดตามต่อเนื่อง)",
+  Cold: "เย็น (แค่หาข้อมูล)",
+};
+
+const followUpOptions: Lead["followUp"][] = ["Hot", "Warm", "Cold"];
+
 const emptyForm = {
   date: new Date().toISOString().slice(0, 10),
   channel: "Website" as Lead["channel"],
@@ -39,7 +47,7 @@ function toCsv(rows: Lead[]) {
     "หมายเหตุ",
   ];
   const lines = rows.map((l) =>
-    [l.date, l.channel, l.interestedType, l.area, l.budget, l.sizeNeeded, l.purpose, l.followUp, l.note]
+    [l.date, l.channel, l.interestedType, l.area, l.budget, l.sizeNeeded, l.purpose, followUpLabels[l.followUp], l.note]
       .map((v) => `"${String(v).replace(/"/g, '""')}"`)
       .join(",")
   );
@@ -232,8 +240,10 @@ export default function LeadsAdmin({ initialLeads }: { initialLeads: Lead[] }) {
             onChange={(e) => setForm((f) => ({ ...f, followUp: e.target.value as Lead["followUp"] }))}
             className="w-full rounded-lg border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
           >
-            {["Hot", "Warm", "Cold"].map((s) => (
-              <option key={s}>{s}</option>
+            {followUpOptions.map((s) => (
+              <option key={s} value={s}>
+                {followUpLabels[s]}
+              </option>
             ))}
           </select>
         </Field>
@@ -287,7 +297,7 @@ export default function LeadsAdmin({ initialLeads }: { initialLeads: Lead[] }) {
                 <td className="px-4 py-3">{l.purpose}</td>
                 <td className="px-4 py-3">
                   <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${followUpStyles[l.followUp]}`}>
-                    {l.followUp}
+                    {followUpLabels[l.followUp]}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-ink/60">{l.note}</td>

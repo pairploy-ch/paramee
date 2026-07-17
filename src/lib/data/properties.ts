@@ -1,7 +1,15 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { properties as seedProperties } from "@/lib/properties";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
-import type { Property, PropertyStatus, PropertyTier, PropertyType, TransitInfo } from "@/lib/types";
+import type {
+  LandTransferFeeParty,
+  LeaseTerm,
+  Property,
+  PropertyStatus,
+  PropertyTier,
+  PropertyType,
+  TransitInfo,
+} from "@/lib/types";
 
 export interface PropertyRow {
   id: string;
@@ -31,6 +39,10 @@ export interface PropertyRow {
   investor_occupancy_percent: number;
   investor_cashflow_per_month: number;
   description: string;
+  remarks: string | null;
+  lease_terms: LeaseTerm[] | null;
+  land_deed_type: string | null;
+  land_transfer_fee_party: LandTransferFeeParty | null;
 }
 
 export function rowToProperty(row: PropertyRow): Property {
@@ -63,6 +75,10 @@ export function rowToProperty(row: PropertyRow): Property {
       cashflowPerMonth: row.investor_cashflow_per_month,
     },
     description: row.description,
+    remarks: row.remarks ?? "",
+    leaseTerms: row.lease_terms ?? [],
+    landDeedType: row.land_deed_type,
+    landTransferFeeParty: row.land_transfer_fee_party,
   };
 }
 
@@ -104,6 +120,10 @@ export function propertyToRow(input: NewPropertyInput): Omit<PropertyRow, "id"> 
     investor_occupancy_percent: input.investor.occupancyPercent,
     investor_cashflow_per_month: input.investor.cashflowPerMonth,
     description: input.description,
+    remarks: input.remarks,
+    lease_terms: input.leaseTerms,
+    land_deed_type: input.landDeedType,
+    land_transfer_fee_party: input.landTransferFeeParty,
   };
 }
 
@@ -172,6 +192,10 @@ export async function updatePropertyBySlug(
   if (patch.avgRentInArea !== undefined) row.avg_rent_in_area = patch.avgRentInArea;
   if (patch.transferFeeEstimate !== undefined) row.transfer_fee_estimate = patch.transferFeeEstimate;
   if (patch.transit !== undefined) row.transit = patch.transit;
+  if (patch.remarks !== undefined) row.remarks = patch.remarks;
+  if (patch.leaseTerms !== undefined) row.lease_terms = patch.leaseTerms;
+  if (patch.landDeedType !== undefined) row.land_deed_type = patch.landDeedType;
+  if (patch.landTransferFeeParty !== undefined) row.land_transfer_fee_party = patch.landTransferFeeParty;
   if (patch.investor !== undefined) {
     row.investor_roi_percent = patch.investor.roiPercent;
     row.investor_rental_yield_percent = patch.investor.rentalYieldPercent;

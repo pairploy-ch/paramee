@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Check } from "lucide-react";
 import PropertySearchSelect from "@/components/PropertySearchSelect";
+import BudgetRangeSlider from "@/components/BudgetRangeSlider";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import type { Property } from "@/lib/types";
 
@@ -39,6 +40,10 @@ export default function BookingForm({ properties }: { properties: Property[] }) 
     phone: "",
     email: "",
     property: propertySlug,
+    unitCode: "",
+    lineOrWhatsapp: "",
+    budgetMin: "0",
+    budgetMax: "5000000",
     date: "",
     time: "",
     note: "",
@@ -177,6 +182,45 @@ export default function BookingForm({ properties }: { properties: Property[] }) 
           />
         </div>
 
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-maroon-dark">
+              {t.booking.unitCodeLabel}
+            </label>
+            <input
+              value={form.unitCode}
+              onChange={(e) => update("unitCode", e.target.value)}
+              placeholder={t.booking.unitCodePlaceholder}
+              className="w-full rounded-lg border border-cream-dark bg-cream px-3 py-2.5 text-sm outline-none focus:border-gold"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-maroon-dark">
+              {t.booking.lineOrWhatsappLabel}
+            </label>
+            <input
+              value={form.lineOrWhatsapp}
+              onChange={(e) => update("lineOrWhatsapp", e.target.value)}
+              className="w-full rounded-lg border border-cream-dark bg-cream px-3 py-2.5 text-sm outline-none focus:border-gold"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-semibold text-maroon-dark">
+            {t.booking.budgetLabel}
+          </label>
+          <div className="rounded-lg border border-cream-dark bg-cream px-4 py-3">
+            <BudgetRangeSlider
+              min={Number(form.budgetMin)}
+              max={Number(form.budgetMax)}
+              onChange={(min, max) =>
+                setForm((f) => ({ ...f, budgetMin: String(min), budgetMax: String(max) }))
+              }
+            />
+          </div>
+        </div>
+
         {mode === "view" && (
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
@@ -257,6 +301,16 @@ export default function BookingForm({ properties }: { properties: Property[] }) 
               <Row label={t.booking.confirmPhone} value={form.phone} />
               <Row label={t.booking.confirmEmail} value={form.email} />
               {selectedProperty && <Row label={t.booking.confirmProperty} value={selectedProperty.name} />}
+              {form.unitCode && <Row label={t.booking.confirmUnitCode} value={form.unitCode} />}
+              {form.lineOrWhatsapp && (
+                <Row label={t.booking.confirmLineOrWhatsapp} value={form.lineOrWhatsapp} />
+              )}
+              <Row
+                label={t.booking.confirmBudget}
+                value={`${Number(form.budgetMin).toLocaleString("th-TH")} - ${Number(
+                  form.budgetMax
+                ).toLocaleString("th-TH")} บาท`}
+              />
               {mode === "view" && (
                 <Row label={t.booking.confirmDateTime} value={`${form.date} ${form.time}`} />
               )}

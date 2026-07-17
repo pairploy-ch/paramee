@@ -1,7 +1,9 @@
 import type { Property } from "./types";
 import { img } from "./propertyImages";
 
-export const properties: Property[] = [
+type SeedProperty = Omit<Property, "remarks" | "leaseTerms" | "landDeedType" | "landTransferFeeParty">;
+
+const seedProperties: SeedProperty[] = [
   {
     slug: "the-parkview-thonglor-3502",
     ownerId: "owner-1",
@@ -313,6 +315,14 @@ export const properties: Property[] = [
       "ตึกหรูใจกลางอโศก เชื่อมต่อ BTS และ MRT เพียงไม่กี่ก้าว วิวเมืองระดับพรีเมียม",
   },
 ];
+
+export const properties: Property[] = seedProperties.map((p) => ({
+  ...p,
+  remarks: "",
+  leaseTerms: [],
+  landDeedType: p.type === "ที่ดิน" ? "โฉนดที่ดิน (น.ส.4 จ.)" : null,
+  landTransferFeeParty: p.type === "ที่ดิน" ? "50/50" : null,
+}));
 
 export function getPropertyBySlug(slug: string): Property | undefined {
   return properties.find((p) => p.slug === slug);

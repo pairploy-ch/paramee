@@ -15,6 +15,10 @@ interface BookingPayload {
   phone: string;
   email: string;
   property?: string;
+  unitCode?: string;
+  lineOrWhatsapp?: string;
+  budgetMin?: string;
+  budgetMax?: string;
   date?: string;
   time?: string;
   note?: string;
@@ -30,6 +34,10 @@ export async function POST(request: Request) {
   const email = (body.email ?? "").trim();
   const note = (body.note ?? "").trim();
   const propertySlug = body.property ?? "";
+  const unitCode = (body.unitCode ?? "").trim();
+  const lineOrWhatsapp = (body.lineOrWhatsapp ?? "").trim();
+  const budgetMin = body.budgetMin ?? "";
+  const budgetMax = body.budgetMax ?? "";
   const date = body.date ?? "";
   const time = body.time ?? "";
 
@@ -66,6 +74,10 @@ export async function POST(request: Request) {
       phone,
       email,
       property_slug: propertySlug || null,
+      unit_code: unitCode || null,
+      line_or_whatsapp: lineOrWhatsapp || null,
+      budget_min: budgetMin ? Number(budgetMin) : null,
+      budget_max: budgetMax ? Number(budgetMax) : null,
       appt_date: date || null,
       appt_time: time || null,
       note,
@@ -80,6 +92,9 @@ export async function POST(request: Request) {
     `เบอร์โทร: ${phone}`,
     `อีเมล: ${email}`,
     property ? `ทรัพย์ที่สนใจ: ${property.name}` : null,
+    unitCode ? `รหัสห้อง: ${unitCode}` : null,
+    lineOrWhatsapp ? `LINE/WhatsApp: ${lineOrWhatsapp}` : null,
+    budgetMin || budgetMax ? `งบประมาณ: ${budgetMin || "-"} - ${budgetMax || "-"}` : null,
     mode === "view" ? `วันเวลานัด: ${date} ${time} น.` : null,
     note ? `หมายเหตุ: ${note}` : null,
   ].filter(Boolean);

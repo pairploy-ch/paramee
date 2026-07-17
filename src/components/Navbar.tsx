@@ -14,6 +14,7 @@ const adminLinks = [
   { href: "/admin/leads", label: "Track Lead" },
   { href: "/admin/properties", label: "เพิ่มทรัพย์" },
   { href: "/admin/manage-properties", label: "จัดการทรัพย์ / เจ้าของ" },
+  { href: "/admin/new-launch", label: "โครงการมือ 1" },
   { href: "/admin/bookings", label: "นัดชม / จอง" },
   { href: "/admin/blog", label: "จัดการบทความ" },
   { href: "/admin/testimonials", label: "รีวิวลูกค้า" },

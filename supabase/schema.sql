@@ -211,6 +211,35 @@ create policy "testimonials: admins delete" on public.testimonials
   for delete using (public.is_admin());
 
 -- ============================================================
+-- new_launch_projects — "โครงการมือ 1" admin-only presale project listings
+-- ============================================================
+create table if not exists public.new_launch_projects (
+  id uuid primary key default gen_random_uuid(),
+  slug text unique not null,
+  name text not null,
+  unit_types_count text not null default '',
+  price_min numeric,
+  price_max numeric,
+  location_highlight text not null default '',
+  rent_yield_price text not null default '',
+  developer text not null default '',
+  unit_count text not null default '',
+  building_count text not null default '',
+  completion_year text not null default '',
+  latest_promotion text not null default '',
+  map_url text,
+  common_area_facilities text not null default '',
+  reservation_deposit text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.new_launch_projects enable row level security;
+
+create policy "new_launch_projects: admins manage all" on public.new_launch_projects
+  for all using (public.is_admin()) with check (public.is_admin());
+
+-- ============================================================
 -- Storage — bucket for property photos (uploaded photos are watermarked
 -- server-side in /api/upload before they land here)
 -- ============================================================
@@ -277,7 +306,8 @@ grant select, insert, update, delete on
   public.bookings,
   public.posts,
   public.testimonials,
-  public.leads
+  public.leads,
+  public.new_launch_projects
 to anon, authenticated;
 
 alter default privileges in schema public
@@ -308,6 +338,17 @@ alter table public.profiles add column if not exists instagram_url text;
 alter table public.profiles add column if not exists tiktok_url text;
 
 alter table public.properties add column if not exists map_url text;
+
+alter table public.properties add column if not exists remarks text not null default '';
+alter table public.properties add column if not exists lease_terms jsonb not null default '[]';
+alter table public.properties add column if not exists land_deed_type text;
+alter table public.properties add column if not exists land_transfer_fee_party text
+  check (land_transfer_fee_party is null or land_transfer_fee_party in ('เจ้าของออก', '50/50', 'ลูกค้าออก'));
+
+alter table public.bookings add column if not exists line_or_whatsapp text;
+alter table public.bookings add column if not exists unit_code text;
+alter table public.bookings add column if not exists budget_min numeric;
+alter table public.bookings add column if not exists budget_max numeric;
 
 -- ============================================================
 -- owner_contacts — public-safe view so the property detail page can show

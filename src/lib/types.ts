@@ -12,6 +12,14 @@ export interface TransitInfo {
   distanceMeters: number;
 }
 
+export interface LeaseTerm {
+  duration: string;
+  price: number;
+}
+
+export const landTransferFeeParties = ["เจ้าของออก", "50/50", "ลูกค้าออก"] as const;
+export type LandTransferFeeParty = (typeof landTransferFeeParties)[number];
+
 export interface Property {
   slug: string;
   ownerId: string;
@@ -41,6 +49,28 @@ export interface Property {
     cashflowPerMonth: number;
   };
   description: string;
+  remarks: string;
+  leaseTerms: LeaseTerm[];
+  landDeedType: string | null;
+  landTransferFeeParty: LandTransferFeeParty | null;
+}
+
+export interface NewLaunchProject {
+  slug: string;
+  name: string;
+  unitTypesCount: string;
+  priceMin: number | null;
+  priceMax: number | null;
+  locationHighlight: string;
+  rentYieldPrice: string;
+  developer: string;
+  unitCount: string;
+  buildingCount: string;
+  completionYear: string;
+  latestPromotion: string;
+  mapUrl: string | null;
+  commonAreaFacilities: string;
+  reservationDeposit: string;
 }
 
 export interface Testimonial {
