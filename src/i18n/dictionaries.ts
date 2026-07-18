@@ -222,7 +222,6 @@ interface Dictionary {
   };
   wishlist: {
     heading: string;
-    description: string;
     empty: string;
     browseCta: string;
   };
@@ -463,7 +462,6 @@ export const dictionaries: Record<Lang, Dictionary> = {
     },
     wishlist: {
       heading: "รายการที่ถูกใจ",
-      description: "ทรัพย์ที่คุณกดบันทึกไว้ (ไอคอนรูปหัวใจบนการ์ดทรัพย์) จะแสดงที่นี่ — บันทึกไว้ในเบราว์เซอร์นี้",
       empty: "คุณยังไม่ได้บันทึกทรัพย์ใดไว้",
       browseCta: "ไปดูทรัพย์ทั้งหมด →",
     },
@@ -702,7 +700,6 @@ export const dictionaries: Record<Lang, Dictionary> = {
     },
     wishlist: {
       heading: "Wishlist",
-      description: "Properties you've saved (using the heart icon on property cards) will show up here — saved in this browser.",
       empty: "You haven't saved any properties yet.",
       browseCta: "Browse all properties →",
     },

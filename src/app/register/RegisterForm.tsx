@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
+import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import SupabaseSetupNotice from "@/components/SupabaseSetupNotice";
@@ -15,31 +17,16 @@ export default function RegisterForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [needsEmailConfirm, setNeedsEmailConfirm] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  function closeWelcome() {
+    setShowWelcome(false);
+    router.replace("/owner-portal");
+    router.refresh();
+  }
 
   if (!isSupabaseConfigured) {
     return <SupabaseSetupNotice title="สมัครสมาชิกเจ้าของทรัพย์" />;
-  }
-
-  if (needsEmailConfirm) {
-    return (
-      <div className="mx-auto flex min-h-[60vh] max-w-md items-center px-5 text-center">
-        <div className="w-full rounded-2xl border border-gold-light/40 bg-white p-8">
-          <h1 className="font-heading text-xl font-semibold text-maroon-dark">
-            ตรวจสอบอีเมลของคุณ
-          </h1>
-          <p className="mt-3 text-sm text-ink/60">
-            เราได้ส่งลิงก์ยืนยันไปที่ {email} แล้ว กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ
-          </p>
-          <Link
-            href="/login"
-            className="mt-5 inline-block bg-gold px-5 py-2.5 text-sm font-medium text-maroon-dark hover:bg-gold-light"
-          >
-            ไปหน้าเข้าสู่ระบบ
-          </Link>
-        </div>
-      </div>
-    );
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -53,7 +40,7 @@ export default function RegisterForm() {
 
     setLoading(true);
     const supabase = createClient();
-    const { data, error: signUpError } = await supabase.auth.signUp({
+    const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { role: "owner", name, phone } },
@@ -65,18 +52,33 @@ export default function RegisterForm() {
       return;
     }
 
-    if (data.session) {
-      router.replace("/owner-portal");
-      router.refresh();
-      return;
-    }
-
-    setNeedsEmailConfirm(true);
     setLoading(false);
+    setShowWelcome(true);
   }
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md items-center px-5">
+      {showWelcome && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="relative w-full max-w-sm overflow-hidden bg-white shadow-2xl">
+            <button
+              type="button"
+              aria-label="ปิด"
+              onClick={closeWelcome}
+              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-ink/60 backdrop-blur hover:text-maroon-dark"
+            >
+              <X className="h-4 w-4" strokeWidth={2} />
+            </button>
+            <Image
+              src="/welcome-popup.jpg"
+              alt="ยินดีต้อนรับสู่ Paramee Asset"
+              width={900}
+              height={1273}
+              className="w-full"
+            />
+          </div>
+        </div>
+      )}
       <div className="w-full rounded-2xl border border-gold-light/40 bg-white p-8">
         <h1 className="font-heading text-2xl font-semibold text-maroon-dark">
           สมัครสมาชิกเจ้าของทรัพย์
