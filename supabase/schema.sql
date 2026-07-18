@@ -217,6 +217,9 @@ create table if not exists public.new_launch_projects (
   id uuid primary key default gen_random_uuid(),
   slug text unique not null,
   name text not null,
+  project_code text,
+  project_type text not null default 'คอนโด' check (project_type in ('คอนโด', 'บ้าน', 'ทาวน์โฮม', 'ที่ดิน')),
+  region text check (region is null or region in ('กรุงเทพฯ', 'พัทยา', 'เชียงใหม่', 'ภูเก็ต', 'อื่นๆ')),
   unit_types_count text not null default '',
   price_min numeric,
   price_max numeric,
@@ -230,14 +233,24 @@ create table if not exists public.new_launch_projects (
   map_url text,
   common_area_facilities text not null default '',
   reservation_deposit text not null default '',
+  images text[] not null default '{}',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 alter table public.new_launch_projects enable row level security;
 
-create policy "new_launch_projects: admins manage all" on public.new_launch_projects
-  for all using (public.is_admin()) with check (public.is_admin());
+create policy "new_launch_projects: public read" on public.new_launch_projects
+  for select using (true);
+
+create policy "new_launch_projects: admins insert" on public.new_launch_projects
+  for insert with check (public.is_admin());
+
+create policy "new_launch_projects: admins update" on public.new_launch_projects
+  for update using (public.is_admin());
+
+create policy "new_launch_projects: admins delete" on public.new_launch_projects
+  for delete using (public.is_admin());
 
 -- ============================================================
 -- Storage — bucket for property photos (uploaded photos are watermarked
@@ -354,6 +367,38 @@ alter table public.bookings add column if not exists line_or_whatsapp text;
 alter table public.bookings add column if not exists unit_code text;
 alter table public.bookings add column if not exists budget_min numeric;
 alter table public.bookings add column if not exists budget_max numeric;
+
+alter table public.properties add column if not exists unit_code text;
+alter table public.properties add column if not exists rental_min_term_months numeric not null default 0;
+alter table public.properties add column if not exists rental_deposit_months numeric not null default 0;
+alter table public.properties add column if not exists rental_advance_months numeric not null default 0;
+
+-- new_launch_projects: add project code + images, and open up public read
+-- access so the homepage's "โครงการมือ 1" section can show them.
+alter table public.new_launch_projects add column if not exists project_code text;
+alter table public.new_launch_projects add column if not exists images text[] not null default '{}';
+alter table public.new_launch_projects add column if not exists project_type text not null default 'คอนโด'
+  check (project_type in ('คอนโด', 'บ้าน', 'ทาวน์โฮม', 'ที่ดิน'));
+alter table public.new_launch_projects add column if not exists region text
+  check (region is null or region in ('กรุงเทพฯ', 'พัทยา', 'เชียงใหม่', 'ภูเก็ต', 'อื่นๆ'));
+
+drop policy if exists "new_launch_projects: admins manage all" on public.new_launch_projects;
+
+drop policy if exists "new_launch_projects: public read" on public.new_launch_projects;
+create policy "new_launch_projects: public read" on public.new_launch_projects
+  for select using (true);
+
+drop policy if exists "new_launch_projects: admins insert" on public.new_launch_projects;
+create policy "new_launch_projects: admins insert" on public.new_launch_projects
+  for insert with check (public.is_admin());
+
+drop policy if exists "new_launch_projects: admins update" on public.new_launch_projects;
+create policy "new_launch_projects: admins update" on public.new_launch_projects
+  for update using (public.is_admin());
+
+drop policy if exists "new_launch_projects: admins delete" on public.new_launch_projects;
+create policy "new_launch_projects: admins delete" on public.new_launch_projects
+  for delete using (public.is_admin());
 
 -- ============================================================
 -- owner_contacts — public-safe view so the property detail page can show

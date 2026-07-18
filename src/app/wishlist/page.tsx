@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import WishlistView from "./WishlistView";
 import { fetchAllProperties } from "@/lib/data/properties";
+import { fetchAllNewLaunchProjects } from "@/lib/data/newLaunchProjects";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { createPublicClient } from "@/lib/supabase/publicClient";
 
@@ -9,9 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default async function WishlistPage() {
-  const properties = await fetchAllProperties(
-    isSupabaseConfigured ? createPublicClient() : undefined
-  );
+  const supabase = isSupabaseConfigured ? createPublicClient() : undefined;
+  const properties = await fetchAllProperties(supabase);
+  const newLaunchProjects = await fetchAllNewLaunchProjects(supabase);
 
-  return <WishlistView properties={properties} />;
+  return <WishlistView properties={properties} newLaunchProjects={newLaunchProjects} />;
 }

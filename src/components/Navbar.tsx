@@ -32,6 +32,7 @@ export default function Navbar({ role = null }: { role?: "admin" | "owner" | nul
   const baseLinks = [
     { href: "/", label: t.nav.home },
     { href: "/properties", label: t.nav.properties },
+    { href: "/new-launch", label: t.nav.newLaunch },
     { href: "/blog", label: t.nav.blog },
     { href: "/owner-portal", label: t.nav.ownerPortal, ownerOnly: true },
   ];

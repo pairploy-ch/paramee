@@ -10,6 +10,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { createPublicClient } from "@/lib/supabase/publicClient";
 import { fetchAllOwnerContacts } from "@/lib/data/owners";
 import { OwnerContactsProvider } from "@/components/OwnerContactsProvider";
+import { CompareProvider } from "@/components/CompareProvider";
 import { LanguageProvider } from "@/i18n/LanguageProvider";
 
 const kanit = Kanit({
@@ -41,11 +42,13 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col bg-cream text-ink">
         <LanguageProvider>
           <OwnerContactsProvider contacts={ownerContacts}>
-            <Navbar role={role} />
-            <main className="flex-1">{children}</main>
-            <Footer isAdmin={isAdmin} />
-            <BackToTop />
-            <LineFloatingButton />
+            <CompareProvider>
+              <Navbar role={role} />
+              <main className="flex-1">{children}</main>
+              <Footer isAdmin={isAdmin} />
+              <BackToTop />
+              <LineFloatingButton />
+            </CompareProvider>
           </OwnerContactsProvider>
         </LanguageProvider>
       </body>

@@ -1,10 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { NewLaunchProject } from "@/lib/types";
+import type { NewLaunchProject, NewLaunchRegion, PropertyType } from "@/lib/types";
 
 export interface NewLaunchProjectRow {
   id: string;
   slug: string;
   name: string;
+  project_code: string | null;
+  project_type: PropertyType;
+  region: NewLaunchRegion | null;
   unit_types_count: string;
   price_min: number | null;
   price_max: number | null;
@@ -18,12 +21,16 @@ export interface NewLaunchProjectRow {
   map_url: string | null;
   common_area_facilities: string;
   reservation_deposit: string;
+  images: string[] | null;
 }
 
 export function rowToProject(row: NewLaunchProjectRow): NewLaunchProject {
   return {
     slug: row.slug,
     name: row.name,
+    projectCode: row.project_code ?? "",
+    projectType: row.project_type ?? "คอนโด",
+    region: row.region,
     unitTypesCount: row.unit_types_count,
     priceMin: row.price_min,
     priceMax: row.price_max,
@@ -37,6 +44,7 @@ export function rowToProject(row: NewLaunchProjectRow): NewLaunchProject {
     mapUrl: row.map_url,
     commonAreaFacilities: row.common_area_facilities,
     reservationDeposit: row.reservation_deposit,
+    images: row.images ?? [],
   };
 }
 
@@ -54,6 +62,9 @@ export function projectToRow(input: NewProjectInput): Omit<NewLaunchProjectRow, 
   return {
     slug,
     name: input.name,
+    project_code: input.projectCode || null,
+    project_type: input.projectType,
+    region: input.region,
     unit_types_count: input.unitTypesCount,
     price_min: input.priceMin,
     price_max: input.priceMax,
@@ -67,6 +78,7 @@ export function projectToRow(input: NewProjectInput): Omit<NewLaunchProjectRow, 
     map_url: input.mapUrl,
     common_area_facilities: input.commonAreaFacilities,
     reservation_deposit: input.reservationDeposit,
+    images: input.images,
   };
 }
 
@@ -82,6 +94,22 @@ export async function fetchAllNewLaunchProjects(supabase?: SupabaseClient): Prom
   return (data as NewLaunchProjectRow[]).map(rowToProject);
 }
 
+export async function fetchNewLaunchProjectBySlug(
+  slug: string,
+  supabase?: SupabaseClient
+): Promise<NewLaunchProject | undefined> {
+  if (!supabase) return undefined;
+
+  const { data, error } = await supabase
+    .from("new_launch_projects")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error || !data) return undefined;
+  return rowToProject(data as NewLaunchProjectRow);
+}
+
 export async function insertNewLaunchProject(supabase: SupabaseClient, input: NewProjectInput) {
   return supabase.from("new_launch_projects").insert(projectToRow(input)).select("*").single();
 }
@@ -93,6 +121,9 @@ export async function updateNewLaunchProjectBySlug(
 ) {
   const row: Record<string, unknown> = {};
   if (patch.name !== undefined) row.name = patch.name;
+  if (patch.projectCode !== undefined) row.project_code = patch.projectCode || null;
+  if (patch.projectType !== undefined) row.project_type = patch.projectType;
+  if (patch.region !== undefined) row.region = patch.region;
   if (patch.unitTypesCount !== undefined) row.unit_types_count = patch.unitTypesCount;
   if (patch.priceMin !== undefined) row.price_min = patch.priceMin;
   if (patch.priceMax !== undefined) row.price_max = patch.priceMax;
@@ -106,6 +137,7 @@ export async function updateNewLaunchProjectBySlug(
   if (patch.mapUrl !== undefined) row.map_url = patch.mapUrl;
   if (patch.commonAreaFacilities !== undefined) row.common_area_facilities = patch.commonAreaFacilities;
   if (patch.reservationDeposit !== undefined) row.reservation_deposit = patch.reservationDeposit;
+  if (patch.images !== undefined) row.images = patch.images;
 
   return supabase.from("new_launch_projects").update(row).eq("slug", slug).select("*").single();
 }

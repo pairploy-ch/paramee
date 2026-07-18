@@ -3,14 +3,23 @@
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import PropertyCard from "@/components/PropertyCard";
+import NewLaunchProjectCard from "@/components/NewLaunchProjectCard";
 import { useBookmarks } from "@/lib/useBookmarks";
 import { useTranslation } from "@/i18n/LanguageProvider";
-import type { Property } from "@/lib/types";
+import type { NewLaunchProject, Property } from "@/lib/types";
 
-export default function WishlistView({ properties }: { properties: Property[] }) {
+export default function WishlistView({
+  properties,
+  newLaunchProjects,
+}: {
+  properties: Property[];
+  newLaunchProjects: NewLaunchProject[];
+}) {
   const { t } = useTranslation();
   const { bookmarks, ready } = useBookmarks();
-  const saved = properties.filter((p) => bookmarks.includes(p.slug));
+  const savedProperties = properties.filter((p) => bookmarks.includes(p.slug));
+  const savedProjects = newLaunchProjects.filter((p) => bookmarks.includes(p.slug));
+  const isEmpty = savedProperties.length === 0 && savedProjects.length === 0;
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8">
@@ -19,7 +28,7 @@ export default function WishlistView({ properties }: { properties: Property[] })
         <p className="mt-2 text-sm text-ink/60">{t.wishlist.description}</p>
       </div>
 
-      {!ready ? null : saved.length === 0 ? (
+      {!ready ? null : isEmpty ? (
         <div className="rounded-2xl border border-dashed border-gold-light/50 bg-white py-20 text-center">
           <Heart className="mx-auto h-10 w-10 text-ink/20" strokeWidth={1.5} />
           <p className="mt-4 text-ink/50">{t.wishlist.empty}</p>
@@ -31,10 +40,27 @@ export default function WishlistView({ properties }: { properties: Property[] })
           </Link>
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {saved.map((p) => (
-            <PropertyCard key={p.slug} property={p} />
-          ))}
+        <div className="space-y-12">
+          {savedProperties.length > 0 && (
+            <div>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {savedProperties.map((p) => (
+                  <PropertyCard key={p.slug} property={p} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {savedProjects.length > 0 && (
+            <div>
+              <h2 className="mb-4 font-heading text-xl font-semibold text-maroon-dark">โครงการมือ 1 ที่บันทึกไว้</h2>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {savedProjects.map((p) => (
+                  <NewLaunchProjectCard key={p.slug} project={p} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

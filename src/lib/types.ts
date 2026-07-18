@@ -59,9 +59,15 @@ export interface Property {
   rentalAdvanceMonths: number;
 }
 
+export const newLaunchRegions = ["กรุงเทพฯ", "พัทยา", "เชียงใหม่", "ภูเก็ต", "อื่นๆ"] as const;
+export type NewLaunchRegion = (typeof newLaunchRegions)[number];
+
 export interface NewLaunchProject {
   slug: string;
   name: string;
+  projectCode: string;
+  projectType: PropertyType;
+  region: NewLaunchRegion | null;
   unitTypesCount: string;
   priceMin: number | null;
   priceMax: number | null;
@@ -75,6 +81,7 @@ export interface NewLaunchProject {
   mapUrl: string | null;
   commonAreaFacilities: string;
   reservationDeposit: string;
+  images: string[];
 }
 
 export interface Testimonial {

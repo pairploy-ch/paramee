@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { propertyTypes } from "@/lib/properties";
 import PropertyCard from "@/components/PropertyCard";
+import SelectDropdown from "@/components/SelectDropdown";
 import { propertyTypeLabel } from "@/lib/format";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import type { Property, PropertyType } from "@/lib/types";
@@ -49,11 +50,6 @@ export default function PropertiesBrowser({ initialProperties }: { initialProper
         <h1 className="font-heading text-3xl font-semibold text-maroon-dark">
           {tr.properties.title}
         </h1>
-        <p className="mt-2 text-sm text-ink/60">
-          {tr.properties.resultsSummary
-            .replace("{count}", String(filtered.length))
-            .replace("{total}", String(properties.length))}
-        </p>
       </div>
 
       {/* Filters */}
@@ -74,51 +70,43 @@ export default function PropertiesBrowser({ initialProperties }: { initialProper
           <label className="mb-1.5 block text-xs font-semibold text-ink/60">
             {tr.properties.typeLabel}
           </label>
-          <select
+          <SelectDropdown
             value={type}
-            onChange={(e) => setType(e.target.value as PropertyType | "ทั้งหมด")}
-            className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
-          >
-            <option value="ทั้งหมด">{tr.properties.all}</option>
-            {propertyTypes.map((pt) => (
-              <option key={pt} value={pt}>
-                {propertyTypeLabel(pt, lang)}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => setType(v as PropertyType | "ทั้งหมด")}
+            options={[
+              { value: "ทั้งหมด", label: tr.properties.all },
+              ...propertyTypes.map((pt) => ({ value: pt, label: propertyTypeLabel(pt, lang) })),
+            ]}
+          />
         </div>
 
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-ink/60">
             {tr.properties.districtLabel}
           </label>
-          <select
+          <SelectDropdown
             value={district}
-            onChange={(e) => setDistrict(e.target.value)}
-            className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
-          >
-            <option value="ทั้งหมด">{tr.properties.all}</option>
-            {districts.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
+            onChange={setDistrict}
+            options={[
+              { value: "ทั้งหมด", label: tr.properties.all },
+              ...districts.map((d) => ({ value: d, label: d })),
+            ]}
+          />
         </div>
 
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-ink/60">
             {tr.properties.purposeLabel}
           </label>
-          <select
+          <SelectDropdown
             value={purpose}
-            onChange={(e) => setPurpose(e.target.value as "ทั้งหมด" | "ซื้อ" | "เช่า")}
-            className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
-          >
-            <option value="ทั้งหมด">{tr.properties.all}</option>
-            <option value="ซื้อ">{tr.search.buyOption}</option>
-            <option value="เช่า">{tr.search.rentOption}</option>
-          </select>
+            onChange={(v) => setPurpose(v as "ทั้งหมด" | "ซื้อ" | "เช่า")}
+            options={[
+              { value: "ทั้งหมด", label: tr.properties.all },
+              { value: "ซื้อ", label: tr.search.buyOption },
+              { value: "เช่า", label: tr.search.rentOption },
+            ]}
+          />
         </div>
 
         <div>

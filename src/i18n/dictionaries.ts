@@ -4,6 +4,7 @@ interface Dictionary {
   nav: {
     home: string;
     properties: string;
+    newLaunch: string;
     mortgageCalculator: string;
     booking: string;
     ownerPortal: string;
@@ -59,6 +60,10 @@ interface Dictionary {
     featuredHeading: string;
     featuredSubtitle: string;
     viewAll: string;
+    newLaunchBadge: string;
+    newLaunchHeading: string;
+    newLaunchSubtitle: string;
+    newLaunchViewAll: string;
     statsPropertiesLabel: string;
     statsPropertiesValue: string;
     statsLocationsLabel: string;
@@ -235,6 +240,7 @@ export const dictionaries: Record<Lang, Dictionary> = {
     nav: {
       home: "หน้าแรก",
       properties: "ทรัพย์ทั้งหมด",
+      newLaunch: "โครงการมือ 1",
       mortgageCalculator: "คำนวณสินเชื่อ",
       booking: "นัดชมทรัพย์",
       ownerPortal: "Owner Portal",
@@ -291,6 +297,10 @@ export const dictionaries: Record<Lang, Dictionary> = {
       featuredHeading: "ทรัพย์แนะนำ",
       featuredSubtitle: "คัดสรรทำเลดี ราคาคุ้มค่า จากทรัพย์ระดับพรีเมียม",
       viewAll: "ดูทรัพย์ทั้งหมด →",
+      newLaunchBadge: "โครงการใหม่",
+      newLaunchHeading: "โครงการมือ 1",
+      newLaunchSubtitle: "โครงการเปิดใหม่จากผู้พัฒนาชั้นนำ พร้อมข้อมูลราคาและโปรโมชั่นล่าสุด",
+      newLaunchViewAll: "ดูโครงการทั้งหมด →",
       statsPropertiesLabel: "ทรัพย์ในระบบ",
       statsPropertiesValue: "300–500+",
       statsLocationsLabel: "ทำเลทั่วกรุงเทพฯ",
@@ -300,16 +310,15 @@ export const dictionaries: Record<Lang, Dictionary> = {
       statsTimeLabel: "เวลาเฉลี่ยยืนยันนัด",
       statsTimeValue: "< 24 ชม.",
       aboutBadge: "เกี่ยวกับเรา",
-      aboutHeadingLine1: "แพลตฟอร์มอสังหาริมทรัพย์ครบวงจร",
-      aboutHeadingLine2: "ที่ดูแลคุณจนถึงวันโอนกรรมสิทธิ์",
+      aboutHeadingLine1: "PARAMEE ASSET",
+      aboutHeadingLine2: "",
       aboutParagraph:
-        "Paramee รวบรวมทรัพย์คุณภาพหลากหลายทำเลทั่วกรุงเทพฯ และปริมณฑล พร้อมระบบนัดชม จองมัดจำ คำนวณสินเชื่อ และข้อมูลนักลงทุนครบถ้วน เพื่อให้ทุกการตัดสินใจง่ายและมั่นใจขึ้น",
+        "PARAMEE ASSET คือบริษัทนายหน้าอสังหาริมทรัพย์ มุ่งเน้นการเป็นผู้นำด้านที่ปรึกษาอสังหาริมทรัพย์ ด้วยความเชื่อว่าการซื้อ ขาย หรือเช่าอสังหาริมทรัพย์ ควรเป็นเรื่องที่ไว้ใจได้ในทุกขั้นตอน\n\nเปรม ผู้ก่อตั้ง PARAMEE ASSET พร้อมให้คำปรึกษาตั้งแต่ขั้นตอนแรกจนถึงวันโอนกรรมสิทธิ์ ไม่ว่าจะซื้อเพื่ออยู่อาศัย ลงทุน หรือฝากขาย-ฝากเช่า บ้าน ที่ดิน คอนโด poolvilla เรือยอร์ช",
       aboutChecklist1: "ทำเลคัดสรร",
       aboutChecklist2: "ข้อมูลโปร่งใส",
       aboutChecklist3: "นัดชมออนไลน์",
       aboutChecklist4: "ปลอดภัยทุกขั้นตอน",
-      aboutQuote:
-        "“เราเชื่อว่าการหาบ้านที่ใช่ ควรเป็นเรื่องง่ายและโปร่งใส ทุกตัวเลขต้องตรวจสอบได้ ทุกนัดหมายต้องได้รับการดูแล”",
+      aboutQuote: "“Built on Trust” ทุกอย่างเริ่มต้นจากความจริงใจ",
       aboutCta: "บริการของเรา",
       bannerQuote: "“เริ่มต้นจากความจริงใจ Built on Trust”",
       bannerAttribution: "— Paramee Asset",
@@ -470,6 +479,7 @@ export const dictionaries: Record<Lang, Dictionary> = {
     nav: {
       home: "Home",
       properties: "All Properties",
+      newLaunch: "New Launch Projects",
       mortgageCalculator: "Mortgage Calculator",
       booking: "Book a Viewing",
       ownerPortal: "Owner Portal",
@@ -526,6 +536,10 @@ export const dictionaries: Record<Lang, Dictionary> = {
       featuredHeading: "Featured Properties",
       featuredSubtitle: "Great locations, good value — hand-picked premium listings.",
       viewAll: "View all properties →",
+      newLaunchBadge: "New Projects",
+      newLaunchHeading: "New Launch Projects",
+      newLaunchSubtitle: "Fresh pre-sale launches from leading developers, with the latest pricing and promotions.",
+      newLaunchViewAll: "View all projects →",
       statsPropertiesLabel: "Properties listed",
       statsPropertiesValue: "300–500+",
       statsLocationsLabel: "Locations across Bangkok",
@@ -535,16 +549,15 @@ export const dictionaries: Record<Lang, Dictionary> = {
       statsTimeLabel: "Average booking confirmation",
       statsTimeValue: "< 24 hrs",
       aboutBadge: "About Us",
-      aboutHeadingLine1: "A full-service real estate platform",
-      aboutHeadingLine2: "that supports you through to title transfer.",
+      aboutHeadingLine1: "PARAMEE ASSET",
+      aboutHeadingLine2: "",
       aboutParagraph:
-        "Paramee brings together quality properties across Bangkok and its suburbs, with viewing bookings, deposit reservations, mortgage calculations, and complete investor data — making every decision easier and more confident.",
+        "PARAMEE ASSET is a real estate brokerage focused on leading as a trusted property advisor — built on the belief that buying, selling, or renting real estate should be reliable at every step.\n\nPrem, founder of PARAMEE ASSET, is ready to advise you from the very first step through to the day of title transfer — whether you're buying to live in, investing, or listing a house, land, condo, poolvilla, or yacht for sale or rent.",
       aboutChecklist1: "Curated locations",
       aboutChecklist2: "Transparent data",
       aboutChecklist3: "Online booking",
       aboutChecklist4: "Secure at every step",
-      aboutQuote:
-        "“We believe finding the right home should be easy and transparent. Every number should be verifiable, every appointment should be taken care of.”",
+      aboutQuote: "“Built on Trust” — everything starts with sincerity",
       aboutCta: "Our Services",
       bannerQuote: "“Built on Trust”",
       bannerAttribution: "— Paramee Asset",

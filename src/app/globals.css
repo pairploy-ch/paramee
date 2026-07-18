@@ -1,6 +1,12 @@
 @import "tailwindcss";
 
 :root {
+  /* Force light-mode rendering for native form controls (select, input, etc.)
+     regardless of OS/browser dark-mode setting — otherwise Chrome/Edge on
+     Windows renders <select> text white-on-dark, which is invisible against
+     this site's light cream fields. */
+  color-scheme: light;
+
   /* Paramee brand palette — derived from PARAMEE-01 brand mark
      (deep wine maroon field #491218 + warm cream-gold wordmark #DAC6AD) */
   --color-cream: #fdf8ef;
