@@ -103,3 +103,105 @@ export interface BlogPost {
   isPublished: boolean;
   publishedAt: string;
 }
+
+export interface LeaseChecklistItem {
+  name: string;
+  ready: boolean;
+  value: string;
+  detail: string;
+}
+
+export const defaultLeaseChecklistItems: LeaseChecklistItem[] = [
+  "เตียง",
+  "หมอนหนุน",
+  "หมอนข้าง",
+  "ชุดเครื่องนอน",
+  "ตู้เสื้อผ้า",
+  "โต๊ะทำงาน/ โต๊ะทานข้าว",
+  "เก้าอี้",
+  "โต๊ะข้างเตียง",
+  "โต๊ะวางทีวี",
+  "ตู้เก็บรองเท้า",
+  "โซฟา",
+  "ผ้าม่าน",
+  "ราวตากผ้า",
+  "ทีวี พร้อมรีโมท",
+  "แอร์ พร้อมรีโมท",
+  "ตู้เย็น",
+  "ไมโครเวฟ",
+  "เตาไฟฟ้า",
+  "ฮู้ดดูดควัน",
+  "เครื่องทำน้ำอุ่น",
+  "พัดลม",
+  "กาต้มน้ำ",
+  "เครื่องซักผ้า",
+  "กุญแจห้อง",
+  "คีย์การ์ดเข้าห้อง",
+  "คีย์การ์ดเข้าอาคาร",
+  "คีย์การ์ดจอดรถ",
+  "สติ๊กเกอร์จอดรถ",
+  "กุญแจตู้จดหมาย",
+].map((name) => ({ name, ready: false, value: "", detail: "" }));
+
+export interface LeaseContract {
+  id: string;
+  createdAt: string;
+  projectName: string;
+  projectAddress: string;
+  roomNumber: string;
+  building: string;
+  floor: string;
+  lessorName: string;
+  lessorIdCard: string;
+  lessorAddress: string;
+  lesseeName: string;
+  lesseeIdCard: string;
+  lesseeAddress: string;
+  contractDate: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  contractYears: number;
+  rentPerMonth: number;
+  paymentDueDay: string;
+  bankName: string;
+  bankAccountNumber: string;
+  bankAccountName: string;
+  depositAmount: number;
+  cleaningFee: number;
+  receiptDate: string | null;
+  reservationDepositAmount: number;
+  damageDepositAmount: number;
+  checklistItems: LeaseChecklistItem[];
+}
+
+export const coAgentWorkTypes = ["Freelance ฟรีแลนซ์", "Company บริษัท/นิติบุคคล"] as const;
+export type CoAgentWorkType = (typeof coAgentWorkTypes)[number];
+
+export const coAgentExpertiseAreas = ["เมืองชลบุรี", "บางแสน", "ศรีราชา", "พัทยา", "อมตะ", "อื่นๆ"] as const;
+
+export const coAgentMarketingChannels = [
+  "Facebook ส่วนตัว",
+  "Facebook Page",
+  "TikTok",
+  "Instagram",
+  "Website (eg. DD Property, Property Hub, Living Insider)",
+  "ป้ายโฆษณา",
+  "อื่นๆ",
+] as const;
+
+export interface CoAgentApplication {
+  id: string;
+  createdAt: string;
+  fullName: string;
+  nickname: string;
+  phone: string;
+  lineId: string;
+  email: string;
+  workType: string;
+  expertiseAreas: string[];
+  marketingChannels: string[];
+  marketingName: string;
+  idCardFiles: string[];
+  bankBookFile: string;
+  companyCertFile: string | null;
+}

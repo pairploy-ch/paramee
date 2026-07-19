@@ -300,6 +300,102 @@ create policy "leads: admins manage all" on public.leads
   for all using (public.is_admin()) with check (public.is_admin());
 
 -- ============================================================
+-- lease_contracts — signed lease agreements generated from the admin
+-- "ระบบสัญญาเช่า" screen (admin-only, never public)
+-- ============================================================
+create table if not exists public.lease_contracts (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  project_name text not null default '',
+  project_address text not null default '',
+  room_number text not null default '',
+  building text not null default '',
+  floor text not null default '',
+  lessor_name text not null default '',
+  lessor_id_card text not null default '',
+  lessor_address text not null default '',
+  lessee_name text not null default '',
+  lessee_id_card text not null default '',
+  lessee_address text not null default '',
+  contract_date date,
+  start_date date,
+  end_date date,
+  contract_years numeric not null default 1,
+  rent_per_month numeric not null default 0,
+  payment_due_day text not null default '',
+  bank_name text not null default '',
+  bank_account_number text not null default '',
+  bank_account_name text not null default '',
+  deposit_amount numeric not null default 0,
+  cleaning_fee numeric not null default 0,
+  receipt_date date,
+  reservation_deposit_amount numeric not null default 0,
+  damage_deposit_amount numeric not null default 0,
+  checklist_items jsonb not null default '[]'
+);
+
+alter table public.lease_contracts enable row level security;
+
+create policy "lease_contracts: admins manage all" on public.lease_contracts
+  for all using (public.is_admin()) with check (public.is_admin());
+
+-- ============================================================
+-- co_agent_applications — submissions from the public, unlisted
+-- "สมัคร Co-Agent" form. Never linked in any nav menu; only reachable via
+-- the direct URLs shared out-of-band (/co-agent-register to apply,
+-- /admin/co-agents to review).
+-- ============================================================
+create table if not exists public.co_agent_applications (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  full_name text not null default '',
+  nickname text not null default '',
+  phone text not null default '',
+  line_id text not null default '',
+  email text not null default '',
+  work_type text not null default '',
+  expertise_areas text[] not null default '{}',
+  marketing_channels text[] not null default '{}',
+  marketing_name text not null default '',
+  id_card_files text[] not null default '{}',
+  bank_book_file text not null default '',
+  company_cert_file text
+);
+
+alter table public.co_agent_applications enable row level security;
+
+create policy "co_agent_applications: anyone can submit" on public.co_agent_applications
+  for insert with check (true);
+
+create policy "co_agent_applications: admins read all" on public.co_agent_applications
+  for select using (public.is_admin());
+
+create policy "co_agent_applications: admins delete" on public.co_agent_applications
+  for delete using (public.is_admin());
+
+-- Storage bucket for the uploaded ID card / bank book / company certificate
+-- copies. Kept private (not public=true) since these are sensitive personal
+-- documents — anyone can upload (the applicant isn't logged in), but only
+-- admins can read them back via signed URLs.
+insert into storage.buckets (id, name, public)
+values ('co-agent-documents', 'co-agent-documents', false)
+on conflict (id) do nothing;
+
+create policy "co-agent-documents: anyone can upload"
+on storage.objects for insert
+with check (bucket_id = 'co-agent-documents');
+
+create policy "co-agent-documents: admins read"
+on storage.objects for select using (
+  bucket_id = 'co-agent-documents' and public.is_admin()
+);
+
+create policy "co-agent-documents: admins delete"
+on storage.objects for delete using (
+  bucket_id = 'co-agent-documents' and public.is_admin()
+);
+
+-- ============================================================
 -- Bootstrapping the first admin
 -- ============================================================
 -- 1. Register a normal account at /register (it will default to role='owner').
@@ -320,7 +416,9 @@ grant select, insert, update, delete on
   public.posts,
   public.testimonials,
   public.leads,
-  public.new_launch_projects
+  public.new_launch_projects,
+  public.lease_contracts,
+  public.co_agent_applications
 to anon, authenticated;
 
 alter default privileges in schema public

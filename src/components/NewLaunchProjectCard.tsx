@@ -15,7 +15,13 @@ function formatPriceRange(min: number | null, max: number | null) {
   return `สูงสุด ${fmt(max as number)} บาท`;
 }
 
-export default function NewLaunchProjectCard({ project }: { project: NewLaunchProject }) {
+export default function NewLaunchProjectCard({
+  project,
+  showCompare = true,
+}: {
+  project: NewLaunchProject;
+  showCompare?: boolean;
+}) {
   const priceLabel = formatPriceRange(project.priceMin, project.priceMax);
   const cover = project.images[0];
 
@@ -50,7 +56,7 @@ export default function NewLaunchProjectCard({ project }: { project: NewLaunchPr
             {project.projectType}
           </span>
           <div className="flex gap-2">
-            <CompareToggleButton slug={project.slug} />
+            {showCompare && <CompareToggleButton slug={project.slug} />}
             <BookmarkButton slug={project.slug} />
           </div>
         </div>

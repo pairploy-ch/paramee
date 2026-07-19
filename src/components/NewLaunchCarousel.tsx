@@ -16,7 +16,7 @@ export default function NewLaunchCarousel({ projects }: { projects: NewLaunchPro
       }
     >
       {projects.map((p) => (
-        <NewLaunchProjectCard key={p.slug} project={p} />
+        <NewLaunchProjectCard key={p.slug} project={p} showCompare={false} />
       ))}
     </Carousel>
   );
