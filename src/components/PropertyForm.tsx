@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
-import { propertyTypes } from "@/lib/properties";
+import { Plus, Trash2, Download } from "lucide-react";
+import { propertyAreas, propertyTypes } from "@/lib/properties";
+import SelectDropdown from "@/components/SelectDropdown";
 import { thaiProvinces } from "@/lib/thaiProvinces";
 import { landDeedTypes, landDeedColorClass } from "@/lib/landDeedTypes";
+import { downloadImage } from "@/lib/downloadImage";
 import type {
   Property,
   PropertyStatus,
@@ -38,6 +40,7 @@ export interface PropertyFormValues {
   tier: PropertyTier;
   address: string;
   district: string;
+  area: string;
   mapUrl: string;
   description: string;
   remarks: string;
@@ -65,6 +68,7 @@ export interface PropertyFormValues {
   occupancyPercent: string;
   cashflowPerMonth: string;
   ownerId: string;
+  facebookPostUrl: string;
 }
 
 export const emptyPropertyFormValues: PropertyFormValues = {
@@ -74,6 +78,7 @@ export const emptyPropertyFormValues: PropertyFormValues = {
   tier: 2,
   address: "",
   district: "",
+  area: "",
   mapUrl: "",
   description: "",
   remarks: "",
@@ -101,6 +106,7 @@ export const emptyPropertyFormValues: PropertyFormValues = {
   occupancyPercent: "",
   cashflowPerMonth: "",
   ownerId: "",
+  facebookPostUrl: "",
 };
 
 export function valuesToProperty(v: PropertyFormValues): Omit<Property, "slug"> {
@@ -113,6 +119,7 @@ export function valuesToProperty(v: PropertyFormValues): Omit<Property, "slug"> 
     type: v.type,
     address: v.address,
     district: v.district,
+    area: v.area || null,
     mapUrl: v.mapUrl.trim() || null,
     status: v.status,
     salePrice: v.salePrice.trim() === "" ? null : Number(v.salePrice),
@@ -146,6 +153,7 @@ export function valuesToProperty(v: PropertyFormValues): Omit<Property, "slug"> 
     rentalAdvanceMonths: num(v.rentalAdvanceMonths),
     landDeedType: isLand ? v.landDeedType.trim() || null : null,
     landTransferFeeParty: isLand ? v.landTransferFeeParty || null : null,
+    facebookPostUrl: v.facebookPostUrl.trim(),
   };
 }
 
@@ -157,6 +165,7 @@ export function propertyToFormValues(p: Property): PropertyFormValues {
     tier: p.tier,
     address: p.address,
     district: p.district,
+    area: p.area ?? "",
     mapUrl: p.mapUrl ?? "",
     description: p.description,
     remarks: p.remarks ?? "",
@@ -189,6 +198,7 @@ export function propertyToFormValues(p: Property): PropertyFormValues {
     occupancyPercent: String(p.investor.occupancyPercent),
     cashflowPerMonth: String(p.investor.cashflowPerMonth),
     ownerId: p.ownerId,
+    facebookPostUrl: p.facebookPostUrl ?? "",
   };
 }
 
@@ -254,6 +264,15 @@ export default function PropertyForm({
 
   function removeImageRow(index: number) {
     setValues((v) => ({ ...v, images: v.images.filter((_, i) => i !== index) }));
+  }
+
+  async function handleDownloadImage(url: string, index: number) {
+    if (!url.trim()) return;
+    try {
+      await downloadImage(url, `${values.name || "property"}-${index + 1}.jpg`);
+    } catch {
+      setUploadError("ดาวน์โหลดรูปไม่สำเร็จ");
+    }
   }
 
   function updateTransit<K extends keyof TransitFormRow>(index: number, key: K, value: TransitFormRow[K]) {
@@ -420,6 +439,16 @@ export default function PropertyForm({
                 className={inputClass}
               />
             </Field>
+            <Field label="พื้นที่">
+              <SelectDropdown
+                value={values.area}
+                onChange={(v) => update("area", v)}
+                options={[
+                  { value: "", label: "— เลือกพื้นที่ —" },
+                  ...propertyAreas.map((a) => ({ value: a, label: a })),
+                ]}
+              />
+            </Field>
             <Field label="ลิงก์ Google Maps">
               <input
                 type="url"
@@ -451,17 +480,6 @@ export default function PropertyForm({
                 <input value={ownerLocked.name} disabled className={`${inputClass} opacity-60`} />
               </Field>
             )}
-            <div className="sm:col-span-2">
-              <Field label="รายละเอียดทรัพย์">
-                <textarea
-                  required
-                  rows={3}
-                  value={values.description}
-                  onChange={(e) => update("description", e.target.value)}
-                  className={inputClass}
-                />
-              </Field>
-            </div>
             <div className="sm:col-span-2">
               <Field label="หมายเหตุ">
                 <textarea
@@ -708,6 +726,16 @@ export default function PropertyForm({
                 />
                 <button
                   type="button"
+                  aria-label="ดาวน์โหลดรูป"
+                  title="ดาวน์โหลดรูป"
+                  disabled={!img.trim()}
+                  onClick={() => handleDownloadImage(img, i)}
+                  className="border border-cream-dark px-3 text-ink/40 hover:border-gold-dark hover:text-gold-dark disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <Download className="h-4 w-4" strokeWidth={1.75} />
+                </button>
+                <button
+                  type="button"
                   aria-label="ลบรูป"
                   onClick={() => removeImageRow(i)}
                   className="border border-cream-dark px-3 text-ink/40 hover:border-red-400 hover:text-red-500"
@@ -716,6 +744,18 @@ export default function PropertyForm({
                 </button>
               </div>
             ))}
+          </div>
+
+          <div className="mt-4">
+            <Field label="ลิงก์โพสต์ Facebook">
+              <input
+                type="url"
+                value={values.facebookPostUrl}
+                onChange={(e) => update("facebookPostUrl", e.target.value)}
+                placeholder="https://www.facebook.com/..."
+                className={inputClass}
+              />
+            </Field>
           </div>
         </div>
 

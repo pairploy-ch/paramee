@@ -11,6 +11,7 @@ type SeedProperty = Omit<
   | "rentalMinTermMonths"
   | "rentalDepositMonths"
   | "rentalAdvanceMonths"
+  | "facebookPostUrl"
 >;
 
 const seedProperties: SeedProperty[] = [
@@ -22,6 +23,7 @@ const seedProperties: SeedProperty[] = [
     type: "คอนโด",
     address: "สุขุมวิท 55, คลองตันเหนือ",
     district: "ทองหล่อ",
+    area: null,
     mapUrl: null,
     status: "Available",
     salePrice: 8900000,
@@ -53,6 +55,7 @@ const seedProperties: SeedProperty[] = [
     type: "บ้าน",
     address: "รามอินทรา กม.10",
     district: "คันนายาว",
+    area: null,
     mapUrl: null,
     status: "Available",
     salePrice: 6500000,
@@ -84,6 +87,7 @@ const seedProperties: SeedProperty[] = [
     type: "คอนโด",
     address: "พหลโยธิน ซอย 7",
     district: "อารีย์",
+    area: null,
     mapUrl: null,
     status: "Reserved",
     salePrice: 12500000,
@@ -112,9 +116,10 @@ const seedProperties: SeedProperty[] = [
     ownerId: "owner-2",
     tier: 2,
     name: "Town Plus บางนา กม.7",
-    type: "ทาวน์โฮม",
+    type: "บ้าน",
     address: "บางนา-ตราด กม.7",
     district: "บางนา",
+    area: null,
     mapUrl: null,
     status: "Available",
     salePrice: 4200000,
@@ -146,6 +151,7 @@ const seedProperties: SeedProperty[] = [
     type: "ที่ดิน",
     address: "ถนนรัชดาภิเษก ใกล้ห้วยขวาง",
     district: "ห้วยขวาง",
+    area: null,
     mapUrl: null,
     status: "Available",
     salePrice: 45000000,
@@ -177,6 +183,7 @@ const seedProperties: SeedProperty[] = [
     type: "คอนโด",
     address: "สุขุมวิท 24",
     district: "คลองตัน",
+    area: null,
     mapUrl: null,
     status: "For Rent",
     salePrice: null,
@@ -208,6 +215,7 @@ const seedProperties: SeedProperty[] = [
     type: "บ้าน",
     address: "คลองสี่ ธัญบุรี",
     district: "รังสิต",
+    area: null,
     mapUrl: null,
     status: "Available",
     salePrice: 3450000,
@@ -239,6 +247,7 @@ const seedProperties: SeedProperty[] = [
     type: "คอนโด",
     address: "สุขุมวิท 64",
     district: "พระโขนง",
+    area: null,
     mapUrl: null,
     status: "Sold",
     salePrice: 4650000,
@@ -267,9 +276,10 @@ const seedProperties: SeedProperty[] = [
     ownerId: "owner-3",
     tier: 3,
     name: "Town Plus วัชรพล",
-    type: "ทาวน์โฮม",
+    type: "บ้าน",
     address: "วัชรพล-รามอินทรา",
     district: "สายไหม",
+    area: null,
     mapUrl: null,
     status: "Available",
     salePrice: 3890000,
@@ -301,6 +311,7 @@ const seedProperties: SeedProperty[] = [
     type: "คอนโด",
     address: "สุขุมวิท 21 (อโศก)",
     district: "อโศก",
+    area: null,
     mapUrl: null,
     status: "Available",
     salePrice: 15900000,
@@ -336,12 +347,16 @@ export const properties: Property[] = seedProperties.map((p) => ({
   rentalMinTermMonths: p.rentPrice ? 1 : 0,
   rentalDepositMonths: p.rentPrice ? 2 : 0,
   rentalAdvanceMonths: p.rentPrice ? 1 : 0,
+  facebookPostUrl: "",
 }));
 
 export function getPropertyBySlug(slug: string): Property | undefined {
   return properties.find((p) => p.slug === slug);
 }
 
-export const propertyTypes = ["คอนโด", "บ้าน", "ทาวน์โฮม", "ที่ดิน"] as const;
+export const propertyTypes = ["บ้าน", "ที่ดิน", "คอนโด", "เรือยอชน์"] as const;
 
 export const districts = Array.from(new Set(properties.map((p) => p.district)));
+
+export const propertyAreas = ["พัทยา", "กรุงเทพฯ", "เชียงใหม่", "ภูเก็ต", "เขาใหญ่"] as const;
+export type PropertyArea = (typeof propertyAreas)[number];

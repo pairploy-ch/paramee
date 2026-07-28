@@ -67,11 +67,19 @@ export default async function NewLaunchDetailPage({
             />
           </div>
           <div className="flex h-full flex-col gap-2">
-            {project.images.slice(1, 3).map((src, i) => (
-              <div key={i} className="relative flex-1">
-                <Image src={src} alt={`${project.name} รูปที่ ${i + 2}`} fill sizes="240px" className="object-cover" />
-              </div>
-            ))}
+            {project.images.slice(1, 4).map((src, i) => {
+              const isLastVisible = i === 2 && project.images.length > 4;
+              return (
+                <div key={i} className="relative flex-1">
+                  <Image src={src} alt={`${project.name} รูปที่ ${i + 2}`} fill sizes="240px" className="object-cover" />
+                  {isLastVisible && (
+                    <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-sm font-semibold text-white">
+                      +{project.images.length - 4}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       ) : (

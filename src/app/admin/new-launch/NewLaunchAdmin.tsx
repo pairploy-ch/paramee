@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, Download } from "lucide-react";
 import ConfirmModal from "@/components/ConfirmModal";
 import SelectDropdown from "@/components/SelectDropdown";
 import NewLaunchCaptionGenerator from "./NewLaunchCaptionGenerator";
@@ -14,6 +14,7 @@ import {
   deleteNewLaunchProjectBySlug,
 } from "@/lib/data/newLaunchProjects";
 import { propertyTypes } from "@/lib/properties";
+import { downloadImage } from "@/lib/downloadImage";
 import { newLaunchRegions } from "@/lib/types";
 import type { NewLaunchProject, NewLaunchRegion, PropertyType } from "@/lib/types";
 
@@ -54,6 +55,15 @@ export default function NewLaunchAdmin({ initialProjects }: { initialProjects: N
 
   function removeImageRow(index: number) {
     setValues((v) => ({ ...v, images: v.images.filter((_, i) => i !== index) }));
+  }
+
+  async function handleDownloadImage(url: string, index: number) {
+    if (!url.trim()) return;
+    try {
+      await downloadImage(url, `${values.name || "project"}-${index + 1}.jpg`);
+    } catch {
+      setUploadError("ดาวน์โหลดรูปไม่สำเร็จ");
+    }
   }
 
   async function handleUploadFiles(files: FileList | null) {
@@ -122,6 +132,7 @@ export default function NewLaunchAdmin({ initialProjects }: { initialProjects: N
       commonAreaFacilities: values.commonAreaFacilities,
       reservationDeposit: values.reservationDeposit,
       images: values.images.map((i) => i.trim()).filter(Boolean),
+      facebookPostUrl: values.facebookPostUrl.trim(),
     };
 
     const { error: saveError } = editingSlug
@@ -340,6 +351,16 @@ export default function NewLaunchAdmin({ initialProjects }: { initialProjects: N
                   />
                   <button
                     type="button"
+                    aria-label="ดาวน์โหลดรูป"
+                    title="ดาวน์โหลดรูป"
+                    disabled={!img.trim()}
+                    onClick={() => handleDownloadImage(img, i)}
+                    className="border border-cream-dark px-3 text-ink/40 hover:border-gold-dark hover:text-gold-dark disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <Download className="h-4 w-4" strokeWidth={1.75} />
+                  </button>
+                  <button
+                    type="button"
                     aria-label="ลบรูป"
                     onClick={() => removeImageRow(i)}
                     className="border border-cream-dark px-3 text-ink/40 hover:border-red-400 hover:text-red-500"
@@ -348,6 +369,18 @@ export default function NewLaunchAdmin({ initialProjects }: { initialProjects: N
                   </button>
                 </div>
               ))}
+            </div>
+
+            <div className="mt-4">
+              <Field label="ลิงก์โพสต์ Facebook">
+                <input
+                  type="url"
+                  value={values.facebookPostUrl}
+                  onChange={(e) => update("facebookPostUrl", e.target.value)}
+                  placeholder="https://www.facebook.com/..."
+                  className={inputClass}
+                />
+              </Field>
             </div>
           </div>
 

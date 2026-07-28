@@ -49,8 +49,8 @@ export function propertyTypeLabel(type: string, lang: Lang = "th") {
   const map: Record<string, string> = {
     คอนโด: "Condo",
     บ้าน: "House",
-    ทาวน์โฮม: "Townhome",
     ที่ดิน: "Land",
+    เรือยอชน์: "Yacht",
   };
   return map[type] ?? type;
 }

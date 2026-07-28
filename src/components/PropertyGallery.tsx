@@ -44,23 +44,31 @@ export default function PropertyGallery({
           />
         </button>
         <div className="flex h-full flex-col gap-2">
-          {images.slice(1).map((src, i) => (
-            <button
-              type="button"
-              key={i}
-              onClick={() => setOpenIndex(i + 1)}
-              className="relative flex-1 cursor-zoom-in"
-              aria-label="ดูรูปทั้งหมด"
-            >
-              <Image
-                src={src}
-                alt={`${name} รูปที่ ${i + 2}`}
-                fill
-                sizes="240px"
-                className="object-cover"
-              />
-            </button>
-          ))}
+          {images.slice(1, 4).map((src, i) => {
+            const isLastVisible = i === 2 && images.length > 4;
+            return (
+              <button
+                type="button"
+                key={i}
+                onClick={() => setOpenIndex(i + 1)}
+                className="relative flex-1 cursor-zoom-in"
+                aria-label="ดูรูปทั้งหมด"
+              >
+                <Image
+                  src={src}
+                  alt={`${name} รูปที่ ${i + 2}`}
+                  fill
+                  sizes="240px"
+                  className="object-cover"
+                />
+                {isLastVisible && (
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-sm font-semibold text-white">
+                    +{images.length - 4}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
         <div className="absolute left-4 top-4">
           <StatusBadge status={status} />

@@ -9,6 +9,7 @@ interface Dictionary {
     booking: string;
     ownerPortal: string;
     forStaff: string;
+    forOwner: string;
     blog: string;
     wishlist: string;
   };
@@ -100,6 +101,7 @@ interface Dictionary {
     searchPlaceholder: string;
     typeLabel: string;
     districtLabel: string;
+    areaLabel: string;
     purposeLabel: string;
     priceRangeLabel: string;
     minPlaceholder: string;
@@ -244,11 +246,12 @@ export const dictionaries: Record<Lang, Dictionary> = {
       booking: "นัดชมทรัพย์",
       ownerPortal: "Owner Portal",
       forStaff: "สำหรับทีมงาน",
+      forOwner: "สำหรับเจ้าของทรัพย์",
       blog: "บทความ",
       wishlist: "รายการที่ถูกใจ",
     },
     footer: {
-      tagline: "แพลตฟอร์มอสังหาริมทรัพย์ครบวงจร คัดสรรคอนโด บ้าน ทาวน์โฮม และที่ดินคุณภาพทั่วกรุงเทพฯ และปริมณฑล",
+      tagline: "แพลตฟอร์มอสังหาริมทรัพย์ครบวงจร คัดสรรคอนโด บ้าน ที่ดิน และเรือยอชน์คุณภาพทั่วกรุงเทพฯ และปริมณฑล",
       menu: "เมนู",
       forStaffHeading: "สำหรับทีมงาน",
       company: "บริษัท",
@@ -337,6 +340,7 @@ export const dictionaries: Record<Lang, Dictionary> = {
       searchPlaceholder: "ชื่อโครงการ...",
       typeLabel: "ประเภททรัพย์",
       districtLabel: "ทำเล",
+      areaLabel: "พื้นที่",
       purposeLabel: "วัตถุประสงค์",
       priceRangeLabel: "ช่วงราคา (บาท)",
       minPlaceholder: "ต่ำสุด",
@@ -482,11 +486,12 @@ export const dictionaries: Record<Lang, Dictionary> = {
       booking: "Book a Viewing",
       ownerPortal: "Owner Portal",
       forStaff: "Staff Login",
+      forOwner: "Property Owner",
       blog: "Blog",
       wishlist: "Wishlist",
     },
     footer: {
-      tagline: "A full-service real estate platform curating quality condos, houses, townhomes and land across Bangkok and its suburbs.",
+      tagline: "A full-service real estate platform curating quality condos, houses, land and yachts across Bangkok and its suburbs.",
       menu: "Menu",
       forStaffHeading: "For Staff",
       company: "Company",
@@ -575,6 +580,7 @@ export const dictionaries: Record<Lang, Dictionary> = {
       searchPlaceholder: "Project name...",
       typeLabel: "Property Type",
       districtLabel: "Location",
+      areaLabel: "Area",
       purposeLabel: "Purpose",
       priceRangeLabel: "Price range (THB)",
       minPlaceholder: "Min",

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { propertyTypes } from "@/lib/properties";
+import { propertyAreas, propertyTypes } from "@/lib/properties";
 import PropertyCard from "@/components/PropertyCard";
 import SelectDropdown from "@/components/SelectDropdown";
 import { propertyTypeLabel } from "@/lib/format";
@@ -22,10 +22,12 @@ export default function PropertiesBrowser({ initialProperties }: { initialProper
   const searchParams = useSearchParams();
   const initialType = searchParams.get("type") as PropertyType | null;
   const initialDistrict = searchParams.get("district");
+  const initialArea = searchParams.get("area");
   const initialPurpose = searchParams.get("purpose") as "ซื้อ" | "เช่า" | null;
 
   const [type, setType] = useState<PropertyType | "ทั้งหมด">(initialType ?? "ทั้งหมด");
   const [district, setDistrict] = useState(initialDistrict ?? "ทั้งหมด");
+  const [area, setArea] = useState(initialArea ?? "ทั้งหมด");
   const [purpose, setPurpose] = useState<"ทั้งหมด" | "ซื้อ" | "เช่า">(initialPurpose ?? "ทั้งหมด");
   const [minPrice, setMinPrice] = useState(MIN_PRICE);
   const [maxPrice, setMaxPrice] = useState(MAX_PRICE);
@@ -35,6 +37,7 @@ export default function PropertiesBrowser({ initialProperties }: { initialProper
     return properties.filter((p) => {
       if (type !== "ทั้งหมด" && p.type !== type) return false;
       if (district !== "ทั้งหมด" && p.district !== district) return false;
+      if (area !== "ทั้งหมด" && p.area !== area) return false;
       if (purpose === "ซื้อ" && !p.salePrice) return false;
       if (purpose === "เช่า" && !p.rentPrice) return false;
       const effectivePrice = p.salePrice ?? p.rentPrice ?? 0;
@@ -42,7 +45,7 @@ export default function PropertiesBrowser({ initialProperties }: { initialProper
       if (query && !p.name.toLowerCase().includes(query.toLowerCase())) return false;
       return true;
     });
-  }, [type, district, purpose, minPrice, maxPrice, query]);
+  }, [type, district, area, purpose, minPrice, maxPrice, query]);
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8">
@@ -53,7 +56,7 @@ export default function PropertiesBrowser({ initialProperties }: { initialProper
       </div>
 
       {/* Filters */}
-      <div className="mb-10 grid gap-4 border border-gold-light/40 bg-white p-5 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mb-10 grid gap-4 border border-gold-light/40 bg-white p-5 sm:grid-cols-2 lg:grid-cols-6">
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-ink/60">
             {tr.properties.searchLabel}
@@ -90,6 +93,20 @@ export default function PropertiesBrowser({ initialProperties }: { initialProper
             options={[
               { value: "ทั้งหมด", label: tr.properties.all },
               ...districts.map((d) => ({ value: d, label: d })),
+            ]}
+          />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-ink/60">
+            {tr.properties.areaLabel}
+          </label>
+          <SelectDropdown
+            value={area}
+            onChange={setArea}
+            options={[
+              { value: "ทั้งหมด", label: tr.properties.all },
+              ...propertyAreas.map((a) => ({ value: a, label: a })),
             ]}
           />
         </div>

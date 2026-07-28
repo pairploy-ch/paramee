@@ -20,6 +20,7 @@ export interface PropertyRow {
   type: PropertyType;
   address: string;
   district: string;
+  area: string | null;
   map_url: string | null;
   status: PropertyStatus;
   sale_price: number | null;
@@ -47,6 +48,7 @@ export interface PropertyRow {
   rental_min_term_months: number | null;
   rental_deposit_months: number | null;
   rental_advance_months: number | null;
+  facebook_post_url: string | null;
 }
 
 export function rowToProperty(row: PropertyRow): Property {
@@ -58,6 +60,7 @@ export function rowToProperty(row: PropertyRow): Property {
     type: row.type,
     address: row.address,
     district: row.district,
+    area: row.area,
     mapUrl: row.map_url,
     status: row.status,
     salePrice: row.sale_price,
@@ -87,6 +90,7 @@ export function rowToProperty(row: PropertyRow): Property {
     rentalMinTermMonths: row.rental_min_term_months ?? 0,
     rentalDepositMonths: row.rental_deposit_months ?? 0,
     rentalAdvanceMonths: row.rental_advance_months ?? 0,
+    facebookPostUrl: row.facebook_post_url ?? "",
   };
 }
 
@@ -109,6 +113,7 @@ export function propertyToRow(input: NewPropertyInput): Omit<PropertyRow, "id"> 
     type: input.type,
     address: input.address,
     district: input.district,
+    area: input.area,
     map_url: input.mapUrl,
     status: input.status,
     sale_price: input.salePrice,
@@ -136,6 +141,7 @@ export function propertyToRow(input: NewPropertyInput): Omit<PropertyRow, "id"> 
     rental_min_term_months: input.rentalMinTermMonths,
     rental_deposit_months: input.rentalDepositMonths,
     rental_advance_months: input.rentalAdvanceMonths,
+    facebook_post_url: input.facebookPostUrl || null,
   };
 }
 
@@ -187,6 +193,7 @@ export async function updatePropertyBySlug(
   if (patch.type !== undefined) row.type = patch.type;
   if (patch.address !== undefined) row.address = patch.address;
   if (patch.district !== undefined) row.district = patch.district;
+  if (patch.area !== undefined) row.area = patch.area;
   if (patch.mapUrl !== undefined) row.map_url = patch.mapUrl;
   if (patch.tier !== undefined) row.tier = patch.tier;
   if (patch.status !== undefined) row.status = patch.status;
@@ -212,6 +219,7 @@ export async function updatePropertyBySlug(
   if (patch.rentalMinTermMonths !== undefined) row.rental_min_term_months = patch.rentalMinTermMonths;
   if (patch.rentalDepositMonths !== undefined) row.rental_deposit_months = patch.rentalDepositMonths;
   if (patch.rentalAdvanceMonths !== undefined) row.rental_advance_months = patch.rentalAdvanceMonths;
+  if (patch.facebookPostUrl !== undefined) row.facebook_post_url = patch.facebookPostUrl || null;
   if (patch.investor !== undefined) {
     row.investor_roi_percent = patch.investor.roiPercent;
     row.investor_rental_yield_percent = patch.investor.rentalYieldPercent;

@@ -78,9 +78,10 @@ create table if not exists public.properties (
   owner_id uuid references public.profiles (id) on delete set null,
   tier smallint not null default 2 check (tier in (1, 2, 3)),
   name text not null,
-  type text not null check (type in ('คอนโด', 'บ้าน', 'ทาวน์โฮม', 'ที่ดิน')),
+  type text not null check (type in ('บ้าน', 'ที่ดิน', 'คอนโด', 'เรือยอชน์')),
   address text not null,
   district text not null,
+  area text check (area is null or area in ('พัทยา', 'กรุงเทพฯ', 'เชียงใหม่', 'ภูเก็ต', 'เขาใหญ่')),
   map_url text,
   status text not null default 'Available' check (status in ('Available', 'Reserved', 'Sold', 'For Rent')),
   sale_price numeric,
@@ -218,8 +219,8 @@ create table if not exists public.new_launch_projects (
   slug text unique not null,
   name text not null,
   project_code text,
-  project_type text not null default 'คอนโด' check (project_type in ('คอนโด', 'บ้าน', 'ทาวน์โฮม', 'ที่ดิน')),
-  region text check (region is null or region in ('กรุงเทพฯ', 'พัทยา', 'เชียงใหม่', 'ภูเก็ต', 'อื่นๆ')),
+  project_type text not null default 'คอนโด' check (project_type in ('บ้าน', 'ที่ดิน', 'คอนโด', 'เรือยอชน์')),
+  region text check (region is null or region in ('พัทยา', 'กรุงเทพฯ', 'เชียงใหม่', 'ภูเก็ต', 'เขาใหญ่')),
   unit_types_count text not null default '',
   price_min numeric,
   price_max numeric,
@@ -289,8 +290,14 @@ create table if not exists public.leads (
   budget text not null default '',
   size_needed text not null default '',
   purpose text not null,
-  follow_up text not null default 'Warm' check (follow_up in ('Hot', 'Warm', 'Cold')),
+  follow_up text not null default 'medium'
+    check (follow_up in ('urgent_high', 'urgent', 'medium', 'general')),
   note text not null default '',
+  nickname text not null default '',
+  move_in_or_sign_date date,
+  facebook text not null default '',
+  line_id text not null default '',
+  phone text not null default '',
   created_at timestamptz not null default now()
 );
 
@@ -478,7 +485,7 @@ alter table public.new_launch_projects add column if not exists images text[] no
 alter table public.new_launch_projects add column if not exists project_type text not null default 'คอนโด'
   check (project_type in ('คอนโด', 'บ้าน', 'ทาวน์โฮม', 'ที่ดิน'));
 alter table public.new_launch_projects add column if not exists region text
-  check (region is null or region in ('กรุงเทพฯ', 'พัทยา', 'เชียงใหม่', 'ภูเก็ต', 'อื่นๆ'));
+  check (region is null or region in ('พัทยา', 'กรุงเทพฯ', 'เชียงใหม่', 'ภูเก็ต', 'เขาใหญ่'));
 
 drop policy if exists "new_launch_projects: admins manage all" on public.new_launch_projects;
 
@@ -510,3 +517,55 @@ from public.profiles
 where role = 'owner';
 
 grant select on public.owner_contacts to anon, authenticated;
+
+-- ============================================================
+-- Property types updated: "ทาวน์โฮม" replaced with "เรือยอชน์" (yacht) across
+-- properties and new_launch_projects. Existing "ทาวน์โฮม" rows are
+-- recategorized as "บ้าน" before the stricter check constraint is applied.
+-- Also adds a "พื้นที่" (area/region) filter field on properties, separate
+-- from the free-text "ทำเล" (district) field.
+-- ============================================================
+update public.properties set type = 'บ้าน' where type = 'ทาวน์โฮม';
+alter table public.properties drop constraint if exists properties_type_check;
+alter table public.properties add constraint properties_type_check
+  check (type in ('บ้าน', 'ที่ดิน', 'คอนโด', 'เรือยอชน์'));
+
+update public.new_launch_projects set project_type = 'บ้าน' where project_type = 'ทาวน์โฮม';
+alter table public.new_launch_projects drop constraint if exists new_launch_projects_project_type_check;
+alter table public.new_launch_projects add constraint new_launch_projects_project_type_check
+  check (project_type in ('บ้าน', 'ที่ดิน', 'คอนโด', 'เรือยอชน์'));
+
+alter table public.properties add column if not exists area text
+  check (area is null or area in ('พัทยา', 'กรุงเทพฯ', 'เชียงใหม่', 'ภูเก็ต', 'เขาใหญ่'));
+
+-- leads: 4-level follow-up status (was Hot/Warm/Cold) + new contact/move-in
+-- fields captured on the "บันทึก Lead ใหม่" form. The old constraint must be
+-- dropped BEFORE remapping values, otherwise the remap's own new values
+-- ('urgent_high' etc.) get rejected by the still-active old constraint.
+alter table public.leads drop constraint if exists leads_follow_up_check;
+update public.leads set follow_up = 'urgent_high' where follow_up = 'Hot';
+update public.leads set follow_up = 'medium' where follow_up = 'Warm';
+update public.leads set follow_up = 'general' where follow_up = 'Cold';
+update public.leads set follow_up = 'medium'
+  where follow_up not in ('urgent_high', 'urgent', 'medium', 'general');
+alter table public.leads alter column follow_up set default 'medium';
+alter table public.leads add constraint leads_follow_up_check
+  check (follow_up in ('urgent_high', 'urgent', 'medium', 'general'));
+
+alter table public.leads add column if not exists nickname text not null default '';
+alter table public.leads add column if not exists move_in_or_sign_date date;
+alter table public.leads add column if not exists facebook text not null default '';
+alter table public.leads add column if not exists line_id text not null default '';
+alter table public.leads add column if not exists phone text not null default '';
+
+-- new_launch_projects: region list synced with properties' "พื้นที่" field —
+-- "อื่นๆ" replaced with "เขาใหญ่". Drop the old constraint before remapping.
+alter table public.new_launch_projects drop constraint if exists new_launch_projects_region_check;
+update public.new_launch_projects set region = 'เขาใหญ่' where region = 'อื่นๆ';
+alter table public.new_launch_projects add constraint new_launch_projects_region_check
+  check (region is null or region in ('พัทยา', 'กรุงเทพฯ', 'เชียงใหม่', 'ภูเก็ต', 'เขาใหญ่'));
+
+-- Facebook post link — saved after the listing photo/caption is posted to the
+-- page, for reference.
+alter table public.properties add column if not exists facebook_post_url text;
+alter table public.new_launch_projects add column if not exists facebook_post_url text;

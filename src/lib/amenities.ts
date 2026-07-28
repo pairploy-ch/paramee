@@ -18,13 +18,13 @@ export const amenitiesByType: Record<PropertyType, string[]> = {
     "ระเบียง / พื้นที่นั่งเล่นนอกบ้าน",
     "เครื่องปรับอากาศทุกห้อง",
   ],
-  ทาวน์โฮม: [
-    "ที่จอดรถ 1-2 คัน",
-    "รปภ. หมู่บ้าน",
-    "พื้นที่ซักล้างด้านหลัง",
-    "ระเบียงชั้นบน",
-    "เครื่องปรับอากาศทุกห้อง",
-    "อินเทอร์เน็ตพร้อมใช้งาน",
+  เรือยอชน์: [
+    "ท่าจอดเรือส่วนตัว",
+    "กัปตันและลูกเรือ",
+    "ห้องโดยสารปรับอากาศ",
+    "อุปกรณ์ความปลอดภัยครบชุด",
+    "ระบบนำทาง GPS",
+    "พื้นที่สังสรรค์บนดาดฟ้า",
   ],
   ที่ดิน: [
     "ถมดินพร้อมปลูกสร้าง",
@@ -51,13 +51,13 @@ const amenitiesByTypeEn: Record<PropertyType, string[]> = {
     "Balcony / outdoor sitting area",
     "Air conditioning in every room",
   ],
-  ทาวน์โฮม: [
-    "1-2 car parking",
-    "Village security guard",
-    "Rear laundry area",
-    "Upper-floor balcony",
-    "Air conditioning in every room",
-    "Internet ready",
+  เรือยอชน์: [
+    "Private mooring berth",
+    "Captain and crew",
+    "Air-conditioned cabin",
+    "Full safety equipment",
+    "GPS navigation system",
+    "Deck entertaining area",
   ],
   ที่ดิน: [
     "Filled land, ready to build",

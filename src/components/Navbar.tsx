@@ -96,6 +96,12 @@ export default function Navbar({ role = null }: { role?: "admin" | "owner" | nul
             >
               {t.nav.forStaff}
             </Link>
+            <Link
+              href="/login"
+              className="border border-cream/30 px-4 py-1.5 text-xs font-medium text-cream/80 transition-colors hover:border-gold-light hover:text-gold-light"
+            >
+              {t.nav.forOwner}
+            </Link>
             {isAdmin && (
               <LogoutButton className="border border-cream/30 px-4 py-1.5 text-xs font-medium text-cream/80 transition-colors hover:border-gold-light hover:text-gold-light" />
             )}

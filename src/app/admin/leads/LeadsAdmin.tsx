@@ -9,18 +9,20 @@ import { insertLead } from "@/lib/data/leads";
 import { useLeads } from "@/lib/leadStore";
 
 const followUpStyles: Record<Lead["followUp"], string> = {
-  Hot: "bg-red-100 text-red-700",
-  Warm: "bg-amber-100 text-amber-700",
-  Cold: "bg-sky-100 text-sky-700",
+  urgent_high: "bg-red-100 text-red-700",
+  urgent: "bg-orange-100 text-orange-700",
+  medium: "bg-amber-100 text-amber-700",
+  general: "bg-emerald-100 text-emerald-700",
 };
 
 const followUpLabels: Record<Lead["followUp"], string> = {
-  Hot: "ร้อนแรง (พร้อมตัดสินใจเร็ว)",
-  Warm: "อุ่น (สนใจจริง ต้องติดตามต่อเนื่อง)",
-  Cold: "เย็น (แค่หาข้อมูล)",
+  urgent_high: "🔴 เร่งด่วนมาก (พร้อมซื้อ/เช่าทันที ภายใน 1–3 วัน)",
+  urgent: "🟠 เร่งด่วน (วางแผนซื้อ/เช่า ภายใน 7 วัน)",
+  medium: "🟡 ปานกลาง (ตัดสินใจภายใน 1–3 เดือน)",
+  general: "🟢 ทั่วไป (ยังไม่มีเวลาชัดเจน เกิน 3 เดือน)",
 };
 
-const followUpOptions: Lead["followUp"][] = ["Hot", "Warm", "Cold"];
+const followUpOptions: Lead["followUp"][] = ["urgent_high", "urgent", "medium", "general"];
 
 const emptyForm = {
   date: new Date().toISOString().slice(0, 10),
@@ -30,24 +32,49 @@ const emptyForm = {
   budget: "",
   sizeNeeded: "",
   purpose: "ซื้อเอง" as Lead["purpose"],
-  followUp: "Warm" as Lead["followUp"],
+  followUp: "medium" as Lead["followUp"],
   note: "",
+  nickname: "",
+  moveInOrSignDate: "",
+  facebook: "",
+  lineId: "",
+  phone: "",
 };
 
 function toCsv(rows: Lead[]) {
   const header = [
     "วันที่",
     "ช่องทาง",
+    "ชื่อเล่น",
+    "เบอร์โทร",
+    "Facebook",
+    "LINE",
     "ประเภทที่สนใจ",
     "ทำเล",
     "งบประมาณ",
     "ขนาดพื้นที่",
     "วัตถุประสงค์",
+    "วันที่เข้าอยู่ / เซ็นสัญญา",
     "สถานะ",
     "หมายเหตุ",
   ];
   const lines = rows.map((l) =>
-    [l.date, l.channel, l.interestedType, l.area, l.budget, l.sizeNeeded, l.purpose, followUpLabels[l.followUp], l.note]
+    [
+      l.date,
+      l.channel,
+      l.nickname,
+      l.phone,
+      l.facebook,
+      l.lineId,
+      l.interestedType,
+      l.area,
+      l.budget,
+      l.sizeNeeded,
+      l.purpose,
+      l.moveInOrSignDate,
+      followUpLabels[l.followUp],
+      l.note,
+    ]
       .map((v) => `"${String(v).replace(/"/g, '""')}"`)
       .join(",")
   );
@@ -169,6 +196,47 @@ export default function LeadsAdmin({ initialLeads }: { initialLeads: Lead[] }) {
           />
         </Field>
 
+        <Field label="ชื่อเล่น">
+          <input
+            value={form.nickname}
+            onChange={(e) => setForm((f) => ({ ...f, nickname: e.target.value }))}
+            className="w-full rounded-lg border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
+          />
+        </Field>
+
+        <Field label="เบอร์โทร">
+          <input
+            value={form.phone}
+            onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+            className="w-full rounded-lg border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
+          />
+        </Field>
+
+        <Field label="Facebook">
+          <input
+            value={form.facebook}
+            onChange={(e) => setForm((f) => ({ ...f, facebook: e.target.value }))}
+            className="w-full rounded-lg border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
+          />
+        </Field>
+
+        <Field label="LINE">
+          <input
+            value={form.lineId}
+            onChange={(e) => setForm((f) => ({ ...f, lineId: e.target.value }))}
+            className="w-full rounded-lg border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
+          />
+        </Field>
+
+        <Field label="วันที่เข้าอยู่ / เซ็นสัญญา">
+          <input
+            type="date"
+            value={form.moveInOrSignDate}
+            onChange={(e) => setForm((f) => ({ ...f, moveInOrSignDate: e.target.value }))}
+            className="w-full rounded-lg border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
+          />
+        </Field>
+
         <Field label="ช่องทาง">
           <select
             value={form.channel}
@@ -271,36 +339,44 @@ export default function LeadsAdmin({ initialLeads }: { initialLeads: Lead[] }) {
 
       {/* Table */}
       <div className="mt-6 overflow-x-auto rounded-2xl border border-gold-light/40 bg-white">
-        <table className="w-full min-w-[900px] text-left text-sm">
+        <table className="w-full min-w-[1800px] text-left text-sm">
           <thead className="bg-cream-dark/60 text-xs uppercase tracking-wide text-ink/50">
             <tr>
-              <th className="px-4 py-3">วันที่</th>
-              <th className="px-4 py-3">ช่องทาง</th>
-              <th className="px-4 py-3">ประเภท</th>
-              <th className="px-4 py-3">ทำเล</th>
-              <th className="px-4 py-3">งบประมาณ</th>
-              <th className="px-4 py-3">ขนาด</th>
-              <th className="px-4 py-3">วัตถุประสงค์</th>
-              <th className="px-4 py-3">สถานะ</th>
-              <th className="px-4 py-3">หมายเหตุ</th>
+              <th className="whitespace-nowrap px-4 py-3">วันที่</th>
+              <th className="whitespace-nowrap px-4 py-3">ชื่อเล่น</th>
+              <th className="whitespace-nowrap px-4 py-3">ติดต่อ</th>
+              <th className="whitespace-nowrap px-4 py-3">ช่องทาง</th>
+              <th className="whitespace-nowrap px-4 py-3">ประเภท</th>
+              <th className="whitespace-nowrap px-4 py-3">ทำเล</th>
+              <th className="whitespace-nowrap px-4 py-3">งบประมาณ</th>
+              <th className="whitespace-nowrap px-4 py-3">ขนาด</th>
+              <th className="whitespace-nowrap px-4 py-3">วัตถุประสงค์</th>
+              <th className="whitespace-nowrap px-4 py-3">วันที่เข้าอยู่ / เซ็นสัญญา</th>
+              <th className="whitespace-nowrap px-4 py-3">สถานะ</th>
+              <th className="whitespace-nowrap px-4 py-3">หมายเหตุ</th>
             </tr>
           </thead>
           <tbody>
             {leads.map((l, i) => (
               <tr key={i} className="border-t border-cream-dark">
-                <td className="px-4 py-3 whitespace-nowrap">{l.date}</td>
-                <td className="px-4 py-3">{l.channel}</td>
-                <td className="px-4 py-3">{l.interestedType}</td>
-                <td className="px-4 py-3">{l.area}</td>
-                <td className="px-4 py-3 whitespace-nowrap">{l.budget}</td>
-                <td className="px-4 py-3 whitespace-nowrap">{l.sizeNeeded}</td>
-                <td className="px-4 py-3">{l.purpose}</td>
-                <td className="px-4 py-3">
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${followUpStyles[l.followUp]}`}>
+                <td className="whitespace-nowrap px-4 py-3">{l.date}</td>
+                <td className="whitespace-nowrap px-4 py-3">{l.nickname || "-"}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-ink/60">
+                  {[l.phone, l.facebook, l.lineId].filter(Boolean).join(" / ") || "-"}
+                </td>
+                <td className="whitespace-nowrap px-4 py-3">{l.channel}</td>
+                <td className="whitespace-nowrap px-4 py-3">{l.interestedType}</td>
+                <td className="whitespace-nowrap px-4 py-3">{l.area}</td>
+                <td className="whitespace-nowrap px-4 py-3">{l.budget}</td>
+                <td className="whitespace-nowrap px-4 py-3">{l.sizeNeeded}</td>
+                <td className="whitespace-nowrap px-4 py-3">{l.purpose}</td>
+                <td className="whitespace-nowrap px-4 py-3">{l.moveInOrSignDate || "-"}</td>
+                <td className="whitespace-nowrap px-4 py-3">
+                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${followUpStyles[l.followUp]}`}>
                     {followUpLabels[l.followUp]}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-ink/60">{l.note}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-ink/60">{l.note}</td>
               </tr>
             ))}
           </tbody>

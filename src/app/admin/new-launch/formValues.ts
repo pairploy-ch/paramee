@@ -19,6 +19,7 @@ export interface NewLaunchFormValues {
   commonAreaFacilities: string;
   reservationDeposit: string;
   images: string[];
+  facebookPostUrl: string;
 }
 
 export const emptyNewLaunchFormValues: NewLaunchFormValues = {
@@ -40,6 +41,7 @@ export const emptyNewLaunchFormValues: NewLaunchFormValues = {
   commonAreaFacilities: "",
   reservationDeposit: "",
   images: [""],
+  facebookPostUrl: "",
 };
 
 export function projectToFormValues(p: NewLaunchProject): NewLaunchFormValues {
@@ -62,5 +64,6 @@ export function projectToFormValues(p: NewLaunchProject): NewLaunchFormValues {
     commonAreaFacilities: p.commonAreaFacilities,
     reservationDeposit: p.reservationDeposit,
     images: p.images.length ? p.images : [""],
+    facebookPostUrl: p.facebookPostUrl ?? "",
   };
 }

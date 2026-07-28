@@ -1,4 +1,4 @@
-export type PropertyType = "คอนโด" | "บ้าน" | "ทาวน์โฮม" | "ที่ดิน";
+export type PropertyType = "บ้าน" | "ที่ดิน" | "คอนโด" | "เรือยอชน์";
 
 export type PropertyStatus = "Available" | "Reserved" | "Sold" | "For Rent";
 
@@ -28,6 +28,7 @@ export interface Property {
   type: PropertyType;
   address: string;
   district: string;
+  area: string | null;
   mapUrl: string | null;
   status: PropertyStatus;
   salePrice: number | null;
@@ -57,9 +58,10 @@ export interface Property {
   rentalMinTermMonths: number;
   rentalDepositMonths: number;
   rentalAdvanceMonths: number;
+  facebookPostUrl: string;
 }
 
-export const newLaunchRegions = ["กรุงเทพฯ", "พัทยา", "เชียงใหม่", "ภูเก็ต", "อื่นๆ"] as const;
+export const newLaunchRegions = ["พัทยา", "กรุงเทพฯ", "เชียงใหม่", "ภูเก็ต", "เขาใหญ่"] as const;
 export type NewLaunchRegion = (typeof newLaunchRegions)[number];
 
 export interface NewLaunchProject {
@@ -82,6 +84,7 @@ export interface NewLaunchProject {
   commonAreaFacilities: string;
   reservationDeposit: string;
   images: string[];
+  facebookPostUrl: string;
 }
 
 export interface Testimonial {

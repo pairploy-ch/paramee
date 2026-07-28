@@ -53,7 +53,7 @@ export async function applyWatermark(imageBuffer: Buffer): Promise<Buffer> {
       <g filter="url(#ds)">
         <image x="${(overlayWidth - logoWidth) / 2}" y="0" width="${logoWidth}" height="${logoHeight}" href="data:image/png;base64,${logoBase64}" />
         <text x="50%" y="${logoHeight + fontSize + 8}" text-anchor="middle"
-          font-family="Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="600" fill="#ffffff">${escapeXml(contactLine)}</text>
+          font-family="Noto Sans Thai, Leelawadee UI, Tahoma, Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="600" fill="#ffffff">${escapeXml(contactLine)}</text>
       </g>
     </svg>
   `;

@@ -7,6 +7,7 @@ import type { Property } from "@/lib/types";
 import type { OwnerContactInfo } from "@/lib/data/owners";
 import { getAmenities } from "@/lib/amenities";
 import { formatBaht, propertyTypeLabel } from "@/lib/format";
+import { buildPropertyCaptionTh, buildPropertyCaptionEn } from "@/lib/propertyCaption";
 import { landDeedTypes, landDeedColorClass } from "@/lib/landDeedTypes";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import PropertyCard from "@/components/PropertyCard";
@@ -47,6 +48,7 @@ export default function PropertyDetailView({
   const mapQuery = encodeURIComponent(`${property.address}, ${property.district}, กรุงเทพฯ`);
   const amenities = getAmenities(property.type, lang);
   const mapTitle = lang === "en" ? `Map of ${property.name}` : `แผนที่ ${property.name}`;
+  const caption = lang === "en" ? buildPropertyCaptionEn(property) : buildPropertyCaptionTh(property);
 
   const hasOwnerContact = Boolean(ownerContact?.name?.trim());
   const displayName = ownerContact?.name?.trim() || t.propertyDetail.salesTeam;
@@ -95,7 +97,7 @@ export default function PropertyDetailView({
               <MapPin className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden />
               {property.address}
             </p>
-            <p className="mt-4 leading-relaxed text-ink/80">{property.description}</p>
+            <p className="mt-4 whitespace-pre-wrap leading-relaxed text-ink/80">{caption}</p>
             {property.remarks?.trim() && (
               <p className="mt-3 rounded-lg border border-gold-light/40 bg-cream-dark/40 px-4 py-3 text-sm text-ink/70">
                 หมายเหตุ: {property.remarks}

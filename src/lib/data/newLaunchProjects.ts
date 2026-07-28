@@ -22,6 +22,7 @@ export interface NewLaunchProjectRow {
   common_area_facilities: string;
   reservation_deposit: string;
   images: string[] | null;
+  facebook_post_url: string | null;
 }
 
 export function rowToProject(row: NewLaunchProjectRow): NewLaunchProject {
@@ -45,6 +46,7 @@ export function rowToProject(row: NewLaunchProjectRow): NewLaunchProject {
     commonAreaFacilities: row.common_area_facilities,
     reservationDeposit: row.reservation_deposit,
     images: row.images ?? [],
+    facebookPostUrl: row.facebook_post_url ?? "",
   };
 }
 
@@ -79,6 +81,7 @@ export function projectToRow(input: NewProjectInput): Omit<NewLaunchProjectRow, 
     common_area_facilities: input.commonAreaFacilities,
     reservation_deposit: input.reservationDeposit,
     images: input.images,
+    facebook_post_url: input.facebookPostUrl || null,
   };
 }
 
@@ -138,6 +141,7 @@ export async function updateNewLaunchProjectBySlug(
   if (patch.commonAreaFacilities !== undefined) row.common_area_facilities = patch.commonAreaFacilities;
   if (patch.reservationDeposit !== undefined) row.reservation_deposit = patch.reservationDeposit;
   if (patch.images !== undefined) row.images = patch.images;
+  if (patch.facebookPostUrl !== undefined) row.facebook_post_url = patch.facebookPostUrl || null;
 
   return supabase.from("new_launch_projects").update(row).eq("slug", slug).select("*").single();
 }

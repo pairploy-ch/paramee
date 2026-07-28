@@ -4,6 +4,11 @@ import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 import type { NewLaunchFormValues } from "./formValues";
 import { CONTACT_PHONE, socialLinks } from "@/lib/social";
+import { propertyTypeLabel } from "@/lib/format";
+
+function toIntlPhone(phone: string) {
+  return phone.startsWith("0") ? `+66 ${phone.slice(1)}` : phone;
+}
 
 function buildCaption(v: NewLaunchFormValues): string {
   const blocks: string[] = [];
@@ -45,9 +50,57 @@ function buildCaption(v: NewLaunchFormValues): string {
   return blocks.join("\n\n");
 }
 
+function buildCaptionEn(v: NewLaunchFormValues): string {
+  const blocks: string[] = [];
+  const typeLabel = propertyTypeLabel(v.projectType, "en");
+  const codeSuffix = v.projectCode.trim() ? ` (${v.projectCode.trim()})` : "";
+  const regionSuffix = v.region ? ` in ${v.region}` : "";
+
+  blocks.push(
+    [`New Launch ${typeLabel} Project${regionSuffix}`, v.name || "..."].join(" | ") + codeSuffix
+  );
+
+  if (v.developer.trim()) blocks.push(`Developer: ${v.developer.trim()}`);
+
+  if (v.locationHighlight.trim()) blocks.push(v.locationHighlight.trim());
+
+  const toNum = (s: string) => {
+    const n = Number(s);
+    return s.trim() && Number.isFinite(n) ? n.toLocaleString("en-US") : s;
+  };
+  const priceLine =
+    v.priceMin.trim() || v.priceMax.trim()
+      ? `Starting price THB ${toNum(v.priceMin) || "-"} - ${toNum(v.priceMax) || "-"}`
+      : "";
+  const yieldLine = v.rentYieldPrice.trim() ? `Rental yield potential: ${v.rentYieldPrice.trim()}` : "";
+  const priceBlock = [priceLine, yieldLine].filter(Boolean).join("\n");
+  if (priceBlock) blocks.push(priceBlock);
+
+  const overviewParts = [
+    v.unitTypesCount.trim() && `${v.unitTypesCount.trim()} unit types`,
+    v.unitCount.trim() && `${v.unitCount.trim()} units`,
+    v.buildingCount.trim() && `${v.buildingCount.trim()} buildings`,
+    v.completionYear.trim() && `Completion year ${v.completionYear.trim()}`,
+  ].filter(Boolean);
+  if (overviewParts.length > 0) blocks.push(overviewParts.join(" • "));
+
+  if (v.commonAreaFacilities.trim()) blocks.push(`Common Facilities\n${v.commonAreaFacilities.trim()}`);
+
+  if (v.reservationDeposit.trim()) blocks.push(`Reservation / Down Payment: ${v.reservationDeposit.trim()}`);
+
+  if (v.latestPromotion.trim()) blocks.push(`Latest Promotion\n${v.latestPromotion.trim()}`);
+
+  const intlPhone = toIntlPhone(CONTACT_PHONE);
+  blocks.push(
+    `───────────────────────\nFor more information or to schedule a viewing:\nK.Prem: ${intlPhone}\nLINE: ${socialLinks.line.handle} | WhatsApp: ${intlPhone}`
+  );
+
+  return blocks.join("\n\n");
+}
+
 export default function NewLaunchCaptionGenerator({ values }: { values: NewLaunchFormValues }) {
   const [copied, setCopied] = useState(false);
-  const caption = buildCaption(values);
+  const caption = `${buildCaption(values)}\n\n${buildCaptionEn(values)}`;
 
   async function handleCopy() {
     try {

@@ -12,6 +12,11 @@ export interface LeadRow {
   purpose: string;
   follow_up: string;
   note: string;
+  nickname: string | null;
+  move_in_or_sign_date: string | null;
+  facebook: string | null;
+  line_id: string | null;
+  phone: string | null;
 }
 
 function rowToLead(row: LeadRow): Lead {
@@ -25,6 +30,11 @@ function rowToLead(row: LeadRow): Lead {
     purpose: row.purpose as Lead["purpose"],
     followUp: row.follow_up as Lead["followUp"],
     note: row.note,
+    nickname: row.nickname ?? "",
+    moveInOrSignDate: row.move_in_or_sign_date ?? "",
+    facebook: row.facebook ?? "",
+    lineId: row.line_id ?? "",
+    phone: row.phone ?? "",
   };
 }
 
@@ -53,6 +63,11 @@ export async function insertLead(supabase: SupabaseClient, lead: Lead) {
       purpose: lead.purpose,
       follow_up: lead.followUp,
       note: lead.note,
+      nickname: lead.nickname,
+      move_in_or_sign_date: lead.moveInOrSignDate || null,
+      facebook: lead.facebook,
+      line_id: lead.lineId,
+      phone: lead.phone,
     })
     .select("*")
     .single();
