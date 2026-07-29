@@ -9,6 +9,7 @@ import type {
   PropertyTier,
   PropertyType,
   TransitInfo,
+  UnitAmenity,
 } from "@/lib/types";
 
 export interface PropertyRow {
@@ -49,6 +50,11 @@ export interface PropertyRow {
   rental_deposit_months: number | null;
   rental_advance_months: number | null;
   facebook_post_url: string | null;
+  property_hub_url: string | null;
+  unit_amenities: string[] | null;
+  rent_price_6_month: number | null;
+  rent_price_3_month: number | null;
+  rent_price_1_month: number | null;
 }
 
 export function rowToProperty(row: PropertyRow): Property {
@@ -91,6 +97,11 @@ export function rowToProperty(row: PropertyRow): Property {
     rentalDepositMonths: row.rental_deposit_months ?? 0,
     rentalAdvanceMonths: row.rental_advance_months ?? 0,
     facebookPostUrl: row.facebook_post_url ?? "",
+    propertyHubUrl: row.property_hub_url ?? "",
+    unitAmenities: (row.unit_amenities ?? []) as UnitAmenity[],
+    rentPrice6Month: row.rent_price_6_month,
+    rentPrice3Month: row.rent_price_3_month,
+    rentPrice1Month: row.rent_price_1_month,
   };
 }
 
@@ -142,6 +153,11 @@ export function propertyToRow(input: NewPropertyInput): Omit<PropertyRow, "id"> 
     rental_deposit_months: input.rentalDepositMonths,
     rental_advance_months: input.rentalAdvanceMonths,
     facebook_post_url: input.facebookPostUrl || null,
+    property_hub_url: input.propertyHubUrl || null,
+    unit_amenities: input.unitAmenities,
+    rent_price_6_month: input.rentPrice6Month,
+    rent_price_3_month: input.rentPrice3Month,
+    rent_price_1_month: input.rentPrice1Month,
   };
 }
 
@@ -220,6 +236,11 @@ export async function updatePropertyBySlug(
   if (patch.rentalDepositMonths !== undefined) row.rental_deposit_months = patch.rentalDepositMonths;
   if (patch.rentalAdvanceMonths !== undefined) row.rental_advance_months = patch.rentalAdvanceMonths;
   if (patch.facebookPostUrl !== undefined) row.facebook_post_url = patch.facebookPostUrl || null;
+  if (patch.propertyHubUrl !== undefined) row.property_hub_url = patch.propertyHubUrl || null;
+  if (patch.unitAmenities !== undefined) row.unit_amenities = patch.unitAmenities;
+  if (patch.rentPrice6Month !== undefined) row.rent_price_6_month = patch.rentPrice6Month;
+  if (patch.rentPrice3Month !== undefined) row.rent_price_3_month = patch.rentPrice3Month;
+  if (patch.rentPrice1Month !== undefined) row.rent_price_1_month = patch.rentPrice1Month;
   if (patch.investor !== undefined) {
     row.investor_roi_percent = patch.investor.roiPercent;
     row.investor_rental_yield_percent = patch.investor.rentalYieldPercent;

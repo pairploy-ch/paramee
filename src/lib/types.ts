@@ -20,6 +20,15 @@ export interface LeaseTerm {
 export const landTransferFeeParties = ["เจ้าของออก", "50/50", "ลูกค้าออก"] as const;
 export type LandTransferFeeParty = (typeof landTransferFeeParties)[number];
 
+export const unitAmenityOptions = [
+  "Wi-Fi",
+  "ครัว/เตา",
+  "เครื่องซักผ้า",
+  "อ่างอาบน้ำ",
+  "อนุญาตให้เลี้ยงสัตว์",
+] as const;
+export type UnitAmenity = (typeof unitAmenityOptions)[number];
+
 export interface Property {
   slug: string;
   ownerId: string;
@@ -59,6 +68,11 @@ export interface Property {
   rentalDepositMonths: number;
   rentalAdvanceMonths: number;
   facebookPostUrl: string;
+  propertyHubUrl: string;
+  unitAmenities: UnitAmenity[];
+  rentPrice6Month: number | null;
+  rentPrice3Month: number | null;
+  rentPrice1Month: number | null;
 }
 
 export const newLaunchRegions = ["พัทยา", "กรุงเทพฯ", "เชียงใหม่", "ภูเก็ต", "เขาใหญ่"] as const;

@@ -569,3 +569,74 @@ alter table public.new_launch_projects add constraint new_launch_projects_region
 -- page, for reference.
 alter table public.properties add column if not exists facebook_post_url text;
 alter table public.new_launch_projects add column if not exists facebook_post_url text;
+
+-- Google Sheet property sync — unit_code (CODE column in the sheet) is the
+-- natural key used to match sheet rows to existing properties on re-sync.
+create unique index if not exists properties_unit_code_unique_idx
+  on public.properties (unit_code)
+  where unit_code <> '';
+
+-- The sheet sync uploads watermarked photos under a "sheet-sync/{CODE}/..."
+-- path (not a per-user folder), so it needs its own admin-scoped policy
+-- alongside the existing "own folder" one.
+drop policy if exists "property-images: admins upload any path" on storage.objects;
+create policy "property-images: admins upload any path"
+on storage.objects for insert
+with check (
+  bucket_id = 'property-images' and public.is_admin()
+);
+
+-- Field parity with the Google Sheet: per-unit amenities, PropertyHub
+-- listing link, and short-term (6/3/1-month) rental rate tiers.
+alter table public.properties add column if not exists property_hub_url text;
+alter table public.properties add column if not exists unit_amenities text[] not null default '{}';
+alter table public.properties add column if not exists rent_price_6_month numeric;
+alter table public.properties add column if not exists rent_price_3_month numeric;
+alter table public.properties add column if not exists rent_price_1_month numeric;
+
+-- ============================================================
+-- commission_deals — closed deals logged for the monthly KPI dashboard
+-- (admin-only, mirrors the personal "KPI TRACKER" Google Sheet tab).
+-- category matches an id in src/lib/commissionCategories.ts.
+-- ============================================================
+create table if not exists public.commission_deals (
+  id uuid primary key default gen_random_uuid(),
+  closed_date date not null default current_date,
+  category text not null,
+  commission_amount numeric not null default 0,
+  property_name text not null default '',
+  note text not null default '',
+  created_at timestamptz not null default now()
+);
+
+alter table public.commission_deals enable row level security;
+
+drop policy if exists "commission_deals: admins manage all" on public.commission_deals;
+create policy "commission_deals: admins manage all" on public.commission_deals
+  for all using (public.is_admin()) with check (public.is_admin());
+
+-- ============================================================
+-- commission_monthly_targets — one row per month holding the editable
+-- goals shown on the KPI dashboard (admin-only).
+-- ============================================================
+create table if not exists public.commission_monthly_targets (
+  id uuid primary key default gen_random_uuid(),
+  month date unique not null,
+  commission_target numeric not null default 1000000,
+  properties_sourced_target numeric not null default 100,
+  developer_target numeric not null default 10,
+  category_targets jsonb not null default '{
+    "rental_condo_18k": 80,
+    "rental_villa_30k": 15,
+    "rental_newlaunch_villa_20m": 5,
+    "high_condo_7pct": 3,
+    "high_villa_ultraluxury_20m": 7
+  }'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+alter table public.commission_monthly_targets enable row level security;
+
+drop policy if exists "commission_monthly_targets: admins manage all" on public.commission_monthly_targets;
+create policy "commission_monthly_targets: admins manage all" on public.commission_monthly_targets
+  for all using (public.is_admin()) with check (public.is_admin());

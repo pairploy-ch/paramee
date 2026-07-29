@@ -199,13 +199,24 @@ export default function PropertyDetailView({
               {t.propertyDetail.amenities}
             </h2>
             <div className="mt-4 grid gap-x-6 gap-y-3 sm:grid-cols-2">
-              {amenities.map((a) => (
-                <div key={a} className="flex items-center gap-2.5 text-sm text-ink/75">
+              {[...amenities, ...property.unitAmenities].map((a, i) => (
+                <div key={`${a}-${i}`} className="flex items-center gap-2.5 text-sm text-ink/75">
                   <CheckCircle2 className="h-4 w-4 shrink-0 text-maroon" strokeWidth={1.75} aria-hidden />
                   {a}
                 </div>
               ))}
             </div>
+            {property.propertyHubUrl?.trim() && (
+              <a
+                href={property.propertyHubUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center gap-1.5 text-sm text-gold-dark underline hover:text-maroon"
+              >
+                <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
+                ดูประกาศบน PropertyHub
+              </a>
+            )}
           </section>
 
           {/* Costs — commented out for now

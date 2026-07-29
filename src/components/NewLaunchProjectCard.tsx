@@ -75,26 +75,27 @@ export default function NewLaunchProjectCard({
         </h3>
         <p className="mt-1.5 line-clamp-2 text-sm text-ink/55">{project.locationHighlight}</p>
 
-        <div className="mt-4 flex items-center gap-4 border-y border-cream-dark py-3 text-xs text-ink/60">
+        <div className="mt-4 flex flex-wrap items-start gap-x-4 gap-y-2 border-y border-cream-dark py-3 text-xs text-ink/60">
           {project.unitTypesCount.trim() && (
-            <span className="flex items-center gap-1.5">
-              <LayoutGrid className="h-4 w-4" strokeWidth={1.75} aria-hidden /> {project.unitTypesCount} แบบ
+            <span className="flex min-w-0 max-w-full items-start gap-1.5">
+              <LayoutGrid className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden />
+              <span className="line-clamp-2 break-words">{project.unitTypesCount} แบบ</span>
             </span>
           )}
           {project.unitCount.trim() && (
-            <span className="flex items-center gap-1.5">
+            <span className="flex shrink-0 items-center gap-1.5">
               <Building2 className="h-4 w-4" strokeWidth={1.75} aria-hidden /> {project.unitCount} ยูนิต
             </span>
           )}
           {project.completionYear.trim() && (
-            <span className="flex items-center gap-1.5">
+            <span className="flex shrink-0 items-center gap-1.5">
               <Calendar className="h-4 w-4" strokeWidth={1.75} aria-hidden /> เสร็จปี {project.completionYear}
             </span>
           )}
         </div>
 
-        <div className="mt-4 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+        <div className="mt-4 flex items-center justify-between gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2.5">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-maroon text-gold-light">
               <Building2 className="h-4 w-4" strokeWidth={1.75} />
             </span>
@@ -105,7 +106,7 @@ export default function NewLaunchProjectCard({
               <p className="text-[11px] text-ink/45">ผู้พัฒนาโครงการ</p>
             </div>
           </div>
-          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-gold-light/50 text-gold-dark transition-colors group-hover:bg-gold group-hover:text-maroon-dark">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold-light/50 text-gold-dark transition-colors group-hover:bg-gold group-hover:text-maroon-dark">
             <ArrowRight className="h-4 w-4" strokeWidth={1.75} />
           </span>
         </div>

@@ -11,6 +11,7 @@ import { useTranslation } from "@/i18n/LanguageProvider";
 import LogoutButton from "./LogoutButton";
 
 const adminLinks = [
+  { href: "/admin/dashboard", label: "KPI Dashboard" },
   { href: "/admin/leads", label: "Track Lead" },
   { href: "/admin/properties", label: "เพิ่มทรัพย์" },
   { href: "/admin/manage-properties", label: "จัดการทรัพย์ / เจ้าของ" },

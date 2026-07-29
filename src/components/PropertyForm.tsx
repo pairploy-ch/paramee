@@ -14,8 +14,9 @@ import type {
   PropertyType,
   TransitLine,
   LandTransferFeeParty,
+  UnitAmenity,
 } from "@/lib/types";
-import { landTransferFeeParties } from "@/lib/types";
+import { landTransferFeeParties, unitAmenityOptions } from "@/lib/types";
 import type { Owner } from "@/lib/owners";
 
 interface TransitFormRow {
@@ -51,6 +52,9 @@ export interface PropertyFormValues {
   rentalMinTermMonths: string;
   rentalDepositMonths: string;
   rentalAdvanceMonths: string;
+  rentPrice6Month: string;
+  rentPrice3Month: string;
+  rentPrice1Month: string;
   areaSqm: string;
   bedrooms: string;
   bathrooms: string;
@@ -69,6 +73,8 @@ export interface PropertyFormValues {
   cashflowPerMonth: string;
   ownerId: string;
   facebookPostUrl: string;
+  propertyHubUrl: string;
+  unitAmenities: UnitAmenity[];
 }
 
 export const emptyPropertyFormValues: PropertyFormValues = {
@@ -89,6 +95,9 @@ export const emptyPropertyFormValues: PropertyFormValues = {
   rentalMinTermMonths: "",
   rentalDepositMonths: "",
   rentalAdvanceMonths: "",
+  rentPrice6Month: "",
+  rentPrice3Month: "",
+  rentPrice1Month: "",
   areaSqm: "",
   bedrooms: "1",
   bathrooms: "1",
@@ -107,6 +116,8 @@ export const emptyPropertyFormValues: PropertyFormValues = {
   cashflowPerMonth: "",
   ownerId: "",
   facebookPostUrl: "",
+  propertyHubUrl: "",
+  unitAmenities: [],
 };
 
 export function valuesToProperty(v: PropertyFormValues): Omit<Property, "slug"> {
@@ -151,6 +162,11 @@ export function valuesToProperty(v: PropertyFormValues): Omit<Property, "slug"> 
     rentalMinTermMonths: num(v.rentalMinTermMonths),
     rentalDepositMonths: num(v.rentalDepositMonths),
     rentalAdvanceMonths: num(v.rentalAdvanceMonths),
+    rentPrice6Month: v.rentPrice6Month.trim() === "" ? null : Number(v.rentPrice6Month),
+    rentPrice3Month: v.rentPrice3Month.trim() === "" ? null : Number(v.rentPrice3Month),
+    rentPrice1Month: v.rentPrice1Month.trim() === "" ? null : Number(v.rentPrice1Month),
+    propertyHubUrl: v.propertyHubUrl.trim(),
+    unitAmenities: v.unitAmenities,
     landDeedType: isLand ? v.landDeedType.trim() || null : null,
     landTransferFeeParty: isLand ? v.landTransferFeeParty || null : null,
     facebookPostUrl: v.facebookPostUrl.trim(),
@@ -179,6 +195,9 @@ export function propertyToFormValues(p: Property): PropertyFormValues {
     rentalMinTermMonths: p.rentalMinTermMonths ? String(p.rentalMinTermMonths) : "",
     rentalDepositMonths: p.rentalDepositMonths ? String(p.rentalDepositMonths) : "",
     rentalAdvanceMonths: p.rentalAdvanceMonths ? String(p.rentalAdvanceMonths) : "",
+    rentPrice6Month: p.rentPrice6Month != null ? String(p.rentPrice6Month) : "",
+    rentPrice3Month: p.rentPrice3Month != null ? String(p.rentPrice3Month) : "",
+    rentPrice1Month: p.rentPrice1Month != null ? String(p.rentPrice1Month) : "",
     areaSqm: String(p.areaSqm),
     bedrooms: String(p.bedrooms),
     bathrooms: String(p.bathrooms),
@@ -199,6 +218,8 @@ export function propertyToFormValues(p: Property): PropertyFormValues {
     cashflowPerMonth: String(p.investor.cashflowPerMonth),
     ownerId: p.ownerId,
     facebookPostUrl: p.facebookPostUrl ?? "",
+    propertyHubUrl: p.propertyHubUrl ?? "",
+    unitAmenities: p.unitAmenities ?? [],
   };
 }
 
@@ -542,6 +563,39 @@ export default function PropertyForm({
               </Field>
             </div>
           )}
+          {values.rentPrice.trim() && (
+            <div className="mt-4">
+              <p className="mb-2 text-xs font-semibold text-ink/60">
+                ราคาเช่าตามระยะสัญญาสั้น (ถ้ามี)
+              </p>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Field label="สัญญา 6 เดือน (บาท/เดือน)">
+                  <input
+                    type="number"
+                    value={values.rentPrice6Month}
+                    onChange={(e) => update("rentPrice6Month", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="สัญญา 3 เดือน (บาท/เดือน)">
+                  <input
+                    type="number"
+                    value={values.rentPrice3Month}
+                    onChange={(e) => update("rentPrice3Month", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="สัญญา 1 เดือน (บาท/เดือน)">
+                  <input
+                    type="number"
+                    value={values.rentPrice1Month}
+                    onChange={(e) => update("rentPrice1Month", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="rounded-2xl border border-gold-light/40 bg-white p-6">
@@ -746,7 +800,7 @@ export default function PropertyForm({
             ))}
           </div>
 
-          <div className="mt-4">
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <Field label="ลิงก์โพสต์ Facebook">
               <input
                 type="url"
@@ -756,6 +810,49 @@ export default function PropertyForm({
                 className={inputClass}
               />
             </Field>
+            <Field label="ลิงก์ PropertyHub">
+              <input
+                type="url"
+                value={values.propertyHubUrl}
+                onChange={(e) => update("propertyHubUrl", e.target.value)}
+                placeholder="https://propertyhub.in.th/..."
+                className={inputClass}
+              />
+            </Field>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-gold-light/40 bg-white p-6">
+          <h2 className="font-heading text-lg font-semibold text-maroon-dark">สิ่งอำนวยความสะดวก</h2>
+          <div className="mt-4 flex flex-wrap gap-3">
+            {unitAmenityOptions.map((amenity) => {
+              const checked = values.unitAmenities.includes(amenity);
+              return (
+                <label
+                  key={amenity}
+                  className={`flex cursor-pointer items-center gap-2 border px-3 py-2 text-sm ${
+                    checked
+                      ? "border-gold-dark bg-cream-dark/60 text-maroon-dark"
+                      : "border-cream-dark text-ink/60"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={(e) =>
+                      update(
+                        "unitAmenities",
+                        e.target.checked
+                          ? [...values.unitAmenities, amenity]
+                          : values.unitAmenities.filter((a) => a !== amenity)
+                      )
+                    }
+                    className="h-4 w-4"
+                  />
+                  {amenity}
+                </label>
+              );
+            })}
           </div>
         </div>
 
