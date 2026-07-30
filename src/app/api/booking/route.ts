@@ -3,6 +3,7 @@ import { fetchPropertyBySlug } from "@/lib/data/properties";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { createPublicClient } from "@/lib/supabase/publicClient";
 import { sendMail } from "@/lib/mailer";
+import { buildBookingIcs } from "@/lib/googleCalendar";
 
 const modeCopy: Record<string, string> = {
   view: "นัดเข้าชมโครงการ / ห้อง",
@@ -99,10 +100,31 @@ export async function POST(request: Request) {
     note ? `หมายเหตุ: ${note}` : null,
   ].filter(Boolean);
 
+  let icalEvent: { filename: string; method: "request"; content: string } | undefined;
+  if (mode === "view" && date && time) {
+    const start = new Date(`${date}T${time}:00+07:00`);
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
+    icalEvent = {
+      filename: "appointment.ics",
+      method: "request",
+      content: buildBookingIcs({
+        uid: `booking-${Date.now()}@parameeasset.com`,
+        title: `นัดชม: ${property?.name ?? "ทรัพย์"} — ${name}`,
+        description: summaryLines.join("\n"),
+        location: property?.name,
+        start,
+        end,
+        organizerEmail: notifyEmail,
+        attendeeEmail: notifyEmail,
+      }),
+    };
+  }
+
   await sendMail({
     to: notifyEmail,
     subject: `[Paramee] ${modeCopy[mode]} — ${name}`,
     text: summaryLines.join("\n"),
+    icalEvent,
   });
 
   await sendMail({
