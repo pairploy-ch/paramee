@@ -1,17 +1,28 @@
 import { google } from "googleapis";
 
+function getServiceAccountCredentials(): { client_email: string; private_key: string } | null {
+  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed.client_email || !parsed.private_key) return null;
+    return { client_email: parsed.client_email, private_key: parsed.private_key };
+  } catch {
+    return null;
+  }
+}
+
 export function isGoogleCalendarConfigured() {
-  return Boolean(
-    process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
-      process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY &&
-      process.env.GOOGLE_CALENDAR_ID
-  );
+  return Boolean(getServiceAccountCredentials() && process.env.GOOGLE_CALENDAR_ID);
 }
 
 function getCalendarClient() {
+  const credentials = getServiceAccountCredentials();
+  if (!credentials) throw new Error("Google Calendar service account is not configured");
+
   const auth = new google.auth.JWT({
-    email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-    key: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    email: credentials.client_email,
+    key: credentials.private_key,
     scopes: ["https://www.googleapis.com/auth/calendar"],
   });
   return google.calendar({ version: "v3", auth });

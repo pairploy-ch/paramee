@@ -103,13 +103,17 @@ export async function POST(request: Request) {
   if (mode === "view" && date && time) {
     const start = new Date(`${date}T${time}:00+07:00`);
     const end = new Date(start.getTime() + 60 * 60 * 1000);
-    await createBookingCalendarEvent({
-      title: `นัดชม: ${property?.name ?? "ทรัพย์"} — ${name}`,
-      description: summaryLines.join("\n"),
-      location: property?.name,
-      start,
-      end,
-    });
+    try {
+      await createBookingCalendarEvent({
+        title: `นัดชม: ${property?.name ?? "ทรัพย์"} — ${name}`,
+        description: summaryLines.join("\n"),
+        location: property?.name,
+        start,
+        end,
+      });
+    } catch (err) {
+      console.error("[booking] Google Calendar event creation failed:", err);
+    }
   }
 
   await sendMail({
