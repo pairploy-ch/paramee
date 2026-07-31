@@ -8,12 +8,10 @@ export async function sendMail({
   to,
   subject,
   text,
-  icalEvent,
 }: {
   to: string;
   subject: string;
   text: string;
-  icalEvent?: { filename: string; method: "request"; content: string };
 }) {
   if (!isMailerConfigured()) {
     console.warn("[mailer] SMTP not configured — skipping email:", subject);
@@ -35,7 +33,6 @@ export async function sendMail({
     to,
     subject,
     text,
-    ...(icalEvent ? { icalEvent } : {}),
   });
 
   return { sent: true };

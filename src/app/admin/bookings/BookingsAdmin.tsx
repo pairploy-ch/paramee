@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, Loader2, ChevronLeft, ChevronRight, CalendarDays, List } from "lucide-react";
+import { Trash2, Loader2, ChevronLeft, ChevronRight, CalendarDays, List, MapPin } from "lucide-react";
 import { getPropertyBySlug } from "@/lib/properties";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { updateBookingStatus, deleteBooking, type BookingRow, type BookingStatus } from "@/lib/data/bookings";
+import type { CalendarEventSummary } from "@/lib/googleCalendarApi";
 
 const modeLabel: Record<BookingRow["mode"], string> = {
   view: "นัดชมทรัพย์",
@@ -28,6 +29,12 @@ const weekdayLabels = ["จ", "อ", "พ", "พฤ", "ศ", "ส", "อา"];
 
 function toDateKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function formatEventTime(iso: string) {
+  if (!iso) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "ทั้งวัน";
+  return new Date(iso).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
 }
 
 function BookingCard({
@@ -94,19 +101,58 @@ function BookingCard({
   );
 }
 
-function BookingsCalendar({
-  bookingsByDate,
-  selectedDate,
-  onSelectDate,
-}: {
-  bookingsByDate: Map<string, BookingRow[]>;
-  selectedDate: string | null;
-  onSelectDate: (dateKey: string | null) => void;
-}) {
+function BookingsCalendar() {
   const [monthCursor, setMonthCursor] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [events, setEvents] = useState<CalendarEventSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    const year = monthCursor.getFullYear();
+    const month = monthCursor.getMonth();
+
+    fetch(`/api/admin/calendar-events?year=${year}&month=${month}`)
+      .then(async (res) => {
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error || "ดึงข้อมูลจาก Google Calendar ไม่สำเร็จ");
+        }
+        return res.json();
+      })
+      .then((data: { events: CalendarEventSummary[] }) => {
+        if (cancelled) return;
+        setEvents(data.events ?? []);
+        setFetchError("");
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setFetchError(err instanceof Error ? err.message : "ดึงข้อมูลจาก Google Calendar ไม่สำเร็จ");
+        setEvents([]);
+        setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [monthCursor]);
+
+  const eventsByDate = useMemo(() => {
+    const map = new Map<string, CalendarEventSummary[]>();
+    for (const ev of events) {
+      if (!ev.start) continue;
+      const key = /^\d{4}-\d{2}-\d{2}$/.test(ev.start) ? ev.start : toDateKey(new Date(ev.start));
+      const list = map.get(key) ?? [];
+      list.push(ev);
+      map.set(key, list);
+    }
+    return map;
+  }, [events]);
 
   const todayKey = toDateKey(new Date());
 
@@ -126,68 +172,113 @@ function BookingsCalendar({
     return out;
   }, [monthCursor]);
 
+  const selectedEvents = selectedDate ? eventsByDate.get(selectedDate) ?? [] : [];
+
   return (
-    <div className="rounded-2xl border border-gold-light/40 bg-white p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <button
-          onClick={() => setMonthCursor(new Date(monthCursor.getFullYear(), monthCursor.getMonth() - 1, 1))}
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-cream-dark text-ink/60 hover:border-gold-dark hover:text-maroon-dark"
-          aria-label="เดือนก่อนหน้า"
-        >
-          <ChevronLeft className="h-4 w-4" strokeWidth={1.75} />
-        </button>
-        <p className="font-heading text-base font-semibold text-maroon-dark">
-          {monthCursor.toLocaleDateString("th-TH", { month: "long", year: "numeric" })}
-        </p>
-        <button
-          onClick={() => setMonthCursor(new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 1))}
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-cream-dark text-ink/60 hover:border-gold-dark hover:text-maroon-dark"
-          aria-label="เดือนถัดไป"
-        >
-          <ChevronRight className="h-4 w-4" strokeWidth={1.75} />
-        </button>
-      </div>
+    <div>
+      <div className="rounded-2xl border border-gold-light/40 bg-white p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <button
+            onClick={() => {
+              setMonthCursor(new Date(monthCursor.getFullYear(), monthCursor.getMonth() - 1, 1));
+              setSelectedDate(null);
+            }}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-cream-dark text-ink/60 hover:border-gold-dark hover:text-maroon-dark"
+            aria-label="เดือนก่อนหน้า"
+          >
+            <ChevronLeft className="h-4 w-4" strokeWidth={1.75} />
+          </button>
+          <p className="font-heading text-base font-semibold text-maroon-dark">
+            {monthCursor.toLocaleDateString("th-TH", { month: "long", year: "numeric" })}
+            {loading && <Loader2 className="ml-2 inline h-3.5 w-3.5 animate-spin text-ink/30" strokeWidth={1.75} />}
+          </p>
+          <button
+            onClick={() => {
+              setMonthCursor(new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 1));
+              setSelectedDate(null);
+            }}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-cream-dark text-ink/60 hover:border-gold-dark hover:text-maroon-dark"
+            aria-label="เดือนถัดไป"
+          >
+            <ChevronRight className="h-4 w-4" strokeWidth={1.75} />
+          </button>
+        </div>
 
-      <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] font-semibold text-ink/40">
-        {weekdayLabels.map((w) => (
-          <div key={w} className="py-1">
-            {w}
-          </div>
-        ))}
-      </div>
+        {fetchError && (
+          <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{fetchError}</p>
+        )}
 
-      <div className="grid grid-cols-7 gap-1.5">
-        {cells.map((cell, i) => {
-          if (!cell.date || !cell.key) return <div key={`blank-${i}`} />;
-          const dayBookings = bookingsByDate.get(cell.key) ?? [];
-          const isToday = cell.key === todayKey;
-          const isSelected = cell.key === selectedDate;
-          return (
-            <button
-              key={cell.key}
-              onClick={() => onSelectDate(isSelected ? null : cell.key)}
-              className={`flex min-h-[64px] flex-col items-start gap-1 rounded-lg border p-1.5 text-left text-xs transition-colors ${
-                isSelected
-                  ? "border-gold-dark bg-cream-dark/60"
-                  : "border-cream-dark hover:border-gold-light"
-              }`}
-            >
-              <span
-                className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] ${
-                  isToday ? "bg-maroon text-gold-light" : "text-ink/60"
+        <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] font-semibold text-ink/40">
+          {weekdayLabels.map((w) => (
+            <div key={w} className="py-1">
+              {w}
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-7 gap-1.5">
+          {cells.map((cell, i) => {
+            if (!cell.date || !cell.key) return <div key={`blank-${i}`} />;
+            const dayEvents = eventsByDate.get(cell.key) ?? [];
+            const isToday = cell.key === todayKey;
+            const isSelected = cell.key === selectedDate;
+            return (
+              <button
+                key={cell.key}
+                onClick={() => setSelectedDate(isSelected ? null : cell.key)}
+                className={`flex min-h-[64px] flex-col items-start gap-1 rounded-lg border p-1.5 text-left text-xs transition-colors ${
+                  isSelected
+                    ? "border-gold-dark bg-cream-dark/60"
+                    : "border-cream-dark hover:border-gold-light"
                 }`}
               >
-                {cell.date.getDate()}
-              </span>
-              {dayBookings.length > 0 && (
-                <span className="rounded-full bg-gold/20 px-1.5 py-0.5 text-[10px] font-semibold text-gold-dark">
-                  {dayBookings.length} นัด
+                <span
+                  className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] ${
+                    isToday ? "bg-maroon text-gold-light" : "text-ink/60"
+                  }`}
+                >
+                  {cell.date.getDate()}
                 </span>
-              )}
-            </button>
-          );
-        })}
+                {dayEvents.length > 0 && (
+                  <span className="rounded-full bg-gold/20 px-1.5 py-0.5 text-[10px] font-semibold text-gold-dark">
+                    {dayEvents.length} นัด
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
+
+      {selectedDate && (
+        <div className="mt-4 space-y-2">
+          <p className="text-xs text-ink/50">
+            นัดหมายวันที่ {selectedDate} — <button onClick={() => setSelectedDate(null)} className="underline hover:text-maroon">ดูทั้งเดือน</button>
+          </p>
+          {selectedEvents.length === 0 && (
+            <p className="rounded-2xl border border-dashed border-gold-light/50 bg-white py-10 text-center text-sm text-ink/50">
+              ไม่มีนัดในวันนี้
+            </p>
+          )}
+          {selectedEvents.map((ev) => (
+            <div key={ev.id} className="rounded-2xl border border-gold-light/40 bg-white p-4">
+              <p className="font-medium text-maroon-dark">{ev.title}</p>
+              <p className="mt-1 text-xs text-ink/50">
+                {formatEventTime(ev.start)}
+                {ev.end && ` - ${formatEventTime(ev.end)}`} น.
+              </p>
+              {ev.location && (
+                <p className="mt-1 flex items-center gap-1 text-xs text-ink/50">
+                  <MapPin className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} /> {ev.location}
+                </p>
+              )}
+              {ev.description && (
+                <p className="mt-2 whitespace-pre-wrap text-xs text-ink/60">{ev.description}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -196,18 +287,6 @@ export default function BookingsAdmin({ initialBookings }: { initialBookings: Bo
   const router = useRouter();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [view, setView] = useState<"list" | "calendar">("list");
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-
-  const bookingsByDate = useMemo(() => {
-    const map = new Map<string, BookingRow[]>();
-    for (const b of initialBookings) {
-      if (!b.appt_date) continue;
-      const list = map.get(b.appt_date) ?? [];
-      list.push(b);
-      map.set(b.appt_date, list);
-    }
-    return map;
-  }, [initialBookings]);
 
   async function handleStatusChange(id: string, status: BookingStatus) {
     if (!isSupabaseConfigured) return;
@@ -226,11 +305,6 @@ export default function BookingsAdmin({ initialBookings }: { initialBookings: Bo
     router.refresh();
     setPendingId(null);
   }
-
-  const visibleBookings =
-    view === "calendar" && selectedDate
-      ? initialBookings.filter((b) => b.appt_date === selectedDate)
-      : initialBookings;
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10 lg:px-8">
@@ -269,37 +343,26 @@ export default function BookingsAdmin({ initialBookings }: { initialBookings: Bo
         </div>
       </div>
 
-      {view === "calendar" && (
-        <div className="mb-6">
-          <BookingsCalendar
-            bookingsByDate={bookingsByDate}
-            selectedDate={selectedDate}
-            onSelectDate={setSelectedDate}
-          />
-          {selectedDate && (
-            <p className="mt-3 text-xs text-ink/50">
-              แสดงเฉพาะวันที่ {selectedDate} — <button onClick={() => setSelectedDate(null)} className="underline hover:text-maroon">ดูทั้งหมด</button>
+      {view === "calendar" ? (
+        <BookingsCalendar />
+      ) : (
+        <div className="space-y-3">
+          {initialBookings.map((b) => (
+            <BookingCard
+              key={b.id}
+              booking={b}
+              pending={pendingId === b.id}
+              onStatusChange={handleStatusChange}
+              onDelete={handleDelete}
+            />
+          ))}
+          {initialBookings.length === 0 && (
+            <p className="rounded-2xl border border-dashed border-gold-light/50 bg-white py-16 text-center text-ink/50">
+              ยังไม่มีคำขอเข้ามา
             </p>
           )}
         </div>
       )}
-
-      <div className="space-y-3">
-        {visibleBookings.map((b) => (
-          <BookingCard
-            key={b.id}
-            booking={b}
-            pending={pendingId === b.id}
-            onStatusChange={handleStatusChange}
-            onDelete={handleDelete}
-          />
-        ))}
-        {visibleBookings.length === 0 && (
-          <p className="rounded-2xl border border-dashed border-gold-light/50 bg-white py-16 text-center text-ink/50">
-            {view === "calendar" && selectedDate ? "ไม่มีนัดในวันนี้" : "ยังไม่มีคำขอเข้ามา"}
-          </p>
-        )}
-      </div>
     </div>
   );
 }
