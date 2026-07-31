@@ -3,6 +3,7 @@ import { img } from "./propertyImages";
 
 type SeedProperty = Omit<
   Property,
+  | "listingType"
   | "remarks"
   | "leaseTerms"
   | "landDeedType"
@@ -344,6 +345,7 @@ const seedProperties: SeedProperty[] = [
 
 export const properties: Property[] = seedProperties.map((p) => ({
   ...p,
+  listingType: p.salePrice && p.rentPrice ? "เช่า + ขาย" : p.rentPrice ? "เช่า" : "ขาย",
   remarks: "",
   leaseTerms: [],
   landDeedType: p.type === "ที่ดิน" ? "โฉนดที่ดิน (น.ส.4 จ.)" : null,

@@ -45,6 +45,9 @@ export default function PropertyDetailView({
     { label: t.propertyDetail.cashflowLabel, value: formatBaht(property.investor.cashflowPerMonth) },
   ];
 
+  const includesSale = property.listingType === "ขาย" || property.listingType === "เช่า + ขาย";
+  const includesRent = property.listingType === "เช่า" || property.listingType === "เช่า + ขาย";
+
   const mapQuery = encodeURIComponent(`${property.address}, ${property.district}, กรุงเทพฯ`);
   const amenities = getAmenities(property.type, lang);
   const mapTitle = lang === "en" ? `Map of ${property.name}` : `แผนที่ ${property.name}`;
@@ -145,7 +148,7 @@ export default function PropertyDetailView({
                   <InfoRow label={t.propertyDetail.facingLabel} value={property.facing} />
                 </>
               )}
-              {property.salePrice && (
+              {includesSale && property.salePrice && (
                 <InfoRow
                   label={t.propertyDetail.salePriceLabel}
                   value={
@@ -157,13 +160,14 @@ export default function PropertyDetailView({
                   }
                 />
               )}
-              {property.rentPrice && (
+              {includesRent && property.rentPrice && (
                 <InfoRow
                   label={t.propertyDetail.rentPriceLabel}
                   value={`${formatBaht(property.rentPrice)}${t.propertyDetail.rentPriceSuffix}`}
                 />
               )}
-              {property.rentPrice != null &&
+              {includesRent &&
+                property.rentPrice != null &&
                 (property.rentalMinTermMonths > 0 ||
                   property.rentalDepositMonths > 0 ||
                   property.rentalAdvanceMonths > 0) && (
@@ -310,12 +314,17 @@ export default function PropertyDetailView({
         {/* Sidebar */}
         <aside className="h-fit space-y-4 lg:sticky lg:top-24">
           <div className="rounded-2xl border border-gold-light/40 bg-white p-6">
-            {property.salePrice && (
+            {includesSale && property.salePrice ? (
               <p className="font-heading text-2xl font-semibold text-gold-dark">
                 {formatBaht(property.salePrice)}
               </p>
-            )}
-            {property.rentPrice && (
+            ) : includesRent && property.rentPrice ? (
+              <p className="font-heading text-2xl font-semibold text-gold-dark">
+                {formatBaht(property.rentPrice)}
+                {t.propertyDetail.rentPriceSuffix}
+              </p>
+            ) : null}
+            {includesSale && includesRent && property.salePrice && property.rentPrice && (
               <p className="text-sm text-ink/60">
                 {t.propertyDetail.orRent} {formatBaht(property.rentPrice)}
                 {t.propertyDetail.rentPriceSuffix}
@@ -329,7 +338,7 @@ export default function PropertyDetailView({
               >
                 {t.propertyDetail.bookViewing}
               </Link>
-              {property.salePrice && isAdmin && (
+              {includesSale && property.salePrice && isAdmin && (
                 <Link
                   href={`/mortgage-calculator?price=${property.salePrice}`}
                   className="border border-gold-dark px-5 py-3 text-center text-sm font-medium text-gold-dark transition-colors hover:bg-cream-dark"

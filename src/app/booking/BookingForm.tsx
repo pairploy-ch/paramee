@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Check } from "lucide-react";
 import PropertySearchSelect from "@/components/PropertySearchSelect";
@@ -14,6 +14,16 @@ const TIME_SLOTS = Array.from({ length: 17 }, (_, i) => {
   const m = String(totalMinutes % 60).padStart(2, "0");
   return `${h}:${m}`;
 });
+
+const BUDGET_PRESETS = {
+  เช่า: { min: 15_000, max: 500_000, step: 5_000 },
+  ซื้อ: { min: 2_000_000, max: 100_000_000, step: 1_000_000 },
+} as const;
+type BudgetPurpose = keyof typeof BUDGET_PRESETS;
+
+function purposeFromListingType(listingType?: Property["listingType"]): BudgetPurpose {
+  return listingType === "เช่า" ? "เช่า" : "ซื้อ";
+}
 
 export default function BookingForm({ properties }: { properties: Property[] }) {
   const { t } = useTranslation();
@@ -31,10 +41,14 @@ export default function BookingForm({ properties }: { properties: Property[] }) 
   };
   const copy = modeCopy[mode];
 
+  const initialProperty = properties.find((p) => p.slug === propertySlug);
+  const initialPurpose = purposeFromListingType(initialProperty?.listingType);
+
   const [submitted, setSubmitted] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [purpose, setPurpose] = useState<BudgetPurpose>(initialPurpose);
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -42,8 +56,8 @@ export default function BookingForm({ properties }: { properties: Property[] }) 
     property: propertySlug,
     unitCode: "",
     lineOrWhatsapp: "",
-    budgetMin: "0",
-    budgetMax: "5000000",
+    budgetMin: String(BUDGET_PRESETS[initialPurpose].min),
+    budgetMax: String(BUDGET_PRESETS[initialPurpose].max),
     date: "",
     time: "",
     note: "",
@@ -54,13 +68,29 @@ export default function BookingForm({ properties }: { properties: Property[] }) 
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  const selectedProperty = properties.find((p) => p.slug === form.property);
+  function handlePurposeChange(next: BudgetPurpose) {
+    setPurpose(next);
+    setForm((f) => ({
+      ...f,
+      budgetMin: String(BUDGET_PRESETS[next].min),
+      budgetMax: String(BUDGET_PRESETS[next].max),
+    }));
+  }
 
-  useEffect(() => {
-    if (selectedProperty?.unitCode) {
-      setForm((f) => ({ ...f, unitCode: selectedProperty.unitCode }));
-    }
-  }, [selectedProperty]);
+  function handlePropertyChange(slug: string) {
+    const selected = properties.find((p) => p.slug === slug);
+    const derivedPurpose = purposeFromListingType(selected?.listingType);
+    setPurpose(derivedPurpose);
+    setForm((f) => ({
+      ...f,
+      property: slug,
+      unitCode: selected?.unitCode || f.unitCode,
+      budgetMin: String(BUDGET_PRESETS[derivedPurpose].min),
+      budgetMax: String(BUDGET_PRESETS[derivedPurpose].max),
+    }));
+  }
+
+  const selectedProperty = properties.find((p) => p.slug === form.property);
 
   function validate(): string | null {
     if (!/^\d{10}$/.test(form.phone)) return t.booking.errorPhone;
@@ -182,7 +212,7 @@ export default function BookingForm({ properties }: { properties: Property[] }) 
           <PropertySearchSelect
             properties={properties}
             value={form.property}
-            onChange={(slug) => update("property", slug)}
+            onChange={handlePropertyChange}
             placeholder={t.booking.propertySearchPlaceholder}
             emptyLabel={t.booking.propertyNoResults}
           />
@@ -213,13 +243,28 @@ export default function BookingForm({ properties }: { properties: Property[] }) 
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-semibold text-maroon-dark">
-            {t.booking.budgetLabel}
-          </label>
+          <div className="mb-1.5 flex items-center justify-between">
+            <label className="text-sm font-semibold text-maroon-dark">{t.booking.budgetLabel}</label>
+            <div className="flex rounded-full border border-cream-dark p-0.5">
+              {(Object.keys(BUDGET_PRESETS) as BudgetPurpose[]).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => handlePurposeChange(p)}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                    purpose === p ? "bg-maroon text-gold-light" : "text-ink/50"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="rounded-lg border border-cream-dark bg-cream px-4 py-3">
             <BudgetRangeSlider
               min={Number(form.budgetMin)}
               max={Number(form.budgetMax)}
+              bounds={BUDGET_PRESETS[purpose]}
               onChange={(min, max) =>
                 setForm((f) => ({ ...f, budgetMin: String(min), budgetMax: String(max) }))
               }
@@ -236,6 +281,7 @@ export default function BookingForm({ properties }: { properties: Property[] }) 
               <input
                 required
                 type="date"
+                lang="en"
                 value={form.date}
                 onChange={(e) => update("date", e.target.value)}
                 className="w-full rounded-lg border border-cream-dark bg-cream px-3 py-2.5 text-sm outline-none focus:border-gold"

@@ -1,5 +1,8 @@
 export type PropertyType = "บ้าน" | "ที่ดิน" | "คอนโด" | "เรือยอชน์";
 
+export const listingTypes = ["เช่า", "ขาย", "เช่า + ขาย"] as const;
+export type ListingType = (typeof listingTypes)[number];
+
 export type PropertyStatus = "Available" | "Reserved" | "Sold" | "For Rent";
 
 export type TransitLine = "BTS" | "MRT" | "ARL" | "อื่นๆ";
@@ -33,6 +36,7 @@ export interface Property {
   slug: string;
   ownerId: string;
   tier: PropertyTier;
+  listingType: ListingType;
   name: string;
   type: PropertyType;
   address: string;
@@ -80,6 +84,7 @@ export type NewLaunchRegion = (typeof newLaunchRegions)[number];
 
 export interface NewLaunchProject {
   slug: string;
+  listingType: ListingType;
   name: string;
   projectCode: string;
   projectType: PropertyType;

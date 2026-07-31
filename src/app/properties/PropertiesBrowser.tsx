@@ -38,9 +38,12 @@ export default function PropertiesBrowser({ initialProperties }: { initialProper
       if (type !== "ทั้งหมด" && p.type !== type) return false;
       if (district !== "ทั้งหมด" && p.district !== district) return false;
       if (area !== "ทั้งหมด" && p.area !== area) return false;
-      if (purpose === "ซื้อ" && !p.salePrice) return false;
-      if (purpose === "เช่า" && !p.rentPrice) return false;
-      const effectivePrice = p.salePrice ?? p.rentPrice ?? 0;
+      const includesSale = p.listingType === "ขาย" || p.listingType === "เช่า + ขาย";
+      const includesRent = p.listingType === "เช่า" || p.listingType === "เช่า + ขาย";
+      if (purpose === "ซื้อ" && !(includesSale && p.salePrice)) return false;
+      if (purpose === "เช่า" && !(includesRent && p.rentPrice)) return false;
+      const effectivePrice =
+        purpose === "เช่า" ? p.rentPrice ?? 0 : purpose === "ซื้อ" ? p.salePrice ?? 0 : p.salePrice ?? p.rentPrice ?? 0;
       if (effectivePrice < minPrice || effectivePrice > maxPrice) return false;
       if (query && !p.name.toLowerCase().includes(query.toLowerCase())) return false;
       return true;

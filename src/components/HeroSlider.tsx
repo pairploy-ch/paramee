@@ -57,7 +57,9 @@ export default function HeroSlider() {
           {slide.heading}
           <span className="text-gold-light"> {slide.highlight}</span>
         </h1>
-        <p className="max-w-lg text-base leading-relaxed text-cream/75">{slide.description}</p>
+        {slide.description && (
+          <p className="max-w-lg text-base leading-relaxed text-cream/75">{slide.description}</p>
+        )}
         <Link
           href={slide.cta.href}
           className="bg-gold px-7 py-3 text-sm font-medium text-maroon-dark transition-colors hover:bg-gold-light"

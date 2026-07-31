@@ -8,6 +8,7 @@ import { thaiProvinces } from "@/lib/thaiProvinces";
 import { landDeedTypes, landDeedColorClass } from "@/lib/landDeedTypes";
 import { downloadImage } from "@/lib/downloadImage";
 import type {
+  ListingType,
   Property,
   PropertyStatus,
   PropertyTier,
@@ -16,7 +17,7 @@ import type {
   LandTransferFeeParty,
   UnitAmenity,
 } from "@/lib/types";
-import { landTransferFeeParties, unitAmenityOptions } from "@/lib/types";
+import { landTransferFeeParties, listingTypes, unitAmenityOptions } from "@/lib/types";
 import type { Owner } from "@/lib/owners";
 
 interface TransitFormRow {
@@ -35,6 +36,7 @@ const transitLines: TransitLine[] = ["BTS", "MRT", "ARL", "อื่นๆ"];
 const yesNoOptions = ["มี", "ไม่มี"];
 
 export interface PropertyFormValues {
+  listingType: ListingType;
   name: string;
   type: PropertyType;
   status: PropertyStatus;
@@ -78,6 +80,7 @@ export interface PropertyFormValues {
 }
 
 export const emptyPropertyFormValues: PropertyFormValues = {
+  listingType: "ขาย",
   name: "",
   type: "คอนโด",
   status: "Available",
@@ -126,6 +129,7 @@ export function valuesToProperty(v: PropertyFormValues): Omit<Property, "slug"> 
   return {
     ownerId: v.ownerId,
     tier: v.tier,
+    listingType: v.listingType,
     name: v.name,
     type: v.type,
     address: v.address,
@@ -175,6 +179,7 @@ export function valuesToProperty(v: PropertyFormValues): Omit<Property, "slug"> 
 
 export function propertyToFormValues(p: Property): PropertyFormValues {
   return {
+    listingType: p.listingType,
     name: p.name,
     type: p.type,
     status: p.status,
@@ -274,6 +279,9 @@ export default function PropertyForm({
     setSuccess(false);
     setSavedSlug(null);
   }
+
+  const includesRent = values.listingType === "เช่า" || values.listingType === "เช่า + ขาย";
+  const includesSale = values.listingType === "ขาย" || values.listingType === "เช่า + ขาย";
 
   function updateImage(index: number, value: string) {
     setValues((v) => ({ ...v, images: v.images.map((img, i) => (i === index ? value : img)) }));
@@ -384,6 +392,19 @@ export default function PropertyForm({
         <div className="rounded-2xl border border-gold-light/40 bg-white p-6">
           <h2 className="font-heading text-lg font-semibold text-maroon-dark">ข้อมูลพื้นฐาน</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <Field label="ประเภท">
+              <select
+                value={values.listingType}
+                onChange={(e) => update("listingType", e.target.value as ListingType)}
+                className={inputClass}
+              >
+                {listingTypes.map((lt) => (
+                  <option key={lt} value={lt}>
+                    {lt}
+                  </option>
+                ))}
+              </select>
+            </Field>
             <Field label="ชื่อโครงการ">
               <input
                 required
@@ -518,24 +539,28 @@ export default function PropertyForm({
         <div className="rounded-2xl border border-gold-light/40 bg-white p-6">
           <h2 className="font-heading text-lg font-semibold text-maroon-dark">ราคา</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <Field label="ราคาขาย (บาท)">
-              <input
-                type="number"
-                value={values.salePrice}
-                onChange={(e) => update("salePrice", e.target.value)}
-                className={inputClass}
-              />
-            </Field>
-            <Field label="ราคาเช่า / เดือน (บาท)">
-              <input
-                type="number"
-                value={values.rentPrice}
-                onChange={(e) => update("rentPrice", e.target.value)}
-                className={inputClass}
-              />
-            </Field>
+            {includesSale && (
+              <Field label="ราคาขาย (บาท)">
+                <input
+                  type="number"
+                  value={values.salePrice}
+                  onChange={(e) => update("salePrice", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+            )}
+            {includesRent && (
+              <Field label="ราคาเช่า / เดือน (บาท)">
+                <input
+                  type="number"
+                  value={values.rentPrice}
+                  onChange={(e) => update("rentPrice", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+            )}
           </div>
-          {values.rentPrice.trim() && (
+          {includesRent && values.rentPrice.trim() && (
             <div className="mt-4 grid gap-4 sm:grid-cols-3">
               <Field label="สัญญาเช่าขั้นต่ำ (เดือน)">
                 <input
@@ -563,7 +588,7 @@ export default function PropertyForm({
               </Field>
             </div>
           )}
-          {values.rentPrice.trim() && (
+          {includesRent && values.rentPrice.trim() && (
             <div className="mt-4">
               <p className="mb-2 text-xs font-semibold text-ink/60">
                 ราคาเช่าตามระยะสัญญาสั้น (ถ้ามี)

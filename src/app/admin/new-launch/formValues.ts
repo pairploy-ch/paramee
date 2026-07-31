@@ -1,6 +1,7 @@
-import type { NewLaunchProject, NewLaunchRegion, PropertyType } from "@/lib/types";
+import type { ListingType, NewLaunchProject, NewLaunchRegion, PropertyType } from "@/lib/types";
 
 export interface NewLaunchFormValues {
+  listingType: ListingType;
   name: string;
   projectCode: string;
   projectType: PropertyType;
@@ -23,6 +24,7 @@ export interface NewLaunchFormValues {
 }
 
 export const emptyNewLaunchFormValues: NewLaunchFormValues = {
+  listingType: "ขาย",
   name: "",
   projectCode: "",
   projectType: "คอนโด",
@@ -46,6 +48,7 @@ export const emptyNewLaunchFormValues: NewLaunchFormValues = {
 
 export function projectToFormValues(p: NewLaunchProject): NewLaunchFormValues {
   return {
+    listingType: p.listingType,
     name: p.name,
     projectCode: p.projectCode,
     projectType: p.projectType,

@@ -15,6 +15,8 @@ export default function PropertyCard({ property }: { property: Property }) {
   const { t, lang } = useTranslation();
   const ownerContact = useOwnerContact(property.ownerId);
   const ownerName = ownerContact?.name?.trim();
+  const includesSale = property.listingType === "ขาย" || property.listingType === "เช่า + ขาย";
+  const includesRent = property.listingType === "เช่า" || property.listingType === "เช่า + ขาย";
 
   return (
     <Link
@@ -48,17 +50,23 @@ export default function PropertyCard({ property }: { property: Property }) {
 
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-baseline justify-between gap-2">
-          {property.salePrice ? (
+          {includesSale && property.salePrice ? (
             <p className="font-heading text-lg font-semibold text-gold-dark">
               {formatCompactBaht(property.salePrice, lang)}
             </p>
-          ) : (
+          ) : includesRent && property.rentPrice ? (
             <p className="font-heading text-lg font-semibold text-gold-dark">
-              {formatBaht(property.rentPrice ?? 0)}
+              {formatBaht(property.rentPrice)}
               <span className="text-xs font-normal text-ink/50">{t.units.perMonth}</span>
             </p>
-          )}
+          ) : null}
         </div>
+        {includesSale && includesRent && property.salePrice && property.rentPrice && (
+          <p className="text-xs text-ink/50">
+            {t.propertyDetail.orRent} {formatCompactBaht(property.rentPrice, lang)}
+            {t.units.perMonth}
+          </p>
+        )}
 
         <h3 className="mt-1 font-heading text-lg font-semibold text-maroon-dark group-hover:text-maroon">
           {property.name}

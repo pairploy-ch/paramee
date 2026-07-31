@@ -273,8 +273,7 @@ export const dictionaries: Record<Lang, Dictionary> = {
       slideLabel: "สไลด์ที่",
       slide1Heading: "ค้นหาอสังหาริมทรัพย์",
       slide1Highlight: "ที่ใช่สำหรับคุณ",
-      slide1Description:
-        "รวมทรัพย์คัดสรรกว่า 300–500 รายการทั่วกรุงเทพฯ พร้อมระบบนัดชม จองมัดจำออนไลน์ และคำนวณสินเชื่อ ครบในที่เดียว",
+      slide1Description: "",
       slide1Cta: "ค้นหาทรัพย์ทันที",
       slide2Heading: "ลงทุนอสังหาฯ อย่างมั่นใจ",
       slide2Highlight: "ด้วยข้อมูลที่ครบ",
@@ -513,8 +512,7 @@ export const dictionaries: Record<Lang, Dictionary> = {
       slideLabel: "Slide",
       slide1Heading: "Find the dream home",
       slide1Highlight: "that's right for you",
-      slide1Description:
-        "300–500+ curated listings across Bangkok, with online viewing bookings, deposit reservations, and mortgage calculations all in one place.",
+      slide1Description: "",
       slide1Cta: "Search Properties Now",
       slide2Heading: "Invest in real estate",
       slide2Highlight: "with confidence",

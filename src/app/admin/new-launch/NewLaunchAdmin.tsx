@@ -15,8 +15,8 @@ import {
 } from "@/lib/data/newLaunchProjects";
 import { propertyTypes } from "@/lib/properties";
 import { downloadImage } from "@/lib/downloadImage";
-import { newLaunchRegions } from "@/lib/types";
-import type { NewLaunchProject, NewLaunchRegion, PropertyType } from "@/lib/types";
+import { listingTypes, newLaunchRegions } from "@/lib/types";
+import type { ListingType, NewLaunchProject, NewLaunchRegion, PropertyType } from "@/lib/types";
 
 const inputClass =
   "w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold";
@@ -114,6 +114,7 @@ export default function NewLaunchAdmin({ initialProjects }: { initialProjects: N
     setError("");
     const supabase = createClient();
     const input = {
+      listingType: values.listingType,
       name: values.name,
       projectCode: values.projectCode.trim(),
       projectType: values.projectType,
@@ -185,6 +186,19 @@ export default function NewLaunchAdmin({ initialProjects }: { initialProjects: N
           <div className="rounded-2xl border border-gold-light/40 bg-white p-6">
             <h2 className="font-heading text-lg font-semibold text-maroon-dark">ข้อมูลโครงการ</h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <Field label="ประเภท">
+                <select
+                  value={values.listingType}
+                  onChange={(e) => update("listingType", e.target.value as ListingType)}
+                  className={inputClass}
+                >
+                  {listingTypes.map((lt) => (
+                    <option key={lt} value={lt}>
+                      {lt}
+                    </option>
+                  ))}
+                </select>
+              </Field>
               <Field label="ชื่อโครงการ">
                 <input
                   required

@@ -15,7 +15,13 @@ function buildCaption(v: NewLaunchFormValues): string {
 
   const codeSuffix = v.projectCode.trim() ? ` (${v.projectCode.trim()})` : "";
   const regionSuffix = v.region ? ` ${v.region}` : "";
-  blocks.push(`เปิดจองโครงการใหม่ ${v.projectType}${regionSuffix}\n${v.name || "..."}${codeSuffix}`);
+  const openingWord =
+    v.listingType === "เช่า + ขาย"
+      ? "เปิดจอง/ให้เช่าโครงการใหม่"
+      : v.listingType === "เช่า"
+        ? "เปิดให้เช่าโครงการใหม่"
+        : "เปิดจองโครงการใหม่";
+  blocks.push(`${openingWord} ${v.projectType}${regionSuffix}\n${v.name || "..."}${codeSuffix}`);
 
   if (v.developer.trim()) blocks.push(`ผู้พัฒนาโครงการ: ${v.developer.trim()}`);
 
@@ -55,9 +61,12 @@ function buildCaptionEn(v: NewLaunchFormValues): string {
   const typeLabel = propertyTypeLabel(v.projectType, "en");
   const codeSuffix = v.projectCode.trim() ? ` (${v.projectCode.trim()})` : "";
   const regionSuffix = v.region ? ` in ${v.region}` : "";
+  const listingSuffix =
+    v.listingType === "เช่า + ขาย" ? " (For Sale/Rent)" : v.listingType === "เช่า" ? " (For Rent)" : "";
 
   blocks.push(
-    [`New Launch ${typeLabel} Project${regionSuffix}`, v.name || "..."].join(" | ") + codeSuffix
+    [`New Launch ${typeLabel} Project${regionSuffix}${listingSuffix}`, v.name || "..."].join(" | ") +
+      codeSuffix
   );
 
   if (v.developer.trim()) blocks.push(`Developer: ${v.developer.trim()}`);

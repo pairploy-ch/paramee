@@ -11,9 +11,9 @@ function n(value: number): string {
 }
 
 export function buildPropertyCaptionTh(property: Property): string {
-  const isRent = !property.salePrice && !!property.rentPrice;
+  const includesRent = property.listingType === "เช่า" || property.listingType === "เช่า + ขาย";
+  const includesSale = property.listingType === "ขาย" || property.listingType === "เช่า + ขาย";
   const isLand = property.type === "ที่ดิน";
-  const price = isRent ? property.rentPrice : property.salePrice;
 
   const blocks: string[] = [];
 
@@ -23,7 +23,8 @@ export function buildPropertyCaptionTh(property: Property): string {
     : "";
   const bedHighlight = !isLand && property.bedrooms ? ` ${property.bedrooms} Bed` : "";
 
-  const headline = `${isRent ? "ให้เช่า" : "ประกาศขาย"}${property.type} ${property.district} ${
+  const headlineWord = includesRent && includesSale ? "ให้เช่า/ขาย" : includesRent ? "ให้เช่า" : "ประกาศขาย";
+  const headline = `${headlineWord}${property.type} ${property.district} ${
     property.name || "..."
   }${bedHighlight}${nearbyHighlight}`
     .replace(/\s+/g, " ")
@@ -44,17 +45,19 @@ export function buildPropertyCaptionTh(property: Property): string {
       ].filter(Boolean);
   blocks.push(`รายละเอียดห้อง:\n${roomDetailParts.join(" • ")}`);
 
-  if (price) {
-    const conditionLines = [`${price} บาท${isRent ? "/เดือน" : ""}`];
-    if (isRent) {
-      const termParts = [
-        property.rentalMinTermMonths && `สัญญาเช่าขั้นต่ำ ${property.rentalMinTermMonths} เดือน`,
-        property.rentalDepositMonths && `เงินประกันความเสียหาย ${property.rentalDepositMonths} เดือน`,
-        property.rentalAdvanceMonths && `ค่าเช่าล่วงหน้า ${property.rentalAdvanceMonths} เดือน`,
-      ].filter(Boolean);
-      if (termParts.length > 0) conditionLines.push(termParts.join(" + "));
-    }
-    blocks.push(`${isRent ? "เงื่อนไขการเช่า" : "ราคาขาย"}:\n${conditionLines.join("\n")}`);
+  if (includesRent && property.rentPrice) {
+    const conditionLines = [`${property.rentPrice} บาท/เดือน`];
+    const termParts = [
+      property.rentalMinTermMonths && `สัญญาเช่าขั้นต่ำ ${property.rentalMinTermMonths} เดือน`,
+      property.rentalDepositMonths && `เงินประกันความเสียหาย ${property.rentalDepositMonths} เดือน`,
+      property.rentalAdvanceMonths && `ค่าเช่าล่วงหน้า ${property.rentalAdvanceMonths} เดือน`,
+    ].filter(Boolean);
+    if (termParts.length > 0) conditionLines.push(termParts.join(" + "));
+    blocks.push(`เงื่อนไขการเช่า:\n${conditionLines.join("\n")}`);
+  }
+
+  if (includesSale && property.salePrice) {
+    blocks.push(`ราคาขาย:\n${property.salePrice} บาท`);
   }
 
   const validLeaseTerms = property.leaseTerms.filter((row) => row.duration?.trim());
@@ -81,9 +84,9 @@ export function buildPropertyCaptionTh(property: Property): string {
 }
 
 export function buildPropertyCaptionEn(property: Property): string {
-  const isRent = !property.salePrice && !!property.rentPrice;
+  const includesRent = property.listingType === "เช่า" || property.listingType === "เช่า + ขาย";
+  const includesSale = property.listingType === "ขาย" || property.listingType === "เช่า + ขาย";
   const isLand = property.type === "ที่ดิน";
-  const price = isRent ? property.rentPrice : property.salePrice;
   const typeLabel = propertyTypeLabel(property.type, "en");
   const unitCodeSuffix = property.unitCode?.trim() ? ` (${property.unitCode.trim()})` : "";
 
@@ -93,8 +96,10 @@ export function buildPropertyCaptionEn(property: Property): string {
   const bedSegment =
     !isLand && property.bedrooms ? `${property.bedrooms}-Bedroom ${typeLabel}` : typeLabel;
 
+  const listingWord =
+    includesRent && includesSale ? "Rent/Sale" : includesRent ? "Rent" : "Sale";
   const headline = [
-    `${typeLabel} for ${isRent ? "Rent" : "Sale"}${districtPart}`,
+    `${typeLabel} for ${listingWord}${districtPart}`,
     property.name || "...",
     bedSegment,
   ].join(" | ");
@@ -113,20 +118,23 @@ export function buildPropertyCaptionEn(property: Property): string {
       ].filter(Boolean);
   blocks.push(`Property Details\n${roomDetailParts.join(" • ")}`);
 
-  if (price) {
-    const formattedPrice = price.toLocaleString("en-US");
-    const conditionLines = [`THB ${formattedPrice}${isRent ? " / month" : ""}`];
-    if (isRent) {
-      if (property.rentalMinTermMonths) {
-        conditionLines.push(`• Minimum ${property.rentalMinTermMonths}-month lease`);
-      }
-      const depositAdvanceParts = [
-        property.rentalDepositMonths && `${property.rentalDepositMonths}-month security deposit`,
-        property.rentalAdvanceMonths && `${property.rentalAdvanceMonths}-month advance rent`,
-      ].filter(Boolean);
-      if (depositAdvanceParts.length > 0) conditionLines.push(`• ${depositAdvanceParts.join(" + ")}`);
+  if (includesRent && property.rentPrice) {
+    const formattedRent = property.rentPrice.toLocaleString("en-US");
+    const conditionLines = [`THB ${formattedRent} / month`];
+    if (property.rentalMinTermMonths) {
+      conditionLines.push(`• Minimum ${property.rentalMinTermMonths}-month lease`);
     }
-    blocks.push(`${isRent ? "Rental Terms" : "Sale Price"}\n${conditionLines.join("\n")}`);
+    const depositAdvanceParts = [
+      property.rentalDepositMonths && `${property.rentalDepositMonths}-month security deposit`,
+      property.rentalAdvanceMonths && `${property.rentalAdvanceMonths}-month advance rent`,
+    ].filter(Boolean);
+    if (depositAdvanceParts.length > 0) conditionLines.push(`• ${depositAdvanceParts.join(" + ")}`);
+    blocks.push(`Rental Terms\n${conditionLines.join("\n")}`);
+  }
+
+  if (includesSale && property.salePrice) {
+    const formattedSale = property.salePrice.toLocaleString("en-US");
+    blocks.push(`Sale Price\nTHB ${formattedSale}`);
   }
 
   const validLeaseTerms = property.leaseTerms.filter((row) => row.duration?.trim());

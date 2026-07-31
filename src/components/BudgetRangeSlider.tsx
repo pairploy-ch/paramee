@@ -1,9 +1,5 @@
 "use client";
 
-const MIN = 0;
-const MAX = 50_000_000;
-const STEP = 100_000;
-
 function formatBaht(n: number) {
   return n.toLocaleString("th-TH");
 }
@@ -11,12 +7,17 @@ function formatBaht(n: number) {
 export default function BudgetRangeSlider({
   min,
   max,
+  bounds = { min: 0, max: 50_000_000, step: 100_000 },
   onChange,
 }: {
   min: number;
   max: number;
+  bounds?: { min: number; max: number; step: number };
   onChange: (min: number, max: number) => void;
 }) {
+  const MIN = bounds.min;
+  const MAX = bounds.max;
+  const STEP = bounds.step;
   const minPercent = ((min - MIN) / (MAX - MIN)) * 100;
   const maxPercent = ((max - MIN) / (MAX - MIN)) * 100;
 

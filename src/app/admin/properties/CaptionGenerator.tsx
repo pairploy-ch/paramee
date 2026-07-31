@@ -11,9 +11,9 @@ function toIntlPhone(phone: string) {
 }
 
 function buildCaption(values: PropertyFormValues): string {
-  const isRent = !values.salePrice.trim() && !!values.rentPrice.trim();
+  const includesRent = values.listingType === "เช่า" || values.listingType === "เช่า + ขาย";
+  const includesSale = values.listingType === "ขาย" || values.listingType === "เช่า + ขาย";
   const isLand = values.type === "ที่ดิน";
-  const price = isRent ? values.rentPrice : values.salePrice;
 
   const blocks: string[] = [];
 
@@ -23,7 +23,8 @@ function buildCaption(values: PropertyFormValues): string {
     : "";
   const bedHighlight = !isLand && values.bedrooms.trim() ? ` ${values.bedrooms} Bed` : "";
 
-  const headline = `${isRent ? "ให้เช่า" : "ประกาศขาย"}${values.type} ${values.district} ${
+  const headlineWord = includesRent && includesSale ? "ให้เช่า/ขาย" : includesRent ? "ให้เช่า" : "ประกาศขาย";
+  const headline = `${headlineWord}${values.type} ${values.district} ${
     values.name || "..."
   }${bedHighlight}${nearbyHighlight}`
     .replace(/\s+/g, " ")
@@ -44,17 +45,19 @@ function buildCaption(values: PropertyFormValues): string {
       ].filter(Boolean);
   blocks.push(`รายละเอียดห้อง:\n${roomDetailParts.join(" • ")}`);
 
-  if (price.trim()) {
-    const conditionLines = [`${price} บาท${isRent ? "/เดือน" : ""}`];
-    if (isRent) {
-      const termParts = [
-        values.rentalMinTermMonths.trim() && `สัญญาเช่าขั้นต่ำ ${values.rentalMinTermMonths} เดือน`,
-        values.rentalDepositMonths.trim() && `เงินประกันความเสียหาย ${values.rentalDepositMonths} เดือน`,
-        values.rentalAdvanceMonths.trim() && `ค่าเช่าล่วงหน้า ${values.rentalAdvanceMonths} เดือน`,
-      ].filter(Boolean);
-      if (termParts.length > 0) conditionLines.push(termParts.join(" + "));
-    }
-    blocks.push(`${isRent ? "เงื่อนไขการเช่า" : "ราคาขาย"}:\n${conditionLines.join("\n")}`);
+  if (includesRent && values.rentPrice.trim()) {
+    const conditionLines = [`${values.rentPrice} บาท/เดือน`];
+    const termParts = [
+      values.rentalMinTermMonths.trim() && `สัญญาเช่าขั้นต่ำ ${values.rentalMinTermMonths} เดือน`,
+      values.rentalDepositMonths.trim() && `เงินประกันความเสียหาย ${values.rentalDepositMonths} เดือน`,
+      values.rentalAdvanceMonths.trim() && `ค่าเช่าล่วงหน้า ${values.rentalAdvanceMonths} เดือน`,
+    ].filter(Boolean);
+    if (termParts.length > 0) conditionLines.push(termParts.join(" + "));
+    blocks.push(`เงื่อนไขการเช่า:\n${conditionLines.join("\n")}`);
+  }
+
+  if (includesSale && values.salePrice.trim()) {
+    blocks.push(`ราคาขาย:\n${values.salePrice} บาท`);
   }
 
   const validLeaseTerms = values.leaseTerms.filter((row) => row.duration.trim());
@@ -81,9 +84,9 @@ function buildCaption(values: PropertyFormValues): string {
 }
 
 function buildCaptionEn(values: PropertyFormValues): string {
-  const isRent = !values.salePrice.trim() && !!values.rentPrice.trim();
+  const includesRent = values.listingType === "เช่า" || values.listingType === "เช่า + ขาย";
+  const includesSale = values.listingType === "ขาย" || values.listingType === "เช่า + ขาย";
   const isLand = values.type === "ที่ดิน";
-  const price = isRent ? values.rentPrice : values.salePrice;
   const typeLabel = propertyTypeLabel(values.type, "en");
   const unitCodeSuffix = values.unitCode.trim() ? ` (${values.unitCode.trim()})` : "";
 
@@ -92,8 +95,9 @@ function buildCaptionEn(values: PropertyFormValues): string {
   const districtPart = values.district.trim() ? ` in ${values.district.trim()}` : "";
   const bedSegment = !isLand && values.bedrooms.trim() ? `${values.bedrooms}-Bedroom ${typeLabel}` : typeLabel;
 
+  const listingWord = includesRent && includesSale ? "Rent/Sale" : includesRent ? "Rent" : "Sale";
   const headline = [
-    `${typeLabel} for ${isRent ? "Rent" : "Sale"}${districtPart}`,
+    `${typeLabel} for ${listingWord}${districtPart}`,
     values.name || "...",
     bedSegment,
   ].join(" | ");
@@ -112,21 +116,25 @@ function buildCaptionEn(values: PropertyFormValues): string {
       ].filter(Boolean);
   blocks.push(`Property Details\n${roomDetailParts.join(" • ")}`);
 
-  if (price.trim()) {
-    const priceNum = Number(price);
-    const formattedPrice = Number.isFinite(priceNum) ? priceNum.toLocaleString("en-US") : price;
-    const conditionLines = [`THB ${formattedPrice}${isRent ? " / month" : ""}`];
-    if (isRent) {
-      if (values.rentalMinTermMonths.trim()) {
-        conditionLines.push(`• Minimum ${values.rentalMinTermMonths}-month lease`);
-      }
-      const depositAdvanceParts = [
-        values.rentalDepositMonths.trim() && `${values.rentalDepositMonths}-month security deposit`,
-        values.rentalAdvanceMonths.trim() && `${values.rentalAdvanceMonths}-month advance rent`,
-      ].filter(Boolean);
-      if (depositAdvanceParts.length > 0) conditionLines.push(`• ${depositAdvanceParts.join(" + ")}`);
+  if (includesRent && values.rentPrice.trim()) {
+    const rentNum = Number(values.rentPrice);
+    const formattedRent = Number.isFinite(rentNum) ? rentNum.toLocaleString("en-US") : values.rentPrice;
+    const conditionLines = [`THB ${formattedRent} / month`];
+    if (values.rentalMinTermMonths.trim()) {
+      conditionLines.push(`• Minimum ${values.rentalMinTermMonths}-month lease`);
     }
-    blocks.push(`${isRent ? "Rental Terms" : "Sale Price"}\n${conditionLines.join("\n")}`);
+    const depositAdvanceParts = [
+      values.rentalDepositMonths.trim() && `${values.rentalDepositMonths}-month security deposit`,
+      values.rentalAdvanceMonths.trim() && `${values.rentalAdvanceMonths}-month advance rent`,
+    ].filter(Boolean);
+    if (depositAdvanceParts.length > 0) conditionLines.push(`• ${depositAdvanceParts.join(" + ")}`);
+    blocks.push(`Rental Terms\n${conditionLines.join("\n")}`);
+  }
+
+  if (includesSale && values.salePrice.trim()) {
+    const saleNum = Number(values.salePrice);
+    const formattedSale = Number.isFinite(saleNum) ? saleNum.toLocaleString("en-US") : values.salePrice;
+    blocks.push(`Sale Price\nTHB ${formattedSale}`);
   }
 
   const validLeaseTerms = values.leaseTerms.filter((row) => row.duration.trim());

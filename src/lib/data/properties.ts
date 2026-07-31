@@ -4,6 +4,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/client";
 import type {
   LandTransferFeeParty,
   LeaseTerm,
+  ListingType,
   Property,
   PropertyStatus,
   PropertyTier,
@@ -17,6 +18,7 @@ export interface PropertyRow {
   slug: string;
   owner_id: string | null;
   tier: PropertyTier;
+  listing_type: ListingType;
   name: string;
   type: PropertyType;
   address: string;
@@ -62,6 +64,7 @@ export function rowToProperty(row: PropertyRow): Property {
     slug: row.slug,
     ownerId: row.owner_id ?? "",
     tier: row.tier,
+    listingType: row.listing_type,
     name: row.name,
     type: row.type,
     address: row.address,
@@ -120,6 +123,7 @@ export function propertyToRow(input: NewPropertyInput): Omit<PropertyRow, "id"> 
     slug,
     owner_id: input.ownerId || null,
     tier: input.tier,
+    listing_type: input.listingType,
     name: input.name,
     type: input.type,
     address: input.address,
@@ -212,6 +216,7 @@ export async function updatePropertyBySlug(
   if (patch.area !== undefined) row.area = patch.area;
   if (patch.mapUrl !== undefined) row.map_url = patch.mapUrl;
   if (patch.tier !== undefined) row.tier = patch.tier;
+  if (patch.listingType !== undefined) row.listing_type = patch.listingType;
   if (patch.status !== undefined) row.status = patch.status;
   if (patch.salePrice !== undefined) row.sale_price = patch.salePrice;
   if (patch.rentPrice !== undefined) row.rent_price = patch.rentPrice;

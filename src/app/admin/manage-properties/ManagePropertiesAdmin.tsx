@@ -15,9 +15,19 @@ import { deletePropertyBySlug } from "@/lib/data/properties";
 import { useProperties } from "@/lib/propertyStore";
 
 function toCsv(rows: Property[], ownerName: (id: string) => string) {
-  const header = ["ชื่อ", "ประเภท", "ทำเล", "สถานะ", "เทียร์", "ราคาขาย", "ราคาเช่า", "เจ้าของ"];
+  const header = ["ชื่อ", "ประเภททรัพย์", "ประเภทประกาศ", "ทำเล", "สถานะ", "เทียร์", "ราคาขาย", "ราคาเช่า", "เจ้าของ"];
   const lines = rows.map((p) =>
-    [p.name, p.type, p.district, statusLabel(p.status), p.tier, p.salePrice ?? "", p.rentPrice ?? "", ownerName(p.ownerId)]
+    [
+      p.name,
+      p.type,
+      p.listingType,
+      p.district,
+      statusLabel(p.status),
+      p.tier,
+      p.salePrice ?? "",
+      p.rentPrice ?? "",
+      ownerName(p.ownerId),
+    ]
       .map((v) => `"${String(v).replace(/"/g, '""')}"`)
       .join(",")
   );
@@ -211,7 +221,8 @@ function PropertyRow({
         <div className="min-w-[180px] flex-1">
           <p className="font-medium text-maroon-dark">{property.name}</p>
           <p className="text-xs text-ink/50">
-            {property.type} · {property.district} · Tier {property.tier} · เจ้าของ: {owner?.name ?? "ไม่ระบุ"}
+            {property.listingType} · {property.type} · {property.district} · Tier {property.tier} · เจ้าของ:{" "}
+            {owner?.name ?? "ไม่ระบุ"}
           </p>
         </div>
         <span className="rounded-full bg-cream-dark px-3 py-1 text-xs font-semibold text-maroon-dark">

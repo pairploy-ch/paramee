@@ -640,3 +640,15 @@ alter table public.commission_monthly_targets enable row level security;
 drop policy if exists "commission_monthly_targets: admins manage all" on public.commission_monthly_targets;
 create policy "commission_monthly_targets: admins manage all" on public.commission_monthly_targets
   for all using (public.is_admin()) with check (public.is_admin());
+
+-- Explicit "ประเภท" (เช่า / ขาย / เช่า + ขาย) selector, shown as the first field
+-- on the property/new-launch forms. Backfill properties from the prices that
+-- were already entered so existing listings don't need manual re-entry.
+alter table public.properties add column if not exists listing_type text not null default 'ขาย';
+update public.properties set listing_type = case
+  when sale_price is not null and rent_price is not null then 'เช่า + ขาย'
+  when rent_price is not null then 'เช่า'
+  else 'ขาย'
+end;
+
+alter table public.new_launch_projects add column if not exists listing_type text not null default 'ขาย';

@@ -1,9 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { NewLaunchProject, NewLaunchRegion, PropertyType } from "@/lib/types";
+import type { ListingType, NewLaunchProject, NewLaunchRegion, PropertyType } from "@/lib/types";
 
 export interface NewLaunchProjectRow {
   id: string;
   slug: string;
+  listing_type: ListingType;
   name: string;
   project_code: string | null;
   project_type: PropertyType;
@@ -28,6 +29,7 @@ export interface NewLaunchProjectRow {
 export function rowToProject(row: NewLaunchProjectRow): NewLaunchProject {
   return {
     slug: row.slug,
+    listingType: row.listing_type,
     name: row.name,
     projectCode: row.project_code ?? "",
     projectType: row.project_type ?? "คอนโด",
@@ -63,6 +65,7 @@ export function projectToRow(input: NewProjectInput): Omit<NewLaunchProjectRow, 
 
   return {
     slug,
+    listing_type: input.listingType,
     name: input.name,
     project_code: input.projectCode || null,
     project_type: input.projectType,
@@ -123,6 +126,7 @@ export async function updateNewLaunchProjectBySlug(
   patch: Partial<NewProjectInput>
 ) {
   const row: Record<string, unknown> = {};
+  if (patch.listingType !== undefined) row.listing_type = patch.listingType;
   if (patch.name !== undefined) row.name = patch.name;
   if (patch.projectCode !== undefined) row.project_code = patch.projectCode || null;
   if (patch.projectType !== undefined) row.project_type = patch.projectType;
