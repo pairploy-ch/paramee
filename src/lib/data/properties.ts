@@ -26,12 +26,14 @@ export interface PropertyRow {
   area: string | null;
   map_url: string | null;
   status: PropertyStatus;
+  rental_start_date: string | null;
   sale_price: number | null;
   rent_price: number | null;
   area_sqm: number;
   bedrooms: number;
   bathrooms: number;
   floor: string | null;
+  building: string | null;
   facing: string | null;
   images: string[];
   common_fee_per_sqm: number;
@@ -72,12 +74,14 @@ export function rowToProperty(row: PropertyRow): Property {
     area: row.area,
     mapUrl: row.map_url,
     status: row.status,
+    rentalStartDate: row.rental_start_date,
     salePrice: row.sale_price,
     rentPrice: row.rent_price,
     areaSqm: row.area_sqm,
     bedrooms: row.bedrooms,
     bathrooms: row.bathrooms,
     floor: row.floor ?? "",
+    building: row.building ?? "",
     facing: row.facing ?? "",
     images: row.images ?? [],
     commonFeePerSqm: row.common_fee_per_sqm,
@@ -131,12 +135,14 @@ export function propertyToRow(input: NewPropertyInput): Omit<PropertyRow, "id"> 
     area: input.area,
     map_url: input.mapUrl,
     status: input.status,
+    rental_start_date: input.rentalStartDate,
     sale_price: input.salePrice,
     rent_price: input.rentPrice,
     area_sqm: input.areaSqm,
     bedrooms: input.bedrooms,
     bathrooms: input.bathrooms,
     floor: input.floor,
+    building: input.building,
     facing: input.facing,
     images: input.images,
     common_fee_per_sqm: input.commonFeePerSqm,
@@ -218,12 +224,14 @@ export async function updatePropertyBySlug(
   if (patch.tier !== undefined) row.tier = patch.tier;
   if (patch.listingType !== undefined) row.listing_type = patch.listingType;
   if (patch.status !== undefined) row.status = patch.status;
+  if (patch.rentalStartDate !== undefined) row.rental_start_date = patch.rentalStartDate;
   if (patch.salePrice !== undefined) row.sale_price = patch.salePrice;
   if (patch.rentPrice !== undefined) row.rent_price = patch.rentPrice;
   if (patch.areaSqm !== undefined) row.area_sqm = patch.areaSqm;
   if (patch.bedrooms !== undefined) row.bedrooms = patch.bedrooms;
   if (patch.bathrooms !== undefined) row.bathrooms = patch.bathrooms;
   if (patch.floor !== undefined) row.floor = patch.floor;
+  if (patch.building !== undefined) row.building = patch.building;
   if (patch.facing !== undefined) row.facing = patch.facing;
   if (patch.description !== undefined) row.description = patch.description;
   if (patch.ownerId !== undefined) row.owner_id = patch.ownerId || null;

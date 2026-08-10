@@ -53,7 +53,13 @@ export default function LeaseContractPrint({ contract }: { contract: LeaseContra
     <div className="lease-print mx-auto max-w-3xl px-6 py-10">
       <style>{printStyles}</style>
 
-      <div className="no-print mb-6 flex justify-end">
+      <div className="no-print mb-6 flex justify-end gap-3">
+        <a
+          href={`/api/admin/leases/${contract.id}/docx`}
+          className="border border-gold-dark px-5 py-2.5 text-sm font-medium text-gold-dark hover:bg-cream-dark"
+        >
+          ดาวน์โหลด Word
+        </a>
         <button
           type="button"
           onClick={() => window.print()}
@@ -140,7 +146,6 @@ export default function LeaseContractPrint({ contract }: { contract: LeaseContra
           ซึ่งผู้ให้เช่าจะคืนเงินประกันนี้แก่ผู้เช่า ภายใน 30 วัน นับจากวันที่สัญญาสิ้นสุดลง โดยผู้เช่าไม่ได้กระทำผิดสัญญา
           ข้อใดข้อหนึ่ง และได้ส่งมอบห้องชุดแก่ผู้ให้เช่าในสภาพเรียบร้อย
         </p>
-        <SignatureFooter />
       </div>
 
       <div className="page-break">
@@ -193,7 +198,6 @@ export default function LeaseContractPrint({ contract }: { contract: LeaseContra
           <b>ข้อ 9</b> ผู้เช่าต้องเป็นผู้รับผิดชอบในบรรดาความสูญหาย เสียหาย หรือบุบสลายอย่างใดๆ อันเกิดแก่ห้องพักอาศัยและทรัพย์สินต่างๆ
           ในห้องพักดังกล่าว ในกรณีที่ทรัพย์ที่เช่าชำรุดบกพร่องเล็กน้อย
         </p>
-        <SignatureFooter />
       </div>
 
       <div className="page-break">
@@ -245,7 +249,6 @@ export default function LeaseContractPrint({ contract }: { contract: LeaseContra
           โดยผู้เช่าจะต้องรับผิดชอบในค่าใช้จ่ายต่าง ๆ ที่ผู้ให้เช่าเสียไป ทั้งนี้ ผู้ให้เช่ามีสิทธิ์ไม่คืนเงินประกันการเช่า ตามที่ระบุไว้ใน
           สัญญาข้อ 5 ได้ด้วย
         </p>
-        <SignatureFooter />
       </div>
 
       <div className="page-break">
@@ -291,7 +294,6 @@ export default function LeaseContractPrint({ contract }: { contract: LeaseContra
         <p className="mt-4 indent-8">
           <b>ข้อ 20</b> ถ้าเกิดอัคคีภัยขึ้น สัญญานี้เป็นอันระงับสิ้นสุดลงทันที โดยผู้เช่าไม่มีสิทธิเรียกร้องค่าเสียหายจากผู้ให้เช่าไม่ว่ากรณีใดๆทั้งสิ้น
         </p>
-        <SignatureFooter />
       </div>
 
       <div className="page-break">
@@ -302,17 +304,14 @@ export default function LeaseContractPrint({ contract }: { contract: LeaseContra
         <p className="mt-4 indent-8">
           สัญญานี้ทำขึ้นเป็นสองฉบับมีข้อความตรงกัน คู่สัญญาได้อ่านและเข้าใจข้อความในสัญญานี้โดยตลอดแล้ว เห็นถูกต้อง จึงได้ลงลายมือชื่อไว้เป็นสำคัญต่อหน้าพยาน
         </p>
-        <SignatureFooter />
       </div>
 
       <div className="page-break text-center">
         <p className="mt-24 font-heading text-lg font-semibold">สำเนาบัตรประชาชนผู้ให้เช่า</p>
-        <SignatureFooter />
       </div>
 
       <div className="page-break text-center">
         <p className="mt-24 font-heading text-lg font-semibold">สำเนาบัตรประชาชนผู้เช่า</p>
-        <SignatureFooter />
       </div>
 
       {/* Receipt */}
@@ -363,7 +362,6 @@ export default function LeaseContractPrint({ contract }: { contract: LeaseContra
             </tr>
           </tbody>
         </table>
-        <SignatureFooter />
       </div>
 
       {/* Checklist */}

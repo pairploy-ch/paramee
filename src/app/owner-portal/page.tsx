@@ -46,6 +46,7 @@ export default async function OwnerPortalPage() {
         facebookUrl: profile?.facebookUrl ?? "",
         instagramUrl: profile?.instagramUrl ?? "",
         tiktokUrl: profile?.tiktokUrl ?? "",
+        whatsapp: profile?.whatsapp ?? "",
       }}
     />
   );

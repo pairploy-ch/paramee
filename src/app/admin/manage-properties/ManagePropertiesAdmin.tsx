@@ -7,12 +7,13 @@ import { useRouter } from "next/navigation";
 import { Pencil, Trash2, Download, Loader2 } from "lucide-react";
 import { propertyTypes } from "@/lib/properties";
 import { formatBaht, statusLabel } from "@/lib/format";
-import type { Property } from "@/lib/types";
+import type { Property, PropertyStatus } from "@/lib/types";
 import type { Owner } from "@/lib/owners";
 import ConfirmModal from "@/components/ConfirmModal";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import { deletePropertyBySlug } from "@/lib/data/properties";
+import { deletePropertyBySlug, updatePropertyBySlug } from "@/lib/data/properties";
 import { useProperties } from "@/lib/propertyStore";
+import { propertyStatuses } from "@/components/PropertyForm";
 
 function toCsv(rows: Property[], ownerName: (id: string) => string) {
   const header = ["ชื่อ", "ประเภททรัพย์", "ประเภทประกาศ", "ทำเล", "สถานะ", "เทียร์", "ราคาขาย", "ราคาเช่า", "เจ้าของ"];
@@ -49,6 +50,7 @@ export default function ManagePropertiesAdmin({
   const [typeFilter, setTypeFilter] = useState<"ทั้งหมด" | Property["type"]>("ทั้งหมด");
   const [deleteTarget, setDeleteTarget] = useState<{ slug: string; name: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [statusSavingSlug, setStatusSavingSlug] = useState<string | null>(null);
 
   const ownerById = (id: string) => owners.find((o) => o.id === id);
   const ownerName = (id: string) => ownerById(id)?.name ?? "ไม่ระบุ";
@@ -78,6 +80,18 @@ export default function ManagePropertiesAdmin({
     }
     setDeleting(false);
     setDeleteTarget(null);
+  }
+
+  async function handleStatusChange(slug: string, status: PropertyStatus) {
+    setStatusSavingSlug(slug);
+    if (isSupabaseConfigured) {
+      const supabase = createClient();
+      await updatePropertyBySlug(supabase, slug, { status });
+      router.refresh();
+    } else {
+      localStore.updateProperty(slug, { status });
+    }
+    setStatusSavingSlug(null);
   }
 
   return (
@@ -142,6 +156,8 @@ export default function ManagePropertiesAdmin({
                 owners={owners}
                 deleting={deleting && deleteTarget?.slug === p.slug}
                 onDelete={() => setDeleteTarget({ slug: p.slug, name: p.name })}
+                statusSaving={statusSavingSlug === p.slug}
+                onStatusChange={(status) => handleStatusChange(p.slug, status)}
               />
             ))}
             {filtered.length === 0 && (
@@ -202,11 +218,15 @@ function PropertyRow({
   owners,
   deleting,
   onDelete,
+  statusSaving,
+  onStatusChange,
 }: {
   property: Property;
   owners: Owner[];
   deleting: boolean;
   onDelete: () => void;
+  statusSaving: boolean;
+  onStatusChange: (status: PropertyStatus) => void;
 }) {
   const owner = owners.find((o) => o.id === property.ownerId);
 
@@ -225,9 +245,18 @@ function PropertyRow({
             {owner?.name ?? "ไม่ระบุ"}
           </p>
         </div>
-        <span className="rounded-full bg-cream-dark px-3 py-1 text-xs font-semibold text-maroon-dark">
-          {statusLabel(property.status)}
-        </span>
+        <select
+          value={property.status}
+          onChange={(e) => onStatusChange(e.target.value as PropertyStatus)}
+          disabled={statusSaving}
+          className="rounded-full border-0 bg-cream-dark px-3 py-1 text-xs font-semibold text-maroon-dark outline-none disabled:opacity-50"
+        >
+          {propertyStatuses.map((s) => (
+            <option key={s} value={s}>
+              {statusLabel(s)}
+            </option>
+          ))}
+        </select>
         <div className="text-sm text-ink/70">
           {property.salePrice && <p>{formatBaht(property.salePrice)}</p>}
           {property.rentPrice && <p className="text-xs text-ink/50">เช่า {formatBaht(property.rentPrice)}/ด.</p>}

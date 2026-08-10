@@ -12,6 +12,7 @@ export default function RegisterForm() {
   const router = useRouter();
 
   const [name, setName] = useState("");
+  const [nickname, setNickname] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,7 +44,7 @@ export default function RegisterForm() {
     const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { role: "owner", name, phone } },
+      options: { data: { role: "owner", name, phone, nickname } },
     });
 
     if (signUpError) {
@@ -94,6 +95,14 @@ export default function RegisterForm() {
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
+              className="w-full rounded-lg border border-cream-dark bg-cream px-3 py-2.5 text-sm outline-none focus:border-gold"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-ink/60">ชื่อเล่น</label>
+            <input
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
               className="w-full rounded-lg border border-cream-dark bg-cream px-3 py-2.5 text-sm outline-none focus:border-gold"
             />
           </div>

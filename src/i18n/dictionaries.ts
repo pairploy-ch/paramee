@@ -7,6 +7,7 @@ interface Dictionary {
     newLaunch: string;
     mortgageCalculator: string;
     booking: string;
+    photoShoot: string;
     ownerPortal: string;
     forStaff: string;
     forOwner: string;
@@ -60,6 +61,12 @@ interface Dictionary {
     featuredBadge: string;
     featuredHeading: string;
     featuredSubtitle: string;
+    featuredHouseBadge: string;
+    featuredHouseHeading: string;
+    featuredCondoBadge: string;
+    featuredCondoHeading: string;
+    featuredLandBadge: string;
+    featuredLandHeading: string;
     viewAll: string;
     newLaunchBadge: string;
     newLaunchHeading: string;
@@ -244,6 +251,7 @@ export const dictionaries: Record<Lang, Dictionary> = {
       newLaunch: "โครงการมือ 1",
       mortgageCalculator: "คำนวณสินเชื่อ",
       booking: "นัดชมทรัพย์",
+      photoShoot: "นัดถ่ายภาพ",
       ownerPortal: "Owner Portal",
       forStaff: "สำหรับทีมงาน",
       forOwner: "สำหรับเจ้าของทรัพย์",
@@ -297,6 +305,12 @@ export const dictionaries: Record<Lang, Dictionary> = {
       featuredBadge: "ทรัพย์",
       featuredHeading: "ทรัพย์แนะนำ",
       featuredSubtitle: "คัดสรรทำเลดี ราคาคุ้มค่า จากทรัพย์ระดับพรีเมียม",
+      featuredHouseBadge: "บ้าน",
+      featuredHouseHeading: "บ้านแนะนำ",
+      featuredCondoBadge: "คอนโด",
+      featuredCondoHeading: "คอนโดแนะนำ",
+      featuredLandBadge: "ที่ดิน",
+      featuredLandHeading: "ที่ดินแนะนำ",
       viewAll: "ดูทรัพย์ทั้งหมด →",
       newLaunchBadge: "โครงการใหม่",
       newLaunchHeading: "โครงการมือ 1",
@@ -483,6 +497,7 @@ export const dictionaries: Record<Lang, Dictionary> = {
       newLaunch: "New Launch Projects",
       mortgageCalculator: "Mortgage Calculator",
       booking: "Book a Viewing",
+      photoShoot: "Photo Shoot",
       ownerPortal: "Owner Portal",
       forStaff: "Staff Login",
       forOwner: "Property Owner",
@@ -536,6 +551,12 @@ export const dictionaries: Record<Lang, Dictionary> = {
       featuredBadge: "Listings",
       featuredHeading: "Featured Properties",
       featuredSubtitle: "Great locations, good value — hand-picked premium listings.",
+      featuredHouseBadge: "Houses",
+      featuredHouseHeading: "Featured Houses",
+      featuredCondoBadge: "Condos",
+      featuredCondoHeading: "Featured Condos",
+      featuredLandBadge: "Land",
+      featuredLandHeading: "Featured Land",
       viewAll: "View all properties →",
       newLaunchBadge: "New Projects",
       newLaunchHeading: "New Launch Projects",

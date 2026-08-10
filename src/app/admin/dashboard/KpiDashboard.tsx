@@ -1,4 +1,6 @@
 import type { RentalDashboard, SaleDashboard } from "@/lib/dashboardSheets";
+import { formatBaht } from "@/lib/format";
+import CommissionTargetCard from "./CommissionTargetCard";
 
 function pct(raw: string): number {
   const n = parseFloat(raw);
@@ -84,10 +86,16 @@ export default function KpiDashboard({
   rental,
   sale,
   error,
+  commissionTarget,
+  totalRentSum,
+  canEditTarget,
 }: {
   rental?: RentalDashboard;
   sale?: SaleDashboard;
   error: string;
+  commissionTarget: number | null;
+  totalRentSum: number;
+  canEditTarget: boolean;
 }) {
   return (
     <div className="mx-auto max-w-6xl px-5 py-10 lg:px-8">
@@ -109,10 +117,29 @@ export default function KpiDashboard({
       {rental && (
         <div className="mb-10">
           <h2 className="mb-4 font-heading text-xl font-semibold text-maroon-dark">{rental.title}</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {rental.metrics.map((m) => (
-              <MetricCard key={m.label} label={m.label} target={m.target} achieved={m.achieved} percent={m.percent} />
-            ))}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {rental.metrics.map((m, i) =>
+              i === 0 ? (
+                <CommissionTargetCard
+                  key={m.label}
+                  label={m.label}
+                  achieved={m.achieved}
+                  sheetTarget={m.target}
+                  dbTarget={commissionTarget}
+                  canEdit={canEditTarget}
+                />
+              ) : (
+                <MetricCard key={m.label} label={m.label} target={m.target} achieved={m.achieved} percent={m.percent} />
+              )
+            )}
+            {sale && (
+              <MetricCard
+                label="📈 ยอดขายปัจจุบัน"
+                target={sale.monthlyTarget}
+                achieved={sale.actual}
+                percent={sale.percentDone}
+              />
+            )}
           </div>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
@@ -139,7 +166,8 @@ export default function KpiDashboard({
             <SmallStat label="สถานะพอร์ต" value={sale.portfolioStatus} />
           </div>
 
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          <div className="mt-4 grid gap-4 sm:grid-cols-4">
+            <SmallStat label="Commission ทั้งหมด (รวมค่าเช่าทุกทรัพย์)" value={formatBaht(totalRentSum)} />
             <SmallStat label="ราคาเช่าเฉลี่ย/เดือน" value={sale.avgRentPerMonth} />
             <SmallStat label="คอมมิชชั่นเฉลี่ย/ดีล" value={sale.avgCommissionPerDeal} />
             <SmallStat label="ดีลที่ต้องปิดเพิ่ม" value={sale.dealsNeeded} />

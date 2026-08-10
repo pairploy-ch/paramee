@@ -41,7 +41,7 @@ export async function fetchRentalDashboard(): Promise<RentalDashboard> {
 
   const metrics: KpiMetric[] = [
     { label: "💰 Commission (บาท)", target: rows[4]?.[1] ?? "-", achieved: rows[4]?.[2] ?? "-", percent: rows[4]?.[3] ?? "-" },
-    { label: "🏠 ทรัพย์ที่หา (ชิ้น)", target: rows[4]?.[4] ?? "-", achieved: rows[4]?.[5] ?? "-", percent: rows[4]?.[6] ?? "-" },
+    { label: "🏠 ทรัพย์ทั้งหมด (ทรัพย์)", target: rows[4]?.[4] ?? "-", achieved: rows[4]?.[5] ?? "-", percent: rows[4]?.[6] ?? "-" },
     { label: "🏗️ Developer (โครงการ)", target: rows[4]?.[7] ?? "-", achieved: rows[4]?.[8] ?? "-", percent: rows[4]?.[9] ?? "-" },
     { label: "📅 วันที่เหลือ (วัน)", target: rows[4]?.[10] ?? "-", achieved: rows[4]?.[11] ?? "-", percent: rows[4]?.[12] ?? "-" },
   ];

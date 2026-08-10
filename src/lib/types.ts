@@ -3,11 +3,11 @@ export type PropertyType = "บ้าน" | "ที่ดิน" | "คอนโ
 export const listingTypes = ["เช่า", "ขาย", "เช่า + ขาย"] as const;
 export type ListingType = (typeof listingTypes)[number];
 
-export type PropertyStatus = "Available" | "Reserved" | "Sold" | "For Rent";
+export type PropertyStatus = "ว่าง" | "ติดจอง" | "PRM ปล่อยเช่า" | "เจ้าของปล่อยเอง";
 
 export type TransitLine = "BTS" | "MRT" | "ARL" | "อื่นๆ";
 
-export type PropertyTier = 1 | 2 | 3;
+export type PropertyTier = 1 | 2 | 3 | 4;
 
 export interface TransitInfo {
   station: string;
@@ -44,12 +44,14 @@ export interface Property {
   area: string | null;
   mapUrl: string | null;
   status: PropertyStatus;
+  rentalStartDate: string | null;
   salePrice: number | null;
   rentPrice: number | null;
   areaSqm: number;
   bedrooms: number;
   bathrooms: number;
   floor: string;
+  building: string;
   facing: string;
   images: string[];
   commonFeePerSqm: number;

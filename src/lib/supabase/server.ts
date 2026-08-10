@@ -47,6 +47,7 @@ export interface Profile {
   facebookUrl: string | null;
   instagramUrl: string | null;
   tiktokUrl: string | null;
+  whatsapp: string | null;
 }
 
 export async function getSessionProfile(): Promise<{
@@ -64,7 +65,7 @@ export async function getSessionProfile(): Promise<{
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, role, name, phone, email, avatarUrl:avatar_url, lineId:line_id, facebookUrl:facebook_url, instagramUrl:instagram_url, tiktokUrl:tiktok_url"
+      "id, role, name, phone, email, avatarUrl:avatar_url, lineId:line_id, facebookUrl:facebook_url, instagramUrl:instagram_url, tiktokUrl:tiktok_url, whatsapp"
     )
     .eq("id", user.id)
     .maybeSingle();

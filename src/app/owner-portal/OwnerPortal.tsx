@@ -23,6 +23,7 @@ export interface OwnerContact {
   facebookUrl: string;
   instagramUrl: string;
   tiktokUrl: string;
+  whatsapp: string;
 }
 
 export default function OwnerPortal({
@@ -288,6 +289,7 @@ function OwnerContactForm({ ownerId, initial }: { ownerId: string; initial: Owne
         facebook_url: values.facebookUrl || null,
         instagram_url: values.instagramUrl || null,
         tiktok_url: values.tiktokUrl || null,
+        whatsapp: values.whatsapp || null,
       })
       .eq("id", ownerId);
     setSaving(false);
@@ -385,6 +387,14 @@ function OwnerContactForm({ ownerId, initial }: { ownerId: string; initial: Owne
             value={values.tiktokUrl}
             onChange={(e) => update("tiktokUrl", e.target.value)}
             placeholder="https://tiktok.com/@..."
+            className={contactInputClass}
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-ink/60">WhatsApp</label>
+          <input
+            value={values.whatsapp}
+            onChange={(e) => update("whatsapp", e.target.value)}
             className={contactInputClass}
           />
         </div>

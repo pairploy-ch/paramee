@@ -8,7 +8,7 @@ export async function fetchAllOwners(supabase?: SupabaseClient): Promise<Owner[]
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, name, email, phone")
+    .select("id, name, nickname, email, phone")
     .eq("role", "owner")
     .order("created_at", { ascending: false });
 
@@ -16,6 +16,7 @@ export async function fetchAllOwners(supabase?: SupabaseClient): Promise<Owner[]
   return data.map((row) => ({
     id: row.id,
     name: row.name ?? row.email ?? "ไม่ระบุชื่อ",
+    nickname: row.nickname ?? "",
     email: row.email ?? "",
     phone: row.phone ?? "",
   }));
@@ -29,6 +30,7 @@ export interface OwnerContactInfo {
   facebookUrl: string | null;
   instagramUrl: string | null;
   tiktokUrl: string | null;
+  whatsapp: string | null;
 }
 
 /**
@@ -45,7 +47,7 @@ export async function fetchOwnerContact(
   const { data, error } = await supabase
     .from("owner_contacts")
     .select(
-      "name, phone, avatarUrl:avatar_url, lineId:line_id, facebookUrl:facebook_url, instagramUrl:instagram_url, tiktokUrl:tiktok_url"
+      "name, phone, avatarUrl:avatar_url, lineId:line_id, facebookUrl:facebook_url, instagramUrl:instagram_url, tiktokUrl:tiktok_url, whatsapp"
     )
     .eq("id", ownerId)
     .maybeSingle();
@@ -67,7 +69,7 @@ export async function fetchAllOwnerContacts(
   const { data, error } = await supabase
     .from("owner_contacts")
     .select(
-      "id, name, phone, avatarUrl:avatar_url, lineId:line_id, facebookUrl:facebook_url, instagramUrl:instagram_url, tiktokUrl:tiktok_url"
+      "id, name, phone, avatarUrl:avatar_url, lineId:line_id, facebookUrl:facebook_url, instagramUrl:instagram_url, tiktokUrl:tiktok_url, whatsapp"
     );
 
   if (error || !data) return {};

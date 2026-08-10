@@ -88,20 +88,6 @@ export default function PropertiesBrowser({ initialProperties }: { initialProper
 
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-ink/60">
-            {tr.properties.districtLabel}
-          </label>
-          <SelectDropdown
-            value={district}
-            onChange={setDistrict}
-            options={[
-              { value: "ทั้งหมด", label: tr.properties.all },
-              ...districts.map((d) => ({ value: d, label: d })),
-            ]}
-          />
-        </div>
-
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold text-ink/60">
             {tr.properties.areaLabel}
           </label>
           <SelectDropdown
@@ -110,6 +96,20 @@ export default function PropertiesBrowser({ initialProperties }: { initialProper
             options={[
               { value: "ทั้งหมด", label: tr.properties.all },
               ...propertyAreas.map((a) => ({ value: a, label: a })),
+            ]}
+          />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-ink/60">
+            {tr.properties.districtLabel}
+          </label>
+          <SelectDropdown
+            value={district}
+            onChange={setDistrict}
+            options={[
+              { value: "ทั้งหมด", label: tr.properties.all },
+              ...districts.map((d) => ({ value: d, label: d })),
             ]}
           />
         </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import PropertyForm from "@/components/PropertyForm";
 import CaptionGenerator from "./CaptionGenerator";
 import type { Property } from "@/lib/types";
@@ -9,17 +10,21 @@ import { insertProperty } from "@/lib/data/properties";
 import { useProperties } from "@/lib/propertyStore";
 
 export default function AddPropertyForm({ owners }: { owners: Owner[] }) {
+  const router = useRouter();
   const { addProperty } = useProperties();
 
   async function handleSaveProperty(property: Omit<Property, "slug">) {
+    let slug: string | undefined;
     if (isSupabaseConfigured) {
       const supabase = createClient();
       const { data, error } = await insertProperty(supabase, property);
       if (error) return { error: error.message };
-      return { slug: data?.slug };
+      slug = data?.slug;
+    } else {
+      slug = addProperty(property).slug;
     }
-    const saved = addProperty(property);
-    return { slug: saved.slug };
+    if (slug) router.push(`/admin/properties/${slug}/owner`);
+    return { slug };
   }
 
   return (

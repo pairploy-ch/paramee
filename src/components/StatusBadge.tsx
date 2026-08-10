@@ -5,10 +5,10 @@ import { useTranslation } from "@/i18n/LanguageProvider";
 import type { PropertyStatus } from "@/lib/types";
 
 const styles: Record<PropertyStatus, string> = {
-  Available: "bg-emerald-100 text-emerald-800",
-  Reserved: "bg-gold-light text-maroon-dark",
-  Sold: "bg-neutral-200 text-neutral-600",
-  "For Rent": "bg-sky-100 text-sky-800",
+  ว่าง: "bg-emerald-100 text-emerald-800",
+  ติดจอง: "bg-gold-light text-maroon-dark",
+  "PRM ปล่อยเช่า": "bg-sky-100 text-sky-800",
+  เจ้าของปล่อยเอง: "bg-neutral-200 text-neutral-600",
 };
 
 export default function StatusBadge({ status }: { status: PropertyStatus }) {

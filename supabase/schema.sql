@@ -652,3 +652,124 @@ update public.properties set listing_type = case
 end;
 
 alter table public.new_launch_projects add column if not exists listing_type text not null default 'ขาย';
+
+-- ============================================================
+-- Batch: photo shoot requests, owner nickname/WhatsApp, admin-created
+-- (contact-only) owners, "ตึก" field on properties, and the property
+-- status enum replacement (Available/Reserved/Sold/For Rent →
+-- พร้อมปล่อยเช่า/กำลังทำความสะอาด/ยังไม่พร้อมปล่อย).
+-- ============================================================
+
+-- photo_shoot_requests — submissions from the public "นัดถ่ายภาพ" form.
+create table if not exists public.photo_shoot_requests (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  condo_name text not null,
+  unit_code text,
+  room_number text,
+  building text,
+  floor text,
+  owner_nickname text,
+  phone text not null,
+  note text,
+  status text not null default 'new' check (status in ('new', 'contacted', 'done'))
+);
+
+alter table public.photo_shoot_requests enable row level security;
+
+drop policy if exists "photo_shoot_requests: anyone can submit" on public.photo_shoot_requests;
+create policy "photo_shoot_requests: anyone can submit" on public.photo_shoot_requests
+  for insert with check (true);
+
+drop policy if exists "photo_shoot_requests: admins read all" on public.photo_shoot_requests;
+create policy "photo_shoot_requests: admins read all" on public.photo_shoot_requests
+  for select using (public.is_admin());
+
+drop policy if exists "photo_shoot_requests: admins update" on public.photo_shoot_requests;
+create policy "photo_shoot_requests: admins update" on public.photo_shoot_requests
+  for update using (public.is_admin());
+
+drop policy if exists "photo_shoot_requests: admins delete" on public.photo_shoot_requests;
+create policy "photo_shoot_requests: admins delete" on public.photo_shoot_requests
+  for delete using (public.is_admin());
+
+grant select, insert, update, delete on public.photo_shoot_requests to anon, authenticated;
+
+-- profiles: nickname (owner signup) + whatsapp (contact channel).
+alter table public.profiles add column if not exists nickname text;
+alter table public.profiles add column if not exists whatsapp text;
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles (id, role, name, phone, nickname, email)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data ->> 'role', 'owner'),
+    new.raw_user_meta_data ->> 'name',
+    new.raw_user_meta_data ->> 'phone',
+    new.raw_user_meta_data ->> 'nickname',
+    new.email
+  );
+  return new;
+end;
+$$;
+
+-- profiles: allow admins to create a "contact-only" owner record (no login)
+-- from the admin add-property flow, and to relax the id/auth.users FK so
+-- such a row isn't required to correspond to a real auth account.
+-- Self-registered owners are unaffected — the trigger above still sets
+-- id = new.id from auth.users, just without a DB-enforced FK anymore.
+alter table public.profiles drop constraint if exists profiles_id_fkey;
+alter table public.profiles alter column id set default gen_random_uuid();
+alter table public.profiles add column if not exists is_registered boolean not null default true;
+
+drop policy if exists "profiles: admins insert" on public.profiles;
+create policy "profiles: admins insert" on public.profiles
+  for insert with check (public.is_admin());
+
+drop policy if exists "profiles: admins update any" on public.profiles;
+create policy "profiles: admins update any" on public.profiles
+  for update using (public.is_admin());
+
+-- owner_contacts view: expose whatsapp alongside the other contact fields.
+create or replace view public.owner_contacts as
+select id, name, phone, whatsapp, avatar_url, line_id, facebook_url, instagram_url, tiktok_url
+from public.profiles
+where role = 'owner';
+
+-- properties: "ตึก" (building) field, shown in the "รายละเอียดพื้นที่" section
+-- of the property form.
+alter table public.properties add column if not exists building text not null default '';
+
+-- properties.status: replace the old English enum with 4 new Thai
+-- availability states (ว่าง/ติดจอง/PRM ปล่อยเช่า/เจ้าของปล่อยเอง). Existing
+-- rows are remapped as a best-effort default: Available -> ว่าง, Reserved ->
+-- ติดจอง, For Rent -> PRM ปล่อยเช่า. "Sold" has no clean equivalent in the
+-- new set (all 4 values describe rental availability, none means "sold") —
+-- mapped to เจ้าของปล่อยเอง as the closest "no longer actively marketed by
+-- us" bucket. Review this mapping against real listings if it matters which
+-- specific properties land in which bucket.
+alter table public.properties drop constraint if exists properties_status_check;
+update public.properties set status = 'ว่าง' where status = 'Available';
+update public.properties set status = 'ติดจอง' where status = 'Reserved';
+update public.properties set status = 'PRM ปล่อยเช่า' where status = 'For Rent';
+update public.properties set status = 'เจ้าของปล่อยเอง' where status = 'Sold';
+update public.properties set status = 'ว่าง'
+  where status not in ('ว่าง', 'ติดจอง', 'PRM ปล่อยเช่า', 'เจ้าของปล่อยเอง');
+alter table public.properties alter column status set default 'ว่าง';
+alter table public.properties add constraint properties_status_check
+  check (status in ('ว่าง', 'ติดจอง', 'PRM ปล่อยเช่า', 'เจ้าของปล่อยเอง'));
+
+-- properties: rental start date, shown when status is PRM ปล่อยเช่า or
+-- เจ้าของปล่อยเอง (both mean the unit is currently being rented out).
+alter table public.properties add column if not exists rental_start_date date;
+
+-- properties.tier: add Tier 4 ("ไม่ทำการตลาด" — not actively marketed).
+alter table public.properties drop constraint if exists properties_tier_check;
+alter table public.properties add constraint properties_tier_check
+  check (tier in (1, 2, 3, 4));

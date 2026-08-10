@@ -34,12 +34,12 @@ export function formatThaiDate(isoDate: string, lang: Lang = "th") {
 }
 
 export function statusLabel(status: string, lang: Lang = "th") {
-  if (lang === "en") return status;
+  if (lang === "th") return status;
   const map: Record<string, string> = {
-    Available: "ว่าง",
-    Reserved: "จองแล้ว",
-    Sold: "ขายแล้ว",
-    "For Rent": "ให้เช่า",
+    ว่าง: "Available",
+    ติดจอง: "Reserved",
+    "PRM ปล่อยเช่า": "For Rent (PRM)",
+    เจ้าของปล่อยเอง: "Owner-managed Rental",
   };
   return map[status] ?? status;
 }

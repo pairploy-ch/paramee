@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { insertLeaseContract, updateLeaseContractById } from "@/lib/data/leaseContracts";
 import { emptyLeaseFormValues, formValuesToInput, type LeaseFormValues } from "./formValues";
+import { thaiBanks } from "@/lib/thaiBanks";
 
 const inputClass =
   "w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold";
@@ -168,14 +169,29 @@ export default function LeaseContractForm({
           <Field label="ค่าเช่าต่อเดือน (บาท)">
             <input type="number" min={0} value={values.rentPerMonth} onChange={(e) => update("rentPerMonth", e.target.value)} className={inputClass} />
           </Field>
-          <Field label="ชำระล่าช้าเกินวันที่ (ของทุกเดือน)">
+          <Field label="ชำระล่าช้าไม่เกินวันที่ (ของทุกเดือน)">
             <input value={values.paymentDueDay} onChange={(e) => update("paymentDueDay", e.target.value)} placeholder="เช่น 5" className={inputClass} />
           </Field>
         </Section>
 
         <Section title="การชำระค่าเช่า (โอนเข้าบัญชี)">
           <Field label="ธนาคาร">
-            <input value={values.bankName} onChange={(e) => update("bankName", e.target.value)} className={inputClass} />
+            <select value={values.bankName} onChange={(e) => update("bankName", e.target.value)} className={inputClass}>
+              <option value="">— เลือกธนาคาร —</option>
+              {thaiBanks.map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+            </select>
+            {values.bankName === "อื่นๆ" && (
+              <input
+                value={values.bankNameOther}
+                onChange={(e) => update("bankNameOther", e.target.value)}
+                placeholder="ระบุชื่อธนาคาร"
+                className={`${inputClass} mt-2`}
+              />
+            )}
           </Field>
           <Field label="เลขที่บัญชี">
             <input value={values.bankAccountNumber} onChange={(e) => update("bankAccountNumber", e.target.value)} className={inputClass} />
@@ -189,7 +205,7 @@ export default function LeaseContractForm({
           <Field label="จำนวนเงินประกัน (บาท)">
             <input type="number" min={0} value={values.depositAmount} onChange={(e) => update("depositAmount", e.target.value)} className={inputClass} />
           </Field>
-          <Field label="ค่าทำความสะอาด (บาท)">
+          <Field label="ค่าทำความสะอาด + ล้างแอร์ (บาท)">
             <input type="number" min={0} value={values.cleaningFee} onChange={(e) => update("cleaningFee", e.target.value)} className={inputClass} />
           </Field>
         </Section>

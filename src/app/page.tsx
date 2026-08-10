@@ -19,10 +19,10 @@ export default async function Home() {
   const newLaunchProjects = (await fetchAllNewLaunchProjects(supabase)).slice(0, 3);
   const testimonials = await fetchPublishedTestimonials(supabase);
   const articles = (await fetchPublishedPosts(supabase)).slice(0, 3);
-  const availableProperties = properties.filter(
-    (p) => p.status === "Available" || p.status === "For Rent"
-  );
-  const featuredProperties = availableProperties.filter((p) => p.tier === 1);
+  const readyProperties = properties.filter((p) => p.status === "ว่าง" && p.tier === 1);
+  const featuredHouses = readyProperties.filter((p) => p.type === "บ้าน");
+  const featuredCondos = readyProperties.filter((p) => p.type === "คอนโด");
+  const featuredLand = readyProperties.filter((p) => p.type === "ที่ดิน");
   const districts = Array.from(new Set(properties.map((p) => p.district)));
 
   return (
@@ -44,7 +44,9 @@ export default async function Home() {
 
       <MainFocusSection />
 
-      <FeaturedSection properties={featuredProperties} />
+      {featuredHouses.length > 0 && <FeaturedSection properties={featuredHouses} kind="house" />}
+      {featuredCondos.length > 0 && <FeaturedSection properties={featuredCondos} kind="condo" />}
+      {featuredLand.length > 0 && <FeaturedSection properties={featuredLand} kind="land" />}
 
       {newLaunchProjects.length > 0 && <NewLaunchSection projects={newLaunchProjects} />}
 

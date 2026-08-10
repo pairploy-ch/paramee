@@ -1,4 +1,5 @@
 import { defaultLeaseChecklistItems, type LeaseChecklistItem, type LeaseContract } from "@/lib/types";
+import { thaiBanks } from "@/lib/thaiBanks";
 
 export interface LeaseFormValues {
   projectName: string;
@@ -19,6 +20,7 @@ export interface LeaseFormValues {
   rentPerMonth: string;
   paymentDueDay: string;
   bankName: string;
+  bankNameOther: string;
   bankAccountNumber: string;
   bankAccountName: string;
   depositAmount: string;
@@ -48,6 +50,7 @@ export const emptyLeaseFormValues: LeaseFormValues = {
   rentPerMonth: "",
   paymentDueDay: "",
   bankName: "",
+  bankNameOther: "",
   bankAccountNumber: "",
   bankAccountName: "",
   depositAmount: "",
@@ -77,7 +80,8 @@ export function contractToFormValues(c: LeaseContract): LeaseFormValues {
     contractYears: String(c.contractYears),
     rentPerMonth: String(c.rentPerMonth),
     paymentDueDay: c.paymentDueDay,
-    bankName: c.bankName,
+    bankName: (thaiBanks as readonly string[]).includes(c.bankName) ? c.bankName : c.bankName ? "อื่นๆ" : "",
+    bankNameOther: (thaiBanks as readonly string[]).includes(c.bankName) ? "" : c.bankName,
     bankAccountNumber: c.bankAccountNumber,
     bankAccountName: c.bankAccountName,
     depositAmount: String(c.depositAmount),
@@ -108,7 +112,7 @@ export function formValuesToInput(v: LeaseFormValues): Omit<LeaseContract, "id" 
     contractYears: Number(v.contractYears) || 0,
     rentPerMonth: Number(v.rentPerMonth) || 0,
     paymentDueDay: v.paymentDueDay,
-    bankName: v.bankName,
+    bankName: v.bankName === "อื่นๆ" ? v.bankNameOther.trim() : v.bankName,
     bankAccountNumber: v.bankAccountNumber,
     bankAccountName: v.bankAccountName,
     depositAmount: Number(v.depositAmount) || 0,

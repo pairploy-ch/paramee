@@ -18,6 +18,7 @@ const adminLinks = [
   { href: "/admin/new-launch", label: "โครงการมือ 1" },
   { href: "/admin/leases", label: "ระบบสัญญาเช่า" },
   { href: "/admin/bookings", label: "นัดชม / จอง" },
+  { href: "/admin/photo-shoots", label: "คำขอนัดถ่ายภาพ" },
   { href: "/admin/blog", label: "จัดการบทความ" },
   { href: "/admin/testimonials", label: "รีวิวลูกค้า" },
   { href: "/mortgage-calculator", label: "คำนวณสินเชื่อ" },
@@ -36,6 +37,7 @@ export default function Navbar({ role = null }: { role?: "admin" | "owner" | nul
     { href: "/properties", label: t.nav.properties },
     { href: "/new-launch", label: t.nav.newLaunch },
     { href: "/blog", label: t.nav.blog },
+    { href: "/photo-shoot", label: t.nav.photoShoot },
     { href: "/owner-portal", label: t.nav.ownerPortal, ownerOnly: true },
   ];
   const links = baseLinks.filter((l) => !l.ownerOnly || isOwner);

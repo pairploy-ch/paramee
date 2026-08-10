@@ -34,6 +34,10 @@ function buildCaption(values: PropertyFormValues): string {
   const unitCodeSuffix = values.unitCode.trim() ? ` (${values.unitCode.trim()})` : "";
   blocks.push(`Condo : ${values.name || "..."}${unitCodeSuffix}`);
 
+  blocks.push(
+    `สนใจติดต่อสอบถามรายละเอียดเพิ่มเติม / นัดชมห้องจริง\nโทร ${CONTACT_PHONE} | LINE: ${socialLinks.line.handle} | WhatsApp: ${CONTACT_PHONE}`
+  );
+
   const roomDetailParts = isLand
     ? [`${values.areaSqm || "-"} ไร่`, `${values.bedrooms || "-"} งาน`, `${values.bathrooms || "-"} ตร.ว.`]
     : [
@@ -76,10 +80,6 @@ function buildCaption(values: PropertyFormValues): string {
     blocks.push(`Nearby:\n${nearbyLines}`);
   }
 
-  blocks.push(
-    `สนใจติดต่อสอบถามรายละเอียดเพิ่มเติม / นัดชมห้องจริง\nโทร ${CONTACT_PHONE} | LINE: ${socialLinks.line.handle} | WhatsApp: ${CONTACT_PHONE}`
-  );
-
   return blocks.join("\n\n");
 }
 
@@ -104,6 +104,11 @@ function buildCaptionEn(values: PropertyFormValues): string {
   blocks.push(headline);
 
   blocks.push(`Property: ${values.name || "..."}${unitCodeSuffix}`);
+
+  const intlPhoneEarly = toIntlPhone(CONTACT_PHONE);
+  blocks.push(
+    `───────────────────────\nFor more information or to schedule a viewing:\nK.Prem: ${intlPhoneEarly}\nLINE: ${socialLinks.line.handle} | WhatsApp: ${intlPhoneEarly}`
+  );
 
   const roomDetailParts = isLand
     ? [`${values.areaSqm || "-"} Rai`, `${values.bedrooms || "-"} Ngan`, `${values.bathrooms || "-"} Sq.Wah`]
@@ -152,11 +157,6 @@ function buildCaptionEn(values: PropertyFormValues): string {
       .join("\n");
     blocks.push(`Nearby\n${nearbyLines}`);
   }
-
-  const intlPhone = toIntlPhone(CONTACT_PHONE);
-  blocks.push(
-    `───────────────────────\nFor more information or to schedule a viewing:\nK.Prem: ${intlPhone}\nLINE: ${socialLinks.line.handle} | WhatsApp: ${intlPhone}`
-  );
 
   return blocks.join("\n\n");
 }

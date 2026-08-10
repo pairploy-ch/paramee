@@ -13,7 +13,7 @@ import { useTranslation } from "@/i18n/LanguageProvider";
 import PropertyCard from "@/components/PropertyCard";
 import PropertyGallery from "@/components/PropertyGallery";
 import ShareButton from "@/components/ShareButton";
-import { FacebookIcon, InstagramIcon, TikTokIcon, LineIcon } from "@/components/icons";
+import { FacebookIcon, InstagramIcon, TikTokIcon, LineIcon, WhatsAppIcon } from "@/components/icons";
 import { socialLinks, CONTACT_PHONE } from "@/lib/social";
 
 function InfoRow({ label, value }: { label: string; value: string }) {
@@ -63,10 +63,12 @@ export default function PropertyDetailView({
       ? ownerLineId
       : `https://line.me/ti/p/~${encodeURIComponent(ownerLineId.replace(/^@/, ""))}`
     : socialLinks.line.href;
+  const ownerWhatsapp = ownerContact?.whatsapp?.trim();
   const ownerSocialLinks = [
     { Icon: FacebookIcon, href: ownerContact?.facebookUrl },
     { Icon: InstagramIcon, href: ownerContact?.instagramUrl },
     { Icon: TikTokIcon, href: ownerContact?.tiktokUrl },
+    { Icon: WhatsAppIcon, href: ownerWhatsapp ? `https://wa.me/${ownerWhatsapp.replace(/\D/g, "")}` : undefined },
   ].filter((s): s is { Icon: typeof FacebookIcon; href: string } => Boolean(s.href?.trim()));
 
   return (

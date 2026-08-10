@@ -31,7 +31,9 @@ interface LeaseTermFormRow {
   price: string;
 }
 
-const statuses: PropertyStatus[] = ["Available", "Reserved", "Sold", "For Rent"];
+export const propertyStatuses: PropertyStatus[] = ["ว่าง", "ติดจอง", "PRM ปล่อยเช่า", "เจ้าของปล่อยเอง"];
+const statuses = propertyStatuses;
+const rentedStatuses: PropertyStatus[] = ["PRM ปล่อยเช่า", "เจ้าของปล่อยเอง"];
 const transitLines: TransitLine[] = ["BTS", "MRT", "ARL", "อื่นๆ"];
 const yesNoOptions = ["มี", "ไม่มี"];
 
@@ -40,6 +42,7 @@ export interface PropertyFormValues {
   name: string;
   type: PropertyType;
   status: PropertyStatus;
+  rentalStartDate: string;
   tier: PropertyTier;
   address: string;
   district: string;
@@ -61,6 +64,7 @@ export interface PropertyFormValues {
   bedrooms: string;
   bathrooms: string;
   floor: string;
+  building: string;
   facing: string;
   landDeedType: string;
   landTransferFeeParty: LandTransferFeeParty | "";
@@ -83,7 +87,8 @@ export const emptyPropertyFormValues: PropertyFormValues = {
   listingType: "ขาย",
   name: "",
   type: "คอนโด",
-  status: "Available",
+  status: "ว่าง",
+  rentalStartDate: "",
   tier: 2,
   address: "",
   district: "",
@@ -105,6 +110,7 @@ export const emptyPropertyFormValues: PropertyFormValues = {
   bedrooms: "1",
   bathrooms: "1",
   floor: "",
+  building: "",
   facing: "",
   landDeedType: "",
   landTransferFeeParty: "",
@@ -137,12 +143,14 @@ export function valuesToProperty(v: PropertyFormValues): Omit<Property, "slug"> 
     area: v.area || null,
     mapUrl: v.mapUrl.trim() || null,
     status: v.status,
+    rentalStartDate: v.rentalStartDate || null,
     salePrice: v.salePrice.trim() === "" ? null : Number(v.salePrice),
     rentPrice: v.rentPrice.trim() === "" ? null : Number(v.rentPrice),
     areaSqm: num(v.areaSqm),
     bedrooms: num(v.bedrooms),
     bathrooms: num(v.bathrooms),
     floor: v.floor,
+    building: v.building,
     facing: v.facing,
     images: v.images.map((i) => i.trim()).filter(Boolean),
     commonFeePerSqm: num(v.commonFeePerSqm),
@@ -183,6 +191,7 @@ export function propertyToFormValues(p: Property): PropertyFormValues {
     name: p.name,
     type: p.type,
     status: p.status,
+    rentalStartDate: p.rentalStartDate ?? "",
     tier: p.tier,
     address: p.address,
     district: p.district,
@@ -207,6 +216,7 @@ export function propertyToFormValues(p: Property): PropertyFormValues {
     bedrooms: String(p.bedrooms),
     bathrooms: String(p.bathrooms),
     floor: p.floor,
+    building: p.building ?? "",
     facing: p.facing,
     landDeedType: p.landDeedType ?? "",
     landTransferFeeParty: p.landTransferFeeParty ?? "",
@@ -445,6 +455,17 @@ export default function PropertyForm({
                 ))}
               </select>
             </Field>
+            {rentedStatuses.includes(values.status) && (
+              <Field label="วันที่เริ่มเช่า">
+                <input
+                  type="date"
+                  lang="en"
+                  value={values.rentalStartDate}
+                  onChange={(e) => update("rentalStartDate", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+            )}
             {owners && (
               <Field label="เทียร์ทรัพย์">
                 <select
@@ -455,6 +476,7 @@ export default function PropertyForm({
                   <option value={1}>Tier 1 (พรีเมียม)</option>
                   <option value={2}>Tier 2 (มาตรฐาน)</option>
                   <option value={3}>Tier 3 (ทั่วไป)</option>
+                  <option value={4}>Tier 4 (ไม่ทำการตลาด)</option>
                 </select>
               </Field>
             )}
@@ -473,14 +495,6 @@ export default function PropertyForm({
                 ))}
               </select>
             </Field>
-            <Field label="ทำเล / เขต">
-              <input
-                required
-                value={values.district}
-                onChange={(e) => update("district", e.target.value)}
-                className={inputClass}
-              />
-            </Field>
             <Field label="พื้นที่">
               <SelectDropdown
                 value={values.area}
@@ -489,6 +503,14 @@ export default function PropertyForm({
                   { value: "", label: "— เลือกพื้นที่ —" },
                   ...propertyAreas.map((a) => ({ value: a, label: a })),
                 ]}
+              />
+            </Field>
+            <Field label="ทำเล / เขต">
+              <input
+                required
+                value={values.district}
+                onChange={(e) => update("district", e.target.value)}
+                className={inputClass}
               />
             </Field>
             <Field label="ลิงก์ Google Maps">
@@ -503,15 +525,15 @@ export default function PropertyForm({
             {owners && (
               <Field label="เจ้าของทรัพย์">
                 <select
-                  required
                   value={values.ownerId}
                   onChange={(e) => update("ownerId", e.target.value)}
                   className={inputClass}
                 >
-                  <option value="">— เลือกเจ้าของ —</option>
+                  <option value="">— เลือกภายหลัง —</option>
                   {owners.map((o) => (
                     <option key={o.id} value={o.id}>
                       {o.name}
+                      {o.nickname ? ` (${o.nickname})` : ""}
                     </option>
                   ))}
                 </select>
@@ -755,6 +777,9 @@ export default function PropertyForm({
               </Field>
               <Field label="ห้องน้ำ">
                 <input value={values.bathrooms} onChange={(e) => update("bathrooms", e.target.value)} className={inputClass} />
+              </Field>
+              <Field label="ตึก">
+                <input value={values.building} onChange={(e) => update("building", e.target.value)} className={inputClass} />
               </Field>
               <Field label="ชั้น">
                 <input value={values.floor} onChange={(e) => update("floor", e.target.value)} className={inputClass} />
