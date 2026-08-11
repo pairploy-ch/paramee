@@ -33,12 +33,14 @@ export default async function Home() {
         <div className="relative">
           <HeroSlider />
         </div>
-
-        {/* Search widget overlapping hero */}
-        <div className="relative px-5 pb-16 lg:px-8">
-          <SearchWidget districts={districts} />
-        </div>
       </section>
+
+      {/* Search widget floats over the hero/content boundary. Kept outside the
+          hero section (which clips with overflow-hidden) so the dropdown
+          option panels aren't cut off. */}
+      <div className="relative px-5 pb-16 lg:px-8">
+        <SearchWidget districts={districts} />
+      </div>
 
       <HomeIntroSection />
 

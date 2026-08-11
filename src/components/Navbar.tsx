@@ -37,7 +37,6 @@ export default function Navbar({ role = null }: { role?: "admin" | "owner" | nul
     { href: "/properties", label: t.nav.properties },
     { href: "/new-launch", label: t.nav.newLaunch },
     { href: "/blog", label: t.nav.blog },
-    { href: "/photo-shoot", label: t.nav.photoShoot },
     { href: "/owner-portal", label: t.nav.ownerPortal, ownerOnly: true },
   ];
   const links = baseLinks.filter((l) => !l.ownerOnly || isOwner);
@@ -189,6 +188,14 @@ export default function Navbar({ role = null }: { role?: "admin" | "owner" | nul
               <Heart className="h-5 w-5" strokeWidth={1.75} />
             </Link>
             <Link
+              href="/photo-shoot"
+              className={`border border-maroon px-5 py-2.5 text-sm font-medium transition-colors hover:bg-maroon hover:text-cream ${
+                isActive("/photo-shoot") ? "bg-maroon text-cream" : "text-maroon"
+              }`}
+            >
+              {t.nav.photoShoot}
+            </Link>
+            <Link
               href="/booking"
               className="bg-maroon px-5 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-maroon-light"
             >
@@ -231,13 +238,24 @@ export default function Navbar({ role = null }: { role?: "admin" | "owner" | nul
           >
             {t.nav.wishlist}
           </Link>
-          <Link
-            href="/booking"
-            onClick={() => setOpen(false)}
-            className="mt-1 rounded-lg bg-maroon px-3 py-2.5 text-center text-sm font-medium text-cream hover:bg-maroon-light"
-          >
-            {t.nav.booking}
-          </Link>
+          <div className="mt-1 flex gap-2">
+            <Link
+              href="/photo-shoot"
+              onClick={() => setOpen(false)}
+              className={`flex-1 rounded-lg border border-maroon px-3 py-2.5 text-center text-sm font-medium hover:bg-maroon hover:text-cream ${
+                isActive("/photo-shoot") ? "bg-maroon text-cream" : "text-maroon"
+              }`}
+            >
+              {t.nav.photoShoot}
+            </Link>
+            <Link
+              href="/booking"
+              onClick={() => setOpen(false)}
+              className="flex-1 rounded-lg bg-maroon px-3 py-2.5 text-center text-sm font-medium text-cream hover:bg-maroon-light"
+            >
+              {t.nav.booking}
+            </Link>
+          </div>
 
           {isAdmin && (
             <>
