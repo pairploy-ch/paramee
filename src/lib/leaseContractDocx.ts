@@ -77,8 +77,18 @@ export async function buildLeaseContractDocx(contract: LeaseContract): Promise<B
     logoRun = null;
   }
 
+  // Pinned to the bottom of whichever page it lands on via an absolute frame
+  // (anchored to the page, y-aligned bottom) rather than relying on normal
+  // document flow — so it sits flush with the bottom margin regardless of
+  // how much checklist content precedes it.
   const signatureBlock = new Paragraph({
-    spacing: { before: 480 },
+    frame: {
+      type: "alignment",
+      anchor: { horizontal: "margin", vertical: "page" },
+      alignment: { x: "center", y: "bottom" },
+      width: 9070,
+      height: 700,
+    },
     alignment: AlignmentType.RIGHT,
     children: [
       new TextRun("ลงชื่อ…………………………………ผู้ให้เช่า"),

@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import SupabaseSetupNotice from "@/components/SupabaseSetupNotice";
 
 export default function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next");
 
@@ -46,12 +45,15 @@ export default function LoginForm() {
     const isAdmin = profile?.role === "admin";
     const adminOnlyPath = next?.startsWith("/admin") || next?.startsWith("/mortgage-calculator");
 
+    // Hard navigation (not router.replace/refresh) so the request hits the
+    // server fresh — RootLayout's admin menu and logout button read the
+    // session from cookies server-side, and a client-side transition can
+    // reuse the already-mounted (logged-out) layout instead of refetching it.
     if (next && !(adminOnlyPath && !isAdmin)) {
-      router.replace(next);
+      window.location.href = next;
     } else {
-      router.replace(isAdmin ? "/admin/leads" : "/owner-portal");
+      window.location.href = isAdmin ? "/admin/leads" : "/owner-portal";
     }
-    router.refresh();
   }
 
   return (

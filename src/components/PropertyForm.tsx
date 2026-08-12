@@ -7,6 +7,8 @@ import SelectDropdown from "@/components/SelectDropdown";
 import { thaiProvinces } from "@/lib/thaiProvinces";
 import { landDeedTypes, landDeedColorClass } from "@/lib/landDeedTypes";
 import { downloadImage } from "@/lib/downloadImage";
+import { createClient } from "@/lib/supabase/client";
+import { createOwner, type NewOwnerInput } from "@/lib/data/owners";
 import type {
   ListingType,
   Property,
@@ -19,6 +21,15 @@ import type {
 } from "@/lib/types";
 import { landTransferFeeParties, listingTypes, unitAmenityOptions } from "@/lib/types";
 import type { Owner } from "@/lib/owners";
+
+const emptyNewOwner: NewOwnerInput = {
+  name: "",
+  nickname: "",
+  phone: "",
+  lineId: "",
+  facebookUrl: "",
+  whatsapp: "",
+};
 
 interface TransitFormRow {
   station: string;
@@ -283,6 +294,36 @@ export default function PropertyForm({
   const [savedSlug, setSavedSlug] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
+  const [ownersList, setOwnersList] = useState<Owner[]>(owners ?? []);
+  const [addingOwner, setAddingOwner] = useState(false);
+  const [newOwner, setNewOwner] = useState<NewOwnerInput>(emptyNewOwner);
+  const [creatingOwner, setCreatingOwner] = useState(false);
+  const [createOwnerError, setCreateOwnerError] = useState("");
+
+  function updateNewOwner<K extends keyof NewOwnerInput>(key: K, value: NewOwnerInput[K]) {
+    setNewOwner((v) => ({ ...v, [key]: value }));
+  }
+
+  async function handleCreateOwner() {
+    if (!newOwner.name.trim() || !newOwner.phone.trim()) {
+      setCreateOwnerError("กรอกชื่อและเบอร์โทรก่อนบันทึก");
+      return;
+    }
+    setCreatingOwner(true);
+    setCreateOwnerError("");
+    try {
+      const supabase = createClient();
+      const created = await createOwner(supabase, newOwner);
+      setOwnersList((list) => [created, ...list]);
+      update("ownerId", created.id);
+      setAddingOwner(false);
+      setNewOwner(emptyNewOwner);
+    } catch (err) {
+      setCreateOwnerError(err instanceof Error ? err.message : "สร้างเจ้าของทรัพย์ไม่สำเร็จ");
+    } finally {
+      setCreatingOwner(false);
+    }
+  }
 
   function update<K extends keyof PropertyFormValues>(key: K, value: PropertyFormValues[K]) {
     setValues((v) => ({ ...v, [key]: value }));
@@ -526,17 +567,91 @@ export default function PropertyForm({
               <Field label="เจ้าของทรัพย์">
                 <select
                   value={values.ownerId}
-                  onChange={(e) => update("ownerId", e.target.value)}
+                  onChange={(e) => {
+                    if (e.target.value === "__add_new__") {
+                      setAddingOwner(true);
+                      return;
+                    }
+                    update("ownerId", e.target.value);
+                  }}
                   className={inputClass}
                 >
                   <option value="">— เลือกภายหลัง —</option>
-                  {owners.map((o) => (
+                  {ownersList.map((o) => (
                     <option key={o.id} value={o.id}>
                       {o.name}
                       {o.nickname ? ` (${o.nickname})` : ""}
                     </option>
                   ))}
+                  <option value="__add_new__">+ เพิ่มเจ้าของทรัพย์ใหม่</option>
                 </select>
+
+                {addingOwner && (
+                  <div className="mt-3 space-y-3 rounded-lg border border-gold-light/60 bg-cream-dark/30 p-4">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <input
+                        required
+                        value={newOwner.name}
+                        onChange={(e) => updateNewOwner("name", e.target.value)}
+                        placeholder="ชื่อ-นามสกุล *"
+                        className={inputClass}
+                      />
+                      <input
+                        value={newOwner.nickname}
+                        onChange={(e) => updateNewOwner("nickname", e.target.value)}
+                        placeholder="ชื่อเล่น"
+                        className={inputClass}
+                      />
+                      <input
+                        required
+                        value={newOwner.phone}
+                        onChange={(e) => updateNewOwner("phone", e.target.value)}
+                        placeholder="เบอร์โทร *"
+                        className={inputClass}
+                      />
+                      <input
+                        value={newOwner.lineId}
+                        onChange={(e) => updateNewOwner("lineId", e.target.value)}
+                        placeholder="LINE ID"
+                        className={inputClass}
+                      />
+                      <input
+                        value={newOwner.facebookUrl}
+                        onChange={(e) => updateNewOwner("facebookUrl", e.target.value)}
+                        placeholder="Facebook"
+                        className={inputClass}
+                      />
+                      <input
+                        value={newOwner.whatsapp}
+                        onChange={(e) => updateNewOwner("whatsapp", e.target.value)}
+                        placeholder="WhatsApp"
+                        className={inputClass}
+                      />
+                    </div>
+                    {createOwnerError && <p className="text-xs text-red-600">{createOwnerError}</p>}
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={handleCreateOwner}
+                        disabled={creatingOwner}
+                        className="bg-maroon px-4 py-2 text-xs font-medium text-cream hover:bg-maroon-light disabled:opacity-50"
+                      >
+                        {creatingOwner ? "กำลังบันทึก..." : "บันทึกเจ้าของทรัพย์"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAddingOwner(false);
+                          setNewOwner(emptyNewOwner);
+                          setCreateOwnerError("");
+                        }}
+                        className="border border-cream-dark px-4 py-2 text-xs font-medium text-ink/60 hover:border-red-400 hover:text-red-500"
+                      >
+                        ยกเลิก
+                      </button>
+                    </div>
+                  </div>
+                )}
               </Field>
             )}
             {ownerLocked && (

@@ -181,6 +181,8 @@ export interface LeaseContract {
   lesseeName: string;
   lesseeIdCard: string;
   lesseeAddress: string;
+  lesseeIdCardImage: string | null;
+  lesseeBankBookImage: string | null;
   contractDate: string | null;
   startDate: string | null;
   endDate: string | null;

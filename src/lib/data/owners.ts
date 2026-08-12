@@ -22,6 +22,50 @@ export async function fetchAllOwners(supabase?: SupabaseClient): Promise<Owner[]
   }));
 }
 
+export interface NewOwnerInput {
+  name: string;
+  nickname: string;
+  phone: string;
+  lineId: string;
+  facebookUrl: string;
+  whatsapp: string;
+}
+
+/**
+ * Creates a login-free "contact-only" owner (used when an admin needs to
+ * attribute a property to an owner that isn't in the list yet). Requires the
+ * caller to already be signed in as admin — enforced by the
+ * "profiles: admins insert" RLS policy, not by this function.
+ */
+export async function createOwner(supabase: SupabaseClient, input: NewOwnerInput): Promise<Owner> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .insert({
+      role: "owner",
+      name: input.name.trim(),
+      nickname: input.nickname.trim() || null,
+      phone: input.phone.trim(),
+      line_id: input.lineId.trim() || null,
+      facebook_url: input.facebookUrl.trim() || null,
+      whatsapp: input.whatsapp.trim() || null,
+      is_registered: false,
+    })
+    .select("id, name, nickname, email, phone")
+    .single();
+
+  if (error || !data) {
+    throw new Error(error?.message ?? "สร้างเจ้าของทรัพย์ไม่สำเร็จ");
+  }
+
+  return {
+    id: data.id,
+    name: data.name ?? input.name,
+    nickname: data.nickname ?? "",
+    email: data.email ?? "",
+    phone: data.phone ?? "",
+  };
+}
+
 export interface OwnerContactInfo {
   name: string | null;
   phone: string | null;

@@ -15,6 +15,8 @@ interface LeaseContractRow {
   lessee_name: string;
   lessee_id_card: string;
   lessee_address: string;
+  lessee_id_card_image: string | null;
+  lessee_bank_book_image: string | null;
   contract_date: string | null;
   start_date: string | null;
   end_date: string | null;
@@ -47,6 +49,8 @@ function rowToContract(row: LeaseContractRow): LeaseContract {
     lesseeName: row.lessee_name,
     lesseeIdCard: row.lessee_id_card,
     lesseeAddress: row.lessee_address,
+    lesseeIdCardImage: row.lessee_id_card_image,
+    lesseeBankBookImage: row.lessee_bank_book_image,
     contractDate: row.contract_date,
     startDate: row.start_date,
     endDate: row.end_date,
@@ -80,6 +84,8 @@ function contractToRow(input: LeaseContractInput): Omit<LeaseContractRow, "id" |
     lessee_name: input.lesseeName,
     lessee_id_card: input.lesseeIdCard,
     lessee_address: input.lesseeAddress,
+    lessee_id_card_image: input.lesseeIdCardImage,
+    lessee_bank_book_image: input.lesseeBankBookImage,
     contract_date: input.contractDate,
     start_date: input.startDate,
     end_date: input.endDate,

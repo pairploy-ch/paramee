@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Paperclip, Trash2 } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { insertLeaseContract, updateLeaseContractById } from "@/lib/data/leaseContracts";
 import { emptyLeaseFormValues, formValuesToInput, type LeaseFormValues } from "./formValues";
@@ -41,9 +41,42 @@ export default function LeaseContractForm({
   const [values, setValues] = useState<LeaseFormValues>(initialValues ?? emptyLeaseFormValues);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [docUploading, setDocUploading] = useState<"lesseeIdCardImage" | "lesseeBankBookImage" | null>(null);
+  const [docError, setDocError] = useState("");
 
   function update<K extends keyof LeaseFormValues>(key: K, value: LeaseFormValues[K]) {
     setValues((v) => ({ ...v, [key]: value }));
+  }
+
+  async function handleUploadDoc(field: "lesseeIdCardImage" | "lesseeBankBookImage", file: File | undefined) {
+    if (!file) return;
+    setDocUploading(field);
+    setDocError("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/admin/leases/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) {
+        setDocError(data.error ?? "อัปโหลดไฟล์ไม่สำเร็จ");
+        return;
+      }
+      update(field, data.path as string);
+    } catch {
+      setDocError("อัปโหลดไฟล์ไม่สำเร็จ กรุณาลองใหม่");
+    } finally {
+      setDocUploading(null);
+    }
+  }
+
+  async function handleViewDoc(path: string) {
+    try {
+      const res = await fetch(`/api/admin/leases/upload?path=${encodeURIComponent(path)}`);
+      const data = await res.json();
+      if (res.ok && data.url) window.open(data.url, "_blank", "noopener,noreferrer");
+    } catch {
+      setDocError("เปิดไฟล์ไม่สำเร็จ กรุณาลองใหม่");
+    }
   }
 
   function updateChecklistItem(index: number, patch: Partial<LeaseFormValues["checklistItems"][number]>) {
@@ -86,6 +119,49 @@ export default function LeaseContractForm({
     }
     router.push("/admin/leases");
     router.refresh();
+  }
+
+  function DocUploadField({
+    label,
+    field,
+  }: {
+    label: string;
+    field: "lesseeIdCardImage" | "lesseeBankBookImage";
+  }) {
+    const path = values[field];
+    const isUploading = docUploading === field;
+    return (
+      <Field label={label}>
+        {path ? (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handleViewDoc(path)}
+              className="flex items-center gap-1.5 border border-cream-dark bg-cream px-3 py-2 text-sm text-ink/70 hover:border-gold-dark"
+            >
+              <Paperclip className="h-3.5 w-3.5" strokeWidth={1.75} /> ดูไฟล์ที่แนบ
+            </button>
+            <button
+              type="button"
+              aria-label="ลบไฟล์"
+              onClick={() => update(field, "")}
+              className="border border-cream-dark p-2 text-ink/40 hover:border-red-400 hover:text-red-500"
+            >
+              <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+            </button>
+          </div>
+        ) : (
+          <input
+            type="file"
+            accept="image/*"
+            disabled={isUploading}
+            onChange={(e) => handleUploadDoc(field, e.target.files?.[0])}
+            className="w-full text-xs text-ink/60 file:mr-3 file:border-0 file:bg-gold file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-maroon-dark disabled:opacity-50"
+          />
+        )}
+        {isUploading && <p className="mt-1.5 text-xs text-ink/50">กำลังอัปโหลด...</p>}
+      </Field>
+    );
   }
 
   return (
@@ -151,6 +227,13 @@ export default function LeaseContractForm({
               <input value={values.lesseeAddress} onChange={(e) => update("lesseeAddress", e.target.value)} className={inputClass} />
             </Field>
           </div>
+          <DocUploadField label="รูปบัตรประชาชนผู้เช่า" field="lesseeIdCardImage" />
+          <DocUploadField label="รูป Book Bank ผู้เช่า" field="lesseeBankBookImage" />
+          {docError && (
+            <div className="sm:col-span-2">
+              <p className="text-xs text-red-600">{docError}</p>
+            </div>
+          )}
         </Section>
 
         <Section title="รายละเอียดสัญญา">

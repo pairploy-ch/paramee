@@ -773,3 +773,23 @@ alter table public.properties add column if not exists rental_start_date date;
 alter table public.properties drop constraint if exists properties_tier_check;
 alter table public.properties add constraint properties_tier_check
   check (tier in (1, 2, 3, 4));
+
+-- ============================================================
+-- lease_contracts: lessee ID card / bank book image attachments.
+-- Stored in a PRIVATE bucket (unlike property-images) since these are
+-- sensitive personal documents — object paths are saved on the contract
+-- row, and pages request short-lived signed URLs on demand to view them
+-- (see src/app/api/admin/leases/upload/route.ts).
+-- ============================================================
+alter table public.lease_contracts add column if not exists lessee_id_card_image text;
+alter table public.lease_contracts add column if not exists lessee_bank_book_image text;
+
+insert into storage.buckets (id, name, public)
+values ('lease-documents', 'lease-documents', false)
+on conflict (id) do nothing;
+
+drop policy if exists "lease-documents: admins manage all" on storage.objects;
+create policy "lease-documents: admins manage all" on storage.objects
+  for all
+  using (bucket_id = 'lease-documents' and public.is_admin())
+  with check (bucket_id = 'lease-documents' and public.is_admin());

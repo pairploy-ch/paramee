@@ -13,6 +13,8 @@ export interface LeaseFormValues {
   lesseeName: string;
   lesseeIdCard: string;
   lesseeAddress: string;
+  lesseeIdCardImage: string;
+  lesseeBankBookImage: string;
   contractDate: string;
   startDate: string;
   endDate: string;
@@ -43,6 +45,8 @@ export const emptyLeaseFormValues: LeaseFormValues = {
   lesseeName: "",
   lesseeIdCard: "",
   lesseeAddress: "",
+  lesseeIdCardImage: "",
+  lesseeBankBookImage: "",
   contractDate: "",
   startDate: "",
   endDate: "",
@@ -74,6 +78,8 @@ export function contractToFormValues(c: LeaseContract): LeaseFormValues {
     lesseeName: c.lesseeName,
     lesseeIdCard: c.lesseeIdCard,
     lesseeAddress: c.lesseeAddress,
+    lesseeIdCardImage: c.lesseeIdCardImage ?? "",
+    lesseeBankBookImage: c.lesseeBankBookImage ?? "",
     contractDate: c.contractDate ?? "",
     startDate: c.startDate ?? "",
     endDate: c.endDate ?? "",
@@ -106,6 +112,8 @@ export function formValuesToInput(v: LeaseFormValues): Omit<LeaseContract, "id" 
     lesseeName: v.lesseeName,
     lesseeIdCard: v.lesseeIdCard,
     lesseeAddress: v.lesseeAddress,
+    lesseeIdCardImage: v.lesseeIdCardImage || null,
+    lesseeBankBookImage: v.lesseeBankBookImage || null,
     contractDate: v.contractDate || null,
     startDate: v.startDate || null,
     endDate: v.endDate || null,

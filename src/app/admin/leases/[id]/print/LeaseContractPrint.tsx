@@ -26,6 +26,10 @@ const printStyles = `
 @page { size: A4; margin: 22mm 18mm; }
 .lease-print { font-size: 13px; line-height: 1.9; color: #111; }
 .lease-print .page-break { break-before: page; page-break-before: always; }
+@media print {
+  .lease-print .signature-page { min-height: 253mm; display: flex; flex-direction: column; }
+  .lease-print .signature-footer { margin-top: auto; }
+}
 .lease-print h1, .lease-print h2 { font-family: var(--font-kanit); }
 .lease-print table { border-collapse: collapse; width: 100%; }
 .lease-print th, .lease-print td { border: 1px solid #999; padding: 6px 8px; font-size: 12px; }
@@ -43,7 +47,7 @@ export default function LeaseContractPrint({ contract }: { contract: LeaseContra
   const totalReceiptText = totalReceipt > 0 ? thaiBahtText(totalReceipt) : "";
 
   const SignatureFooter = () => (
-    <div className="mt-10 flex justify-end gap-10 text-sm">
+    <div className="signature-footer mt-10 flex justify-end gap-10 text-sm">
       <span>ลงชื่อ…………………………………ผู้ให้เช่า</span>
       <span>ลงชื่อ…………………………………ผู้เช่า</span>
     </div>
@@ -366,32 +370,34 @@ export default function LeaseContractPrint({ contract }: { contract: LeaseContra
 
       {/* Checklist */}
       <div className="page-break">
-        <h2 className="text-center font-heading text-lg font-semibold">เอกสารแนบท้ายสัญญา</h2>
-        <p className="mt-2 text-center">
-          Check list รายการอุปกรณ์เครื่องใช้ไฟฟ้า และเฟอร์นิเจอร์ภายในห้อง เลขที่ {blank(contract.roomNumber)} ณ วันส่งมอบ
-        </p>
+        <div className="signature-page">
+          <h2 className="text-center font-heading text-lg font-semibold">เอกสารแนบท้ายสัญญา</h2>
+          <p className="mt-2 text-center">
+            Check list รายการอุปกรณ์เครื่องใช้ไฟฟ้า และเฟอร์นิเจอร์ภายในห้อง เลขที่ {blank(contract.roomNumber)} ณ วันส่งมอบ
+          </p>
 
-        <table className="mt-4">
-          <thead>
-            <tr>
-              <th className="text-left">รายการ</th>
-              <th className="w-20 text-center">พร้อมใช้งาน</th>
-              <th className="w-28 text-center">มูลค่าต่อหน่วย</th>
-              <th className="text-left">รายละเอียด</th>
-            </tr>
-          </thead>
-          <tbody>
-            {contract.checklistItems.map((item, i) => (
-              <tr key={i}>
-                <td>{item.name}</td>
-                <td className="text-center">{item.ready ? "✓" : ""}</td>
-                <td className="text-center">{item.value}</td>
-                <td>{item.detail}</td>
+          <table className="mt-4">
+            <thead>
+              <tr>
+                <th className="text-left">รายการ</th>
+                <th className="w-20 text-center">พร้อมใช้งาน</th>
+                <th className="w-28 text-center">มูลค่าต่อหน่วย</th>
+                <th className="text-left">รายละเอียด</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-        <SignatureFooter />
+            </thead>
+            <tbody>
+              {contract.checklistItems.map((item, i) => (
+                <tr key={i}>
+                  <td>{item.name}</td>
+                  <td className="text-center">{item.ready ? "✓" : ""}</td>
+                  <td className="text-center">{item.value}</td>
+                  <td>{item.detail}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <SignatureFooter />
+        </div>
       </div>
     </div>
   );

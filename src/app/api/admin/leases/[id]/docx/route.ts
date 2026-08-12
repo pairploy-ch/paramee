@@ -20,11 +20,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   }
 
   const buffer = await buildLeaseContractDocx(contract);
+  const filename = `สัญญาเช่า-${contract.roomNumber || contract.id}.docx`;
 
   return new NextResponse(new Uint8Array(buffer), {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "Content-Disposition": `attachment; filename="สัญญาเช่า-${contract.roomNumber || contract.id}.docx"`,
+      // Content-Disposition header values must be ASCII — a raw Thai filename
+      // makes Node throw ("Cannot convert argument to a ByteString"). Use an
+      // ASCII fallback plus the RFC 5987 filename*= form for the real name.
+      "Content-Disposition": `attachment; filename="lease-contract.docx"; filename*=UTF-8''${encodeURIComponent(filename)}`,
     },
   });
 }

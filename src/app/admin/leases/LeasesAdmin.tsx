@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FileDown, Pencil, Plus, Trash2 } from "lucide-react";
+import { FileDown, FileText, Pencil, Plus, Trash2 } from "lucide-react";
 import ConfirmModal from "@/components/ConfirmModal";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { deleteLeaseContractById } from "@/lib/data/leaseContracts";
@@ -84,6 +84,14 @@ export default function LeasesAdmin({ initialContracts }: { initialContracts: Le
                       >
                         <FileDown className="h-4 w-4" strokeWidth={1.75} />
                       </Link>
+                      <a
+                        href={`/api/admin/leases/${c.id}/docx`}
+                        aria-label="Export Word"
+                        title="Export Word"
+                        className="border border-cream-dark p-1.5 text-ink/50 hover:border-gold-dark hover:text-gold-dark"
+                      >
+                        <FileText className="h-4 w-4" strokeWidth={1.75} />
+                      </a>
                       <Link
                         href={`/admin/leases/${c.id}/edit`}
                         aria-label="แก้ไข"

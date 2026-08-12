@@ -274,6 +274,7 @@ export default function Navbar({ role = null }: { role?: "admin" | "owner" | nul
                   {link.label}
                 </Link>
               ))}
+              <LogoutButton className="mt-2 rounded-lg border border-cream-dark px-3 py-2.5 text-center text-sm font-medium text-ink/60 hover:border-gold" />
             </>
           )}
         </nav>
