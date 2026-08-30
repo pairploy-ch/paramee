@@ -24,7 +24,7 @@ function buildCaption(values: PropertyFormValues): string {
   const bedHighlight = !isLand && values.bedrooms.trim() ? ` ${values.bedrooms} Bed` : "";
 
   const headlineWord = includesRent && includesSale ? "ให้เช่า/ขาย" : includesRent ? "ให้เช่า" : "ประกาศขาย";
-  const headline = `${headlineWord}${values.type} ${values.district} ${
+  const headline = `NEW❗️ ${headlineWord}${values.type} ${values.district} ${
     values.name || "..."
   }${bedHighlight}${nearbyHighlight}`
     .replace(/\s+/g, " ")
@@ -75,7 +75,7 @@ function buildCaption(values: PropertyFormValues): string {
   const validTransit = values.transit.filter((row) => row.station.trim());
   if (validTransit.length > 0) {
     const nearbyLines = validTransit
-      .map((row) => `📍 ${row.station} (~${row.distanceMeters || "-"} ม.)`)
+      .map((row) => `• ${row.station} (~${row.distanceMeters || "-"} ม.)`)
       .join("\n");
     blocks.push(`Nearby:\n${nearbyLines}`);
   }
@@ -97,7 +97,7 @@ function buildCaptionEn(values: PropertyFormValues): string {
 
   const listingWord = includesRent && includesSale ? "Rent/Sale" : includesRent ? "Rent" : "Sale";
   const headline = [
-    `${typeLabel} for ${listingWord}${districtPart}`,
+    `NEW❗️ ${typeLabel} for ${listingWord}${districtPart}`,
     values.name || "...",
     bedSegment,
   ].join(" | ");
@@ -153,7 +153,7 @@ function buildCaptionEn(values: PropertyFormValues): string {
   const validTransit = values.transit.filter((row) => row.station.trim());
   if (validTransit.length > 0) {
     const nearbyLines = validTransit
-      .map((row) => `📍 ${row.station} (~${row.distanceMeters || "-"} m.)`)
+      .map((row) => `• ${row.station} (~${row.distanceMeters || "-"} m.)`)
       .join("\n");
     blocks.push(`Nearby\n${nearbyLines}`);
   }
