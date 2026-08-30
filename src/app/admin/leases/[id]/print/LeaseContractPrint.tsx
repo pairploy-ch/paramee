@@ -389,7 +389,7 @@ export default function LeaseContractPrint({ contract }: { contract: LeaseContra
               {contract.checklistItems.map((item, i) => (
                 <tr key={i}>
                   <td>{item.name}</td>
-                  <td className="text-center">{item.ready ? "✓" : ""}</td>
+                  <td className="text-center">{item.ready ? "✅" : ""}</td>
                   <td className="text-center">{item.value}</td>
                   <td>{item.detail}</td>
                 </tr>

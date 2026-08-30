@@ -71,7 +71,7 @@ export function buildPropertyCaptionTh(property: Property): string {
   const validTransit = property.transit.filter((row) => row.station.trim());
   if (validTransit.length > 0) {
     const nearbyLines = validTransit
-      .map((row) => `• ${row.station} (~${row.distanceMeters || "-"} ม.)`)
+      .map((row) => `📍 ${row.station} (~${row.distanceMeters || "-"} ม.)`)
       .join("\n");
     blocks.push(`Nearby:\n${nearbyLines}`);
   }
@@ -148,7 +148,7 @@ export function buildPropertyCaptionEn(property: Property): string {
   const validTransit = property.transit.filter((row) => row.station.trim());
   if (validTransit.length > 0) {
     const nearbyLines = validTransit
-      .map((row) => `• ${row.station} (~${row.distanceMeters || "-"} m.)`)
+      .map((row) => `📍 ${row.station} (~${row.distanceMeters || "-"} m.)`)
       .join("\n");
     blocks.push(`Nearby\n${nearbyLines}`);
   }

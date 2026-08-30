@@ -101,7 +101,7 @@ export async function buildLeaseContractDocx(contract: LeaseContract): Promise<B
       new TableRow({
         children: [
           cell(item.name),
-          cell(item.ready ? "✓" : "", { align: AlignmentType.CENTER }),
+          cell(item.ready ? "✅" : "", { align: AlignmentType.CENTER }),
           cell(item.value, { align: AlignmentType.CENTER }),
           cell(item.detail),
         ],
