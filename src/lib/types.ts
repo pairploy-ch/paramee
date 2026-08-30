@@ -79,6 +79,7 @@ export interface Property {
   rentPrice6Month: number | null;
   rentPrice3Month: number | null;
   rentPrice1Month: number | null;
+  acceptCoAgent: boolean;
 }
 
 export const newLaunchRegions = ["พัทยา", "กรุงเทพฯ", "เชียงใหม่", "ภูเก็ต", "เขาใหญ่"] as const;

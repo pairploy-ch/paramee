@@ -793,3 +793,8 @@ create policy "lease-documents: admins manage all" on storage.objects
   for all
   using (bucket_id = 'lease-documents' and public.is_admin())
   with check (bucket_id = 'lease-documents' and public.is_admin());
+
+-- properties: "รับ Co-agent" checkbox on the add/edit property form, shown
+-- on the property detail page when checked (lets other agents know they're
+-- welcome to help sell/rent this listing).
+alter table public.properties add column if not exists accept_co_agent boolean not null default false;

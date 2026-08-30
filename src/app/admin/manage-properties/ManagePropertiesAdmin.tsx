@@ -1,19 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Pencil, Trash2, Download, Loader2 } from "lucide-react";
-import { propertyTypes } from "@/lib/properties";
-import { formatBaht, statusLabel } from "@/lib/format";
+import { propertyAreas, propertyTypes } from "@/lib/properties";
+import { formatBaht, propertyTypeLabel, statusLabel } from "@/lib/format";
 import type { Property, PropertyStatus } from "@/lib/types";
 import type { Owner } from "@/lib/owners";
 import ConfirmModal from "@/components/ConfirmModal";
+import SelectDropdown from "@/components/SelectDropdown";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { deletePropertyBySlug, updatePropertyBySlug } from "@/lib/data/properties";
 import { useProperties } from "@/lib/propertyStore";
 import { propertyStatuses } from "@/components/PropertyForm";
+
+const MIN_PRICE = 0;
+const MAX_PRICE = 50_000_000;
 
 function toCsv(rows: Property[], ownerName: (id: string) => string) {
   const header = ["ชื่อ", "ประเภททรัพย์", "ประเภทประกาศ", "ทำเล", "สถานะ", "เทียร์", "ราคาขาย", "ราคาเช่า", "เจ้าของ"];
@@ -47,7 +51,13 @@ export default function ManagePropertiesAdmin({
   const properties = isSupabaseConfigured ? initialProperties : localStore.properties;
 
   const [tab, setTab] = useState<"properties" | "owners">("properties");
+  const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<"ทั้งหมด" | Property["type"]>("ทั้งหมด");
+  const [areaFilter, setAreaFilter] = useState("ทั้งหมด");
+  const [districtFilter, setDistrictFilter] = useState("ทั้งหมด");
+  const [purposeFilter, setPurposeFilter] = useState<"ทั้งหมด" | "ซื้อ" | "เช่า">("ทั้งหมด");
+  const [minPrice, setMinPrice] = useState(MIN_PRICE);
+  const [maxPrice, setMaxPrice] = useState(MAX_PRICE);
   const [deleteTarget, setDeleteTarget] = useState<{ slug: string; name: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [statusSavingSlug, setStatusSavingSlug] = useState<string | null>(null);
@@ -55,7 +65,29 @@ export default function ManagePropertiesAdmin({
   const ownerById = (id: string) => owners.find((o) => o.id === id);
   const ownerName = (id: string) => ownerById(id)?.name ?? "ไม่ระบุ";
 
-  const filtered = properties.filter((p) => typeFilter === "ทั้งหมด" || p.type === typeFilter);
+  const districts = useMemo(
+    () => Array.from(new Set(properties.map((p) => p.district))),
+    [properties]
+  );
+
+  const filtered = properties.filter((p) => {
+    if (typeFilter !== "ทั้งหมด" && p.type !== typeFilter) return false;
+    if (areaFilter !== "ทั้งหมด" && p.area !== areaFilter) return false;
+    if (districtFilter !== "ทั้งหมด" && p.district !== districtFilter) return false;
+    const includesSale = p.listingType === "ขาย" || p.listingType === "เช่า + ขาย";
+    const includesRent = p.listingType === "เช่า" || p.listingType === "เช่า + ขาย";
+    if (purposeFilter === "ซื้อ" && !(includesSale && p.salePrice)) return false;
+    if (purposeFilter === "เช่า" && !(includesRent && p.rentPrice)) return false;
+    const effectivePrice =
+      purposeFilter === "เช่า"
+        ? p.rentPrice ?? 0
+        : purposeFilter === "ซื้อ"
+          ? p.salePrice ?? 0
+          : p.salePrice ?? p.rentPrice ?? 0;
+    if (effectivePrice < minPrice || effectivePrice > maxPrice) return false;
+    if (query && !p.name.toLowerCase().includes(query.toLowerCase())) return false;
+    return true;
+  });
 
   function handleExport() {
     const csv = toCsv(properties, ownerName);
@@ -128,17 +160,94 @@ export default function ManagePropertiesAdmin({
 
       {tab === "properties" ? (
         <>
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
-              className="border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
-            >
-              <option value="ทั้งหมด">ทุกประเภท</option>
-              {propertyTypes.map((t) => (
-                <option key={t}>{t}</option>
-              ))}
-            </select>
+          <div className="mb-4 grid gap-4 border border-gold-light/40 bg-white p-5 sm:grid-cols-2 lg:grid-cols-6">
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-ink/60">ค้นหาชื่อโครงการ</label>
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="ชื่อโครงการ..."
+                className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-ink/60">ประเภททรัพย์</label>
+              <SelectDropdown
+                value={typeFilter}
+                onChange={(v) => setTypeFilter(v as typeof typeFilter)}
+                options={[
+                  { value: "ทั้งหมด", label: "ทั้งหมด" },
+                  ...propertyTypes.map((pt) => ({ value: pt, label: propertyTypeLabel(pt) })),
+                ]}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-ink/60">พื้นที่</label>
+              <SelectDropdown
+                value={areaFilter}
+                onChange={setAreaFilter}
+                options={[
+                  { value: "ทั้งหมด", label: "ทั้งหมด" },
+                  ...propertyAreas.map((a) => ({ value: a, label: a })),
+                ]}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-ink/60">ทำเล</label>
+              <SelectDropdown
+                value={districtFilter}
+                onChange={setDistrictFilter}
+                options={[
+                  { value: "ทั้งหมด", label: "ทั้งหมด" },
+                  ...districts.map((d) => ({ value: d, label: d })),
+                ]}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-ink/60">วัตถุประสงค์</label>
+              <SelectDropdown
+                value={purposeFilter}
+                onChange={(v) => setPurposeFilter(v as typeof purposeFilter)}
+                options={[
+                  { value: "ทั้งหมด", label: "ทั้งหมด" },
+                  { value: "ซื้อ", label: "ซื้อ" },
+                  { value: "เช่า", label: "เช่า" },
+                ]}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-ink/60">ช่วงราคา (บาท)</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={0}
+                  step={100_000}
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(Math.max(0, Number(e.target.value) || 0))}
+                  placeholder="ต่ำสุด"
+                  className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
+                />
+                <span className="text-ink/40">—</span>
+                <input
+                  type="number"
+                  min={0}
+                  step={100_000}
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(Number(e.target.value) || 0)}
+                  placeholder="สูงสุด"
+                  className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <p className="text-sm text-ink/50">พบ {filtered.length} รายการ จากทั้งหมด {properties.length} รายการ</p>
             <button
               onClick={handleExport}
               className="flex items-center gap-2 border border-gold-dark px-4 py-2 text-sm font-medium text-gold-dark transition-colors hover:bg-cream-dark"

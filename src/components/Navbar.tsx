@@ -2,13 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Mail, Phone, Heart, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { TikTokIcon, LineIcon } from "./icons";
 import { CONTACT_EMAIL, socialLinks } from "@/lib/social";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import LogoutButton from "./LogoutButton";
+import { propertyTypes } from "@/lib/properties";
+import { propertyTypeLabel } from "@/lib/format";
 
 const adminLinks = [
   { href: "/admin/dashboard", label: "KPI Dashboard" },
@@ -18,6 +20,7 @@ const adminLinks = [
   { href: "/admin/new-launch", label: "โครงการมือ 1" },
   { href: "/admin/leases", label: "ระบบสัญญาเช่า" },
   { href: "/admin/bookings", label: "นัดชม / จอง" },
+  { href: "/photo-shoot", label: "นัดถ่ายภาพ" },
   { href: "/admin/photo-shoots", label: "คำขอนัดถ่ายภาพ" },
   { href: "/admin/blog", label: "จัดการบทความ" },
   { href: "/admin/testimonials", label: "รีวิวลูกค้า" },
@@ -28,21 +31,32 @@ export default function Navbar({ role = null }: { role?: "admin" | "owner" | nul
   const [open, setOpen] = useState(false);
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { lang, setLang, t } = useTranslation();
   const isAdmin = role === "admin";
   const isOwner = role === "owner";
 
-  const baseLinks = [
+  const propertyTypeLinks = propertyTypes.map((pt) => ({
+    href: `/properties?type=${pt}`,
+    label: propertyTypeLabel(pt, lang),
+    type: pt,
+  }));
+
+  const baseLinks: { href: string; label: string; ownerOnly?: boolean; type?: string }[] = [
     { href: "/", label: t.nav.home },
-    { href: "/properties", label: t.nav.properties },
+    ...propertyTypeLinks,
     { href: "/new-launch", label: t.nav.newLaunch },
-    { href: "/blog", label: t.nav.blog },
     { href: "/owner-portal", label: t.nav.ownerPortal, ownerOnly: true },
   ];
   const links = baseLinks.filter((l) => !l.ownerOnly || isOwner);
 
   function isActive(href: string) {
     return href === "/" ? pathname === "/" : pathname.startsWith(href);
+  }
+
+  function isLinkActive(link: { href: string; type?: string }) {
+    if (link.type) return pathname === "/properties" && searchParams.get("type") === link.type;
+    return isActive(link.href);
   }
 
   return (
@@ -131,7 +145,7 @@ export default function Navbar({ role = null }: { role?: "admin" | "owner" | nul
                 key={link.href}
                 href={link.href}
                 className={`text-sm font-medium transition-colors hover:text-maroon ${
-                  isActive(link.href) ? "text-maroon font-semibold" : "text-ink/70"
+                  isLinkActive(link) ? "text-maroon font-semibold" : "text-ink/70"
                 }`}
               >
                 {link.label}
@@ -188,14 +202,6 @@ export default function Navbar({ role = null }: { role?: "admin" | "owner" | nul
               <Heart className="h-5 w-5" strokeWidth={1.75} />
             </Link>
             <Link
-              href="/photo-shoot"
-              className={`border border-maroon px-5 py-2.5 text-sm font-medium transition-colors hover:bg-maroon hover:text-cream ${
-                isActive("/photo-shoot") ? "bg-maroon text-cream" : "text-maroon"
-              }`}
-            >
-              {t.nav.photoShoot}
-            </Link>
-            <Link
               href="/booking"
               className="bg-maroon px-5 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-maroon-light"
             >
@@ -223,7 +229,7 @@ export default function Navbar({ role = null }: { role?: "admin" | "owner" | nul
               href={link.href}
               onClick={() => setOpen(false)}
               className={`rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-cream-dark ${
-                isActive(link.href) ? "text-maroon font-semibold" : "text-ink/80"
+                isLinkActive(link) ? "text-maroon font-semibold" : "text-ink/80"
               }`}
             >
               {link.label}
@@ -238,24 +244,13 @@ export default function Navbar({ role = null }: { role?: "admin" | "owner" | nul
           >
             {t.nav.wishlist}
           </Link>
-          <div className="mt-1 flex gap-2">
-            <Link
-              href="/photo-shoot"
-              onClick={() => setOpen(false)}
-              className={`flex-1 rounded-lg border border-maroon px-3 py-2.5 text-center text-sm font-medium hover:bg-maroon hover:text-cream ${
-                isActive("/photo-shoot") ? "bg-maroon text-cream" : "text-maroon"
-              }`}
-            >
-              {t.nav.photoShoot}
-            </Link>
-            <Link
-              href="/booking"
-              onClick={() => setOpen(false)}
-              className="flex-1 rounded-lg bg-maroon px-3 py-2.5 text-center text-sm font-medium text-cream hover:bg-maroon-light"
-            >
-              {t.nav.booking}
-            </Link>
-          </div>
+          <Link
+            href="/booking"
+            onClick={() => setOpen(false)}
+            className="mt-1 rounded-lg bg-maroon px-3 py-2.5 text-center text-sm font-medium text-cream hover:bg-maroon-light"
+          >
+            {t.nav.booking}
+          </Link>
 
           {isAdmin && (
             <>

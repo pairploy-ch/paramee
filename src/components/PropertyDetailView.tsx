@@ -97,6 +97,11 @@ export default function PropertyDetailView({
                   ({property.unitCode})
                 </span>
               )}
+              {property.acceptCoAgent && (
+                <span className="ml-2 inline-flex items-center align-middle rounded-full bg-gold-light px-3 py-1 text-xs font-semibold text-maroon-dark">
+                  รับ Co-agent
+                </span>
+              )}
             </h1>
             <p className="mt-2 flex items-center gap-1.5 text-sm text-ink/60">
               <MapPin className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden />

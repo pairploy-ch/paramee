@@ -59,6 +59,7 @@ export interface PropertyRow {
   rent_price_6_month: number | null;
   rent_price_3_month: number | null;
   rent_price_1_month: number | null;
+  accept_co_agent: boolean;
 }
 
 export function rowToProperty(row: PropertyRow): Property {
@@ -109,6 +110,7 @@ export function rowToProperty(row: PropertyRow): Property {
     rentPrice6Month: row.rent_price_6_month,
     rentPrice3Month: row.rent_price_3_month,
     rentPrice1Month: row.rent_price_1_month,
+    acceptCoAgent: row.accept_co_agent ?? false,
   };
 }
 
@@ -168,6 +170,7 @@ export function propertyToRow(input: NewPropertyInput): Omit<PropertyRow, "id"> 
     rent_price_6_month: input.rentPrice6Month,
     rent_price_3_month: input.rentPrice3Month,
     rent_price_1_month: input.rentPrice1Month,
+    accept_co_agent: input.acceptCoAgent,
   };
 }
 
@@ -254,6 +257,7 @@ export async function updatePropertyBySlug(
   if (patch.rentPrice6Month !== undefined) row.rent_price_6_month = patch.rentPrice6Month;
   if (patch.rentPrice3Month !== undefined) row.rent_price_3_month = patch.rentPrice3Month;
   if (patch.rentPrice1Month !== undefined) row.rent_price_1_month = patch.rentPrice1Month;
+  if (patch.acceptCoAgent !== undefined) row.accept_co_agent = patch.acceptCoAgent;
   if (patch.investor !== undefined) {
     row.investor_roi_percent = patch.investor.roiPercent;
     row.investor_rental_yield_percent = patch.investor.rentalYieldPercent;

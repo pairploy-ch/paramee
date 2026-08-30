@@ -92,6 +92,7 @@ export interface PropertyFormValues {
   facebookPostUrl: string;
   propertyHubUrl: string;
   unitAmenities: UnitAmenity[];
+  acceptCoAgent: boolean;
 }
 
 export const emptyPropertyFormValues: PropertyFormValues = {
@@ -138,6 +139,7 @@ export const emptyPropertyFormValues: PropertyFormValues = {
   facebookPostUrl: "",
   propertyHubUrl: "",
   unitAmenities: [],
+  acceptCoAgent: false,
 };
 
 export function valuesToProperty(v: PropertyFormValues): Omit<Property, "slug"> {
@@ -193,6 +195,7 @@ export function valuesToProperty(v: PropertyFormValues): Omit<Property, "slug"> 
     landDeedType: isLand ? v.landDeedType.trim() || null : null,
     landTransferFeeParty: isLand ? v.landTransferFeeParty || null : null,
     facebookPostUrl: v.facebookPostUrl.trim(),
+    acceptCoAgent: v.acceptCoAgent,
   };
 }
 
@@ -246,6 +249,7 @@ export function propertyToFormValues(p: Property): PropertyFormValues {
     facebookPostUrl: p.facebookPostUrl ?? "",
     propertyHubUrl: p.propertyHubUrl ?? "",
     unitAmenities: p.unitAmenities ?? [],
+    acceptCoAgent: p.acceptCoAgent ?? false,
   };
 }
 
@@ -669,6 +673,23 @@ export default function PropertyForm({
                   className={inputClass}
                 />
               </Field>
+            </div>
+            <div className="sm:col-span-2">
+              <label
+                className={`flex w-fit cursor-pointer items-center gap-2 border px-3 py-2 text-sm ${
+                  values.acceptCoAgent
+                    ? "border-gold-dark bg-cream-dark/60 text-maroon-dark"
+                    : "border-cream-dark text-ink/60"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={values.acceptCoAgent}
+                  onChange={(e) => update("acceptCoAgent", e.target.checked)}
+                  className="h-4 w-4"
+                />
+                รับ Co-agent (เปิดให้นายหน้ารายอื่นช่วยขาย/ปล่อยเช่าทรัพย์นี้)
+              </label>
             </div>
           </div>
         </div>

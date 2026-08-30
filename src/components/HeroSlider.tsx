@@ -52,8 +52,12 @@ export default function HeroSlider() {
         →
       </button>
 
-      <div className="flex max-w-2xl flex-col items-center gap-6">
-        <h1 className="font-heading text-4xl font-semibold leading-tight sm:text-5xl">
+      <div className="flex max-w-4xl flex-col items-center gap-6">
+        <h1
+          className={`font-heading text-4xl font-semibold leading-tight sm:text-5xl ${
+            index === 0 ? "lg:whitespace-nowrap" : ""
+          }`}
+        >
           {slide.heading}
           <span className="text-gold-light"> {slide.highlight}</span>
         </h1>
