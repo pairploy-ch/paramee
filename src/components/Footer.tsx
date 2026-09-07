@@ -23,7 +23,7 @@ export default function Footer({ isAdmin = false }: { isAdmin?: boolean }) {
           <Image
             src="/logo-paramee-gold.png"
             alt="Paramee"
-            width={140}
+            width={155}
             height={135}
             className="h-10 w-auto"
           />

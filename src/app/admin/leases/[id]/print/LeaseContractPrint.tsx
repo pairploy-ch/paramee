@@ -75,7 +75,7 @@ export default function LeaseContractPrint({ contract }: { contract: LeaseContra
 
       {/* Cover page */}
       <div className="flex flex-col items-center text-center">
-        <Image src="/logo-paramee-maroon.png" alt="Paramee" width={140} height={135} className="mb-6 h-24 w-auto" />
+        <Image src="/logo-paramee-maroon.png" alt="Paramee" width={148} height={135} className="mb-6 h-24 w-auto" />
         <h1 className="font-heading text-2xl font-semibold">หนังสือสัญญาเช่า (LEASE AGREEMENT)</h1>
       </div>
 

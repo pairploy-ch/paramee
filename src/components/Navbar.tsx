@@ -132,7 +132,7 @@ export default function Navbar({ role = null }: { role?: "admin" | "owner" | nul
             <Image
               src="/logo-paramee-maroon.png"
               alt="Paramee"
-              width={160}
+              width={169}
               height={154}
               priority
               className="h-11 w-auto"

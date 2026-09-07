@@ -241,7 +241,7 @@ export default function CoAgentRegisterForm() {
         <Image
           src="/logo-paramee-maroon.png"
           alt="Paramee"
-          width={140}
+          width={148}
           height={135}
           className="mx-auto h-16 w-auto"
         />

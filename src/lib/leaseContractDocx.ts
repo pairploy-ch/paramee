@@ -70,7 +70,7 @@ export async function buildLeaseContractDocx(contract: LeaseContract): Promise<B
     const logoBuffer = await readFile(path.join(process.cwd(), "public", "logo-paramee-maroon.png"));
     logoRun = new ImageRun({
       data: logoBuffer,
-      transformation: { width: 100, height: 96 },
+      transformation: { width: 105, height: 96 },
       type: "png",
     });
   } catch {
