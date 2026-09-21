@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { createOwner, type NewOwnerInput } from "@/lib/data/owners";
 import type {
   ListingType,
+  OwnerContactChannel,
   Property,
   PropertyStatus,
   PropertyTier,
@@ -93,6 +94,12 @@ export interface PropertyFormValues {
   propertyHubUrl: string;
   unitAmenities: UnitAmenity[];
   acceptCoAgent: boolean;
+  ownerContactName: string;
+  ownerContactPhone: string;
+  ownerContactChannels: OwnerContactChannel[];
+  ownerContactLine: string;
+  ownerContactWhatsapp: string;
+  ownerContactFacebook: string;
 }
 
 export const emptyPropertyFormValues: PropertyFormValues = {
@@ -140,6 +147,12 @@ export const emptyPropertyFormValues: PropertyFormValues = {
   propertyHubUrl: "",
   unitAmenities: [],
   acceptCoAgent: false,
+  ownerContactName: "",
+  ownerContactPhone: "",
+  ownerContactChannels: [],
+  ownerContactLine: "",
+  ownerContactWhatsapp: "",
+  ownerContactFacebook: "",
 };
 
 export function valuesToProperty(v: PropertyFormValues): Omit<Property, "slug"> {
@@ -196,6 +209,12 @@ export function valuesToProperty(v: PropertyFormValues): Omit<Property, "slug"> 
     landTransferFeeParty: isLand ? v.landTransferFeeParty || null : null,
     facebookPostUrl: v.facebookPostUrl.trim(),
     acceptCoAgent: v.acceptCoAgent,
+    ownerContactName: v.ownerContactName.trim(),
+    ownerContactPhone: v.ownerContactPhone.trim(),
+    ownerContactChannels: v.ownerContactChannels,
+    ownerContactLine: v.ownerContactLine.trim(),
+    ownerContactWhatsapp: v.ownerContactWhatsapp.trim(),
+    ownerContactFacebook: v.ownerContactFacebook.trim(),
   };
 }
 
@@ -250,6 +269,12 @@ export function propertyToFormValues(p: Property): PropertyFormValues {
     propertyHubUrl: p.propertyHubUrl ?? "",
     unitAmenities: p.unitAmenities ?? [],
     acceptCoAgent: p.acceptCoAgent ?? false,
+    ownerContactName: p.ownerContactName ?? "",
+    ownerContactPhone: p.ownerContactPhone ?? "",
+    ownerContactChannels: p.ownerContactChannels ?? [],
+    ownerContactLine: p.ownerContactLine ?? "",
+    ownerContactWhatsapp: p.ownerContactWhatsapp ?? "",
+    ownerContactFacebook: p.ownerContactFacebook ?? "",
   };
 }
 
@@ -333,6 +358,15 @@ export default function PropertyForm({
     setValues((v) => ({ ...v, [key]: value }));
     setSuccess(false);
     setSavedSlug(null);
+  }
+
+  function toggleOwnerContactChannel(channel: OwnerContactChannel, checked: boolean) {
+    update(
+      "ownerContactChannels",
+      checked
+        ? [...values.ownerContactChannels, channel]
+        : values.ownerContactChannels.filter((c) => c !== channel)
+    );
   }
 
   const includesRent = values.listingType === "เช่า" || values.listingType === "เช่า + ขาย";
@@ -693,6 +727,63 @@ export default function PropertyForm({
             </div>
           </div>
         </div>
+
+        {owners && (
+          <div className="rounded-2xl border border-gold-light/40 bg-white p-6">
+            <h2 className="font-heading text-lg font-semibold text-maroon-dark">
+              คอนแทคเจ้าของ (ภายในทีมเท่านั้น)
+            </h2>
+            <p className="mt-1 text-xs text-ink/50">
+              ข้อมูลส่วนนี้แอดมินเห็นเท่านั้น จะไม่แสดงบนหน้าเว็บสาธารณะ
+            </p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <Field label="ชื่อ">
+                <input
+                  value={values.ownerContactName}
+                  onChange={(e) => update("ownerContactName", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="เบอร์โทร">
+                <input
+                  value={values.ownerContactPhone}
+                  onChange={(e) => update("ownerContactPhone", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+            </div>
+            <div className="mt-4 space-y-3">
+              {(
+                [
+                  { channel: "line", label: "LINE", key: "ownerContactLine" },
+                  { channel: "whatsapp", label: "WhatsApp", key: "ownerContactWhatsapp" },
+                  { channel: "facebook", label: "Facebook", key: "ownerContactFacebook" },
+                ] as const
+              ).map(({ channel, label, key }) => {
+                const checked = values.ownerContactChannels.includes(channel);
+                return (
+                  <div key={channel} className="flex items-center gap-3">
+                    <label className="flex w-32 shrink-0 cursor-pointer items-center gap-2 text-sm text-ink/70">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e) => toggleOwnerContactChannel(channel, e.target.checked)}
+                        className="h-4 w-4"
+                      />
+                      {label}
+                    </label>
+                    <input
+                      value={values[key]}
+                      onChange={(e) => update(key, e.target.value)}
+                      placeholder={`กรอก ${label}`}
+                      className={inputClass}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="rounded-2xl border border-gold-light/40 bg-white p-6">
           <h2 className="font-heading text-lg font-semibold text-maroon-dark">ราคา</h2>

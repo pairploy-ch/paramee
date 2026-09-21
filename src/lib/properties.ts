@@ -21,6 +21,12 @@ type SeedProperty = Omit<
   | "rentPrice3Month"
   | "rentPrice1Month"
   | "acceptCoAgent"
+  | "ownerContactName"
+  | "ownerContactPhone"
+  | "ownerContactChannels"
+  | "ownerContactLine"
+  | "ownerContactWhatsapp"
+  | "ownerContactFacebook"
 >;
 
 const seedProperties: SeedProperty[] = [
@@ -366,6 +372,12 @@ export const properties: Property[] = seedProperties.map((p) => ({
   rentPrice3Month: null,
   rentPrice1Month: null,
   acceptCoAgent: false,
+  ownerContactName: "",
+  ownerContactPhone: "",
+  ownerContactChannels: [],
+  ownerContactLine: "",
+  ownerContactWhatsapp: "",
+  ownerContactFacebook: "",
 }));
 
 export function getPropertyBySlug(slug: string): Property | undefined {

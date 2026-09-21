@@ -798,3 +798,14 @@ create policy "lease-documents: admins manage all" on storage.objects
 -- on the property detail page when checked (lets other agents know they're
 -- welcome to help sell/rent this listing).
 alter table public.properties add column if not exists accept_co_agent boolean not null default false;
+
+-- properties: private internal owner-contact note, admin-only (never
+-- selected/rendered on the public property page — see PropertyDetailView,
+-- which uses the separate owner_contacts view instead). Lets an admin jot
+-- down a name/phone/channel for an owner who doesn't have a login.
+alter table public.properties add column if not exists owner_contact_name text;
+alter table public.properties add column if not exists owner_contact_phone text;
+alter table public.properties add column if not exists owner_contact_channels text[] not null default '{}';
+alter table public.properties add column if not exists owner_contact_line text;
+alter table public.properties add column if not exists owner_contact_whatsapp text;
+alter table public.properties add column if not exists owner_contact_facebook text;

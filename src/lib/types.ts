@@ -32,6 +32,9 @@ export const unitAmenityOptions = [
 ] as const;
 export type UnitAmenity = (typeof unitAmenityOptions)[number];
 
+export const ownerContactChannels = ["line", "whatsapp", "facebook"] as const;
+export type OwnerContactChannel = (typeof ownerContactChannels)[number];
+
 export interface Property {
   slug: string;
   ownerId: string;
@@ -80,6 +83,16 @@ export interface Property {
   rentPrice3Month: number | null;
   rentPrice1Month: number | null;
   acceptCoAgent: boolean;
+  /**
+   * Private internal contact note for the owner — admin-only, never shown
+   * on the public property page (see PropertyDetailView / OwnerContactInfo).
+   */
+  ownerContactName: string;
+  ownerContactPhone: string;
+  ownerContactChannels: OwnerContactChannel[];
+  ownerContactLine: string;
+  ownerContactWhatsapp: string;
+  ownerContactFacebook: string;
 }
 
 export const newLaunchRegions = ["พัทยา", "กรุงเทพฯ", "เชียงใหม่", "ภูเก็ต", "เขาใหญ่"] as const;

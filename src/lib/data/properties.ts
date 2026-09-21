@@ -5,6 +5,7 @@ import type {
   LandTransferFeeParty,
   LeaseTerm,
   ListingType,
+  OwnerContactChannel,
   Property,
   PropertyStatus,
   PropertyTier,
@@ -60,6 +61,12 @@ export interface PropertyRow {
   rent_price_3_month: number | null;
   rent_price_1_month: number | null;
   accept_co_agent: boolean;
+  owner_contact_name: string | null;
+  owner_contact_phone: string | null;
+  owner_contact_channels: string[] | null;
+  owner_contact_line: string | null;
+  owner_contact_whatsapp: string | null;
+  owner_contact_facebook: string | null;
 }
 
 export function rowToProperty(row: PropertyRow): Property {
@@ -111,6 +118,12 @@ export function rowToProperty(row: PropertyRow): Property {
     rentPrice3Month: row.rent_price_3_month,
     rentPrice1Month: row.rent_price_1_month,
     acceptCoAgent: row.accept_co_agent ?? false,
+    ownerContactName: row.owner_contact_name ?? "",
+    ownerContactPhone: row.owner_contact_phone ?? "",
+    ownerContactChannels: (row.owner_contact_channels ?? []) as OwnerContactChannel[],
+    ownerContactLine: row.owner_contact_line ?? "",
+    ownerContactWhatsapp: row.owner_contact_whatsapp ?? "",
+    ownerContactFacebook: row.owner_contact_facebook ?? "",
   };
 }
 
@@ -171,6 +184,12 @@ export function propertyToRow(input: NewPropertyInput): Omit<PropertyRow, "id"> 
     rent_price_3_month: input.rentPrice3Month,
     rent_price_1_month: input.rentPrice1Month,
     accept_co_agent: input.acceptCoAgent,
+    owner_contact_name: input.ownerContactName || null,
+    owner_contact_phone: input.ownerContactPhone || null,
+    owner_contact_channels: input.ownerContactChannels,
+    owner_contact_line: input.ownerContactLine || null,
+    owner_contact_whatsapp: input.ownerContactWhatsapp || null,
+    owner_contact_facebook: input.ownerContactFacebook || null,
   };
 }
 
@@ -258,6 +277,12 @@ export async function updatePropertyBySlug(
   if (patch.rentPrice3Month !== undefined) row.rent_price_3_month = patch.rentPrice3Month;
   if (patch.rentPrice1Month !== undefined) row.rent_price_1_month = patch.rentPrice1Month;
   if (patch.acceptCoAgent !== undefined) row.accept_co_agent = patch.acceptCoAgent;
+  if (patch.ownerContactName !== undefined) row.owner_contact_name = patch.ownerContactName || null;
+  if (patch.ownerContactPhone !== undefined) row.owner_contact_phone = patch.ownerContactPhone || null;
+  if (patch.ownerContactChannels !== undefined) row.owner_contact_channels = patch.ownerContactChannels;
+  if (patch.ownerContactLine !== undefined) row.owner_contact_line = patch.ownerContactLine || null;
+  if (patch.ownerContactWhatsapp !== undefined) row.owner_contact_whatsapp = patch.ownerContactWhatsapp || null;
+  if (patch.ownerContactFacebook !== undefined) row.owner_contact_facebook = patch.ownerContactFacebook || null;
   if (patch.investor !== undefined) {
     row.investor_roi_percent = patch.investor.roiPercent;
     row.investor_rental_yield_percent = patch.investor.rentalYieldPercent;
