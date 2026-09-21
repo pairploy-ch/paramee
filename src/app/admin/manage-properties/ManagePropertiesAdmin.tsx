@@ -56,6 +56,7 @@ export default function ManagePropertiesAdmin({
   const [areaFilter, setAreaFilter] = useState("ทั้งหมด");
   const [districtFilter, setDistrictFilter] = useState("ทั้งหมด");
   const [purposeFilter, setPurposeFilter] = useState<"ทั้งหมด" | "ซื้อ" | "เช่า">("ทั้งหมด");
+  const [statusFilter, setStatusFilter] = useState<"ทั้งหมด" | PropertyStatus>("ทั้งหมด");
   const [minPrice, setMinPrice] = useState(MIN_PRICE);
   const [maxPrice, setMaxPrice] = useState(MAX_PRICE);
   const [deleteTarget, setDeleteTarget] = useState<{ slug: string; name: string } | null>(null);
@@ -70,24 +71,38 @@ export default function ManagePropertiesAdmin({
     [properties]
   );
 
-  const filtered = properties.filter((p) => {
-    if (typeFilter !== "ทั้งหมด" && p.type !== typeFilter) return false;
-    if (areaFilter !== "ทั้งหมด" && p.area !== areaFilter) return false;
-    if (districtFilter !== "ทั้งหมด" && p.district !== districtFilter) return false;
-    const includesSale = p.listingType === "ขาย" || p.listingType === "เช่า + ขาย";
-    const includesRent = p.listingType === "เช่า" || p.listingType === "เช่า + ขาย";
-    if (purposeFilter === "ซื้อ" && !(includesSale && p.salePrice)) return false;
-    if (purposeFilter === "เช่า" && !(includesRent && p.rentPrice)) return false;
-    const effectivePrice =
-      purposeFilter === "เช่า"
-        ? p.rentPrice ?? 0
-        : purposeFilter === "ซื้อ"
-          ? p.salePrice ?? 0
-          : p.salePrice ?? p.rentPrice ?? 0;
-    if (effectivePrice < minPrice || effectivePrice > maxPrice) return false;
-    if (query && !p.name.toLowerCase().includes(query.toLowerCase())) return false;
-    return true;
-  });
+  const statusCounts = useMemo(() => {
+    const counts = new Map<PropertyStatus, number>();
+    for (const p of properties) counts.set(p.status, (counts.get(p.status) ?? 0) + 1);
+    return counts;
+  }, [properties]);
+
+  const filtered = properties
+    .filter((p) => {
+      if (typeFilter !== "ทั้งหมด" && p.type !== typeFilter) return false;
+      if (areaFilter !== "ทั้งหมด" && p.area !== areaFilter) return false;
+      if (districtFilter !== "ทั้งหมด" && p.district !== districtFilter) return false;
+      if (statusFilter !== "ทั้งหมด" && p.status !== statusFilter) return false;
+      const includesSale = p.listingType === "ขาย" || p.listingType === "เช่า + ขาย";
+      const includesRent = p.listingType === "เช่า" || p.listingType === "เช่า + ขาย";
+      if (purposeFilter === "ซื้อ" && !(includesSale && p.salePrice)) return false;
+      if (purposeFilter === "เช่า" && !(includesRent && p.rentPrice)) return false;
+      const effectivePrice =
+        purposeFilter === "เช่า"
+          ? p.rentPrice ?? 0
+          : purposeFilter === "ซื้อ"
+            ? p.salePrice ?? 0
+            : p.salePrice ?? p.rentPrice ?? 0;
+      if (effectivePrice < minPrice || effectivePrice > maxPrice) return false;
+      if (query) {
+        const q = query.toLowerCase();
+        if (!p.name.toLowerCase().includes(q) && !(p.unitCode ?? "").toLowerCase().includes(q)) return false;
+      }
+      return true;
+    })
+    .sort((a, b) =>
+      (a.unitCode || "￿").localeCompare(b.unitCode || "￿", undefined, { numeric: true })
+    );
 
   function handleExport() {
     const csv = toCsv(properties, ownerName);
@@ -160,14 +175,26 @@ export default function ManagePropertiesAdmin({
 
       {tab === "properties" ? (
         <>
-          <div className="mb-4 grid gap-4 border border-gold-light/40 bg-white p-5 sm:grid-cols-2 lg:grid-cols-6">
+          <div className="mb-4 grid gap-4 border border-gold-light/40 bg-white p-5 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-ink/60">ค้นหาชื่อโครงการ</label>
+              <label className="mb-1.5 block text-xs font-semibold text-ink/60">ค้นหาชื่อโครงการ / รหัสโค้ด</label>
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="ชื่อโครงการ..."
+                placeholder="ชื่อโครงการ หรือ CPT01..."
                 className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-ink/60">สถานะ</label>
+              <SelectDropdown
+                value={statusFilter}
+                onChange={(v) => setStatusFilter(v as typeof statusFilter)}
+                options={[
+                  { value: "ทั้งหมด", label: "ทั้งหมด" },
+                  ...propertyStatuses.map((s) => ({ value: s, label: statusLabel(s) })),
+                ]}
               />
             </div>
 
@@ -244,6 +271,28 @@ export default function ManagePropertiesAdmin({
                 />
               </div>
             </div>
+          </div>
+
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setStatusFilter("ทั้งหมด")}
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                statusFilter === "ทั้งหมด" ? "bg-maroon text-cream" : "bg-cream-dark text-ink/60 hover:bg-cream-dark/70"
+              }`}
+            >
+              ทั้งหมด ({properties.length})
+            </button>
+            {propertyStatuses.map((s) => (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                  statusFilter === s ? "bg-maroon text-cream" : "bg-cream-dark text-ink/60 hover:bg-cream-dark/70"
+                }`}
+              >
+                {statusLabel(s)} ({statusCounts.get(s) ?? 0})
+              </button>
+            ))}
           </div>
 
           <div className="mb-4 flex items-center justify-between gap-3">
@@ -348,7 +397,12 @@ function PropertyRow({
           )}
         </div>
         <div className="min-w-[180px] flex-1">
-          <p className="font-medium text-maroon-dark">{property.name}</p>
+          <p className="font-medium text-maroon-dark">
+            {property.name}
+            {property.unitCode?.trim() && (
+              <span className="ml-2 text-xs font-semibold text-gold-dark">{property.unitCode}</span>
+            )}
+          </p>
           <p className="text-xs text-ink/50">
             {property.listingType} · {property.type} · {property.district} · Tier {property.tier} · เจ้าของ:{" "}
             {owner?.name ?? "ไม่ระบุ"}
