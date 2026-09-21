@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Pencil, Trash2, Plus, Download } from "lucide-react";
 import ConfirmModal from "@/components/ConfirmModal";
 import SelectDropdown from "@/components/SelectDropdown";
+import PriceInput from "@/components/PriceInput";
 import NewLaunchCaptionGenerator from "./NewLaunchCaptionGenerator";
 import { emptyNewLaunchFormValues, projectToFormValues, type NewLaunchFormValues } from "./formValues";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -293,18 +294,16 @@ export default function NewLaunchAdmin({ initialProjects }: { initialProjects: N
             <h2 className="font-heading text-lg font-semibold text-maroon-dark">ราคา</h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <Field label="ราคาเริ่มต้น (บาท)">
-                <input
-                  type="number"
+                <PriceInput
                   value={values.priceMin}
-                  onChange={(e) => update("priceMin", e.target.value)}
+                  onChange={(v) => update("priceMin", v)}
                   className={inputClass}
                 />
               </Field>
               <Field label="ราคาสูงสุด (บาท)">
-                <input
-                  type="number"
+                <PriceInput
                   value={values.priceMax}
-                  onChange={(e) => update("priceMax", e.target.value)}
+                  onChange={(v) => update("priceMax", v)}
                   className={inputClass}
                 />
               </Field>

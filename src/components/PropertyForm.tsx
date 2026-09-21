@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Plus, Trash2, Download } from "lucide-react";
 import { propertyAreas, propertyTypes } from "@/lib/properties";
 import SelectDropdown from "@/components/SelectDropdown";
+import PriceInput from "@/components/PriceInput";
 import { thaiProvinces } from "@/lib/thaiProvinces";
 import { landDeedTypes, landDeedColorClass } from "@/lib/landDeedTypes";
 import { downloadImage } from "@/lib/downloadImage";
@@ -790,20 +791,18 @@ export default function PropertyForm({
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {includesSale && (
               <Field label="ราคาขาย (บาท)">
-                <input
-                  type="number"
+                <PriceInput
                   value={values.salePrice}
-                  onChange={(e) => update("salePrice", e.target.value)}
+                  onChange={(v) => update("salePrice", v)}
                   className={inputClass}
                 />
               </Field>
             )}
             {includesRent && (
               <Field label="ราคาเช่า / เดือน (บาท)">
-                <input
-                  type="number"
+                <PriceInput
                   value={values.rentPrice}
-                  onChange={(e) => update("rentPrice", e.target.value)}
+                  onChange={(v) => update("rentPrice", v)}
                   className={inputClass}
                 />
               </Field>
@@ -844,26 +843,23 @@ export default function PropertyForm({
               </p>
               <div className="grid gap-4 sm:grid-cols-3">
                 <Field label="สัญญา 6 เดือน (บาท/เดือน)">
-                  <input
-                    type="number"
+                  <PriceInput
                     value={values.rentPrice6Month}
-                    onChange={(e) => update("rentPrice6Month", e.target.value)}
+                    onChange={(v) => update("rentPrice6Month", v)}
                     className={inputClass}
                   />
                 </Field>
                 <Field label="สัญญา 3 เดือน (บาท/เดือน)">
-                  <input
-                    type="number"
+                  <PriceInput
                     value={values.rentPrice3Month}
-                    onChange={(e) => update("rentPrice3Month", e.target.value)}
+                    onChange={(v) => update("rentPrice3Month", v)}
                     className={inputClass}
                   />
                 </Field>
                 <Field label="สัญญา 1 เดือน (บาท/เดือน)">
-                  <input
-                    type="number"
+                  <PriceInput
                     value={values.rentPrice1Month}
-                    onChange={(e) => update("rentPrice1Month", e.target.value)}
+                    onChange={(v) => update("rentPrice1Month", v)}
                     className={inputClass}
                   />
                 </Field>
@@ -904,9 +900,9 @@ export default function PropertyForm({
                       ปี
                     </span>
                   </div>
-                  <input
+                  <PriceInput
                     value={row.price}
-                    onChange={(e) => updateLeaseTerm(i, "price", e.target.value)}
+                    onChange={(v) => updateLeaseTerm(i, "price", v)}
                     placeholder="ราคา (บาท)"
                     className={inputClass}
                   />

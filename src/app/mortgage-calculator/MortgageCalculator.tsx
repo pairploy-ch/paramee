@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AlertTriangle, CheckCircle2, ShieldAlert } from "lucide-react";
 import { formatBaht } from "@/lib/format";
+import PriceInput from "@/components/PriceInput";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
 export default function MortgageCalculator() {
@@ -59,11 +60,9 @@ export default function MortgageCalculator() {
             <label className="mb-1.5 block text-sm font-semibold text-maroon-dark">
               {t.mortgage.priceLabel}
             </label>
-            <input
-              type="number"
-              value={price}
-              min={0}
-              onChange={(e) => setPrice(Number(e.target.value))}
+            <PriceInput
+              value={String(price)}
+              onChange={(v) => setPrice(Number(v) || 0)}
               className="w-full rounded-lg border border-cream-dark bg-cream px-3 py-2.5 text-sm outline-none focus:border-gold"
             />
           </div>
@@ -129,11 +128,9 @@ export default function MortgageCalculator() {
             <label className="mb-1.5 block text-sm font-semibold text-maroon-dark">
               {t.mortgage.incomeLabel}
             </label>
-            <input
-              type="number"
-              min={0}
-              value={monthlyIncome || ""}
-              onChange={(e) => setMonthlyIncome(Number(e.target.value) || 0)}
+            <PriceInput
+              value={monthlyIncome ? String(monthlyIncome) : ""}
+              onChange={(v) => setMonthlyIncome(Number(v) || 0)}
               placeholder={t.mortgage.incomePlaceholder}
               className="w-full rounded-lg border border-cream-dark bg-cream px-3 py-2.5 text-sm outline-none focus:border-gold"
             />

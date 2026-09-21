@@ -8,6 +8,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { insertLeaseContract, updateLeaseContractById } from "@/lib/data/leaseContracts";
 import { emptyLeaseFormValues, formValuesToInput, type LeaseFormValues } from "./formValues";
 import { thaiBanks } from "@/lib/thaiBanks";
+import PriceInput from "@/components/PriceInput";
 
 const inputClass =
   "w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold";
@@ -250,7 +251,7 @@ export default function LeaseContractForm({
             <input type="date" value={values.endDate} onChange={(e) => update("endDate", e.target.value)} className={inputClass} />
           </Field>
           <Field label="ค่าเช่าต่อเดือน (บาท)">
-            <input type="number" min={0} value={values.rentPerMonth} onChange={(e) => update("rentPerMonth", e.target.value)} className={inputClass} />
+            <PriceInput value={values.rentPerMonth} onChange={(v) => update("rentPerMonth", v)} className={inputClass} />
           </Field>
           <Field label="ชำระล่าช้าไม่เกินวันที่ (ของทุกเดือน)">
             <input value={values.paymentDueDay} onChange={(e) => update("paymentDueDay", e.target.value)} placeholder="เช่น 5" className={inputClass} />
@@ -286,10 +287,10 @@ export default function LeaseContractForm({
 
         <Section title="เงินประกัน / ค่าใช้จ่ายอื่นๆ">
           <Field label="จำนวนเงินประกัน (บาท)">
-            <input type="number" min={0} value={values.depositAmount} onChange={(e) => update("depositAmount", e.target.value)} className={inputClass} />
+            <PriceInput value={values.depositAmount} onChange={(v) => update("depositAmount", v)} className={inputClass} />
           </Field>
           <Field label="ค่าทำความสะอาด + ล้างแอร์ (บาท)">
-            <input type="number" min={0} value={values.cleaningFee} onChange={(e) => update("cleaningFee", e.target.value)} className={inputClass} />
+            <PriceInput value={values.cleaningFee} onChange={(v) => update("cleaningFee", v)} className={inputClass} />
           </Field>
         </Section>
 
@@ -298,10 +299,10 @@ export default function LeaseContractForm({
             <input type="date" value={values.receiptDate} onChange={(e) => update("receiptDate", e.target.value)} className={inputClass} />
           </Field>
           <Field label="เงินมัดจำจอง (ค่าเช่าล่วงหน้า 1 เดือน)">
-            <input type="number" min={0} value={values.reservationDepositAmount} onChange={(e) => update("reservationDepositAmount", e.target.value)} className={inputClass} />
+            <PriceInput value={values.reservationDepositAmount} onChange={(v) => update("reservationDepositAmount", v)} className={inputClass} />
           </Field>
           <Field label="เงินประกันความเสียหาย (ค่าเช่า 2 เดือน)">
-            <input type="number" min={0} value={values.damageDepositAmount} onChange={(e) => update("damageDepositAmount", e.target.value)} className={inputClass} />
+            <PriceInput value={values.damageDepositAmount} onChange={(v) => update("damageDepositAmount", v)} className={inputClass} />
           </Field>
         </Section>
 

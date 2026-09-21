@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import NewLaunchProjectCard from "@/components/NewLaunchProjectCard";
 import SelectDropdown from "@/components/SelectDropdown";
+import PriceInput from "@/components/PriceInput";
 import CompareBar from "@/components/CompareBar";
 import { propertyTypes } from "@/lib/properties";
 import { newLaunchRegions } from "@/lib/types";
@@ -97,22 +98,16 @@ export default function NewLaunchBrowser({ initialProjects }: { initialProjects:
         <div className="sm:col-span-2 lg:col-span-2">
           <label className="mb-1.5 block text-xs font-semibold text-ink/60">ช่วงราคา (บาท)</label>
           <div className="flex items-center gap-2">
-            <input
-              type="number"
-              min={0}
-              step={100_000}
-              value={minPrice}
-              onChange={(e) => setMinPrice(Math.max(0, Number(e.target.value) || 0))}
+            <PriceInput
+              value={String(minPrice)}
+              onChange={(v) => setMinPrice(Math.max(0, Number(v) || 0))}
               placeholder="ต่ำสุด"
               className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
             />
             <span className="text-ink/40">—</span>
-            <input
-              type="number"
-              min={0}
-              step={100_000}
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(Number(e.target.value) || 0)}
+            <PriceInput
+              value={String(maxPrice)}
+              onChange={(v) => setMaxPrice(Number(v) || 0)}
               placeholder="สูงสุด"
               className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
             />

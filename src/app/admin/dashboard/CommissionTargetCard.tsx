@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Pencil } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { upsertCommissionTarget } from "@/lib/data/commissionTargets";
+import PriceInput from "@/components/PriceInput";
 
 function parseMoneyToNumber(raw: string): number {
   const n = Number(raw.replace(/[^0-9.-]/g, ""));
@@ -78,10 +79,9 @@ export default function CommissionTargetCard({
 
       {editing ? (
         <div className="mt-2 flex items-center gap-2">
-          <input
-            type="number"
+          <PriceInput
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={setValue}
             className="w-full border border-cream-dark bg-cream px-2 py-1.5 text-sm outline-none focus:border-gold"
           />
           <button

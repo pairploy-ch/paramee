@@ -11,6 +11,7 @@ import type { Property, PropertyStatus } from "@/lib/types";
 import type { Owner } from "@/lib/owners";
 import ConfirmModal from "@/components/ConfirmModal";
 import SelectDropdown from "@/components/SelectDropdown";
+import PriceInput from "@/components/PriceInput";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { deletePropertyBySlug, updatePropertyBySlug } from "@/lib/data/properties";
 import { useProperties } from "@/lib/propertyStore";
@@ -250,22 +251,16 @@ export default function ManagePropertiesAdmin({
             <div>
               <label className="mb-1.5 block text-xs font-semibold text-ink/60">ช่วงราคา (บาท)</label>
               <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min={0}
-                  step={100_000}
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(Math.max(0, Number(e.target.value) || 0))}
+                <PriceInput
+                  value={String(minPrice)}
+                  onChange={(v) => setMinPrice(Math.max(0, Number(v) || 0))}
                   placeholder="ต่ำสุด"
                   className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
                 />
                 <span className="text-ink/40">—</span>
-                <input
-                  type="number"
-                  min={0}
-                  step={100_000}
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(Number(e.target.value) || 0)}
+                <PriceInput
+                  value={String(maxPrice)}
+                  onChange={(v) => setMaxPrice(Number(v) || 0)}
                   placeholder="สูงสุด"
                   className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
                 />

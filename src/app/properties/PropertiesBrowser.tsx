@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { propertyAreas, propertyTypes } from "@/lib/properties";
 import PropertyCard from "@/components/PropertyCard";
 import SelectDropdown from "@/components/SelectDropdown";
+import PriceInput from "@/components/PriceInput";
 import { propertyTypeLabel } from "@/lib/format";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import type { Property, PropertyType } from "@/lib/types";
@@ -134,22 +135,16 @@ export default function PropertiesBrowser({ initialProperties }: { initialProper
             {tr.properties.priceRangeLabel}
           </label>
           <div className="flex items-center gap-2">
-            <input
-              type="number"
-              min={0}
-              step={100_000}
-              value={minPrice}
-              onChange={(e) => setMinPrice(Math.max(0, Number(e.target.value) || 0))}
+            <PriceInput
+              value={String(minPrice)}
+              onChange={(v) => setMinPrice(Math.max(0, Number(v) || 0))}
               placeholder={tr.properties.minPlaceholder}
               className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
             />
             <span className="text-ink/40">—</span>
-            <input
-              type="number"
-              min={0}
-              step={100_000}
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(Number(e.target.value) || 0)}
+            <PriceInput
+              value={String(maxPrice)}
+              onChange={(v) => setMaxPrice(Number(v) || 0)}
               placeholder={tr.properties.maxPlaceholder}
               className="w-full border border-cream-dark bg-cream px-3 py-2 text-sm outline-none focus:border-gold"
             />
