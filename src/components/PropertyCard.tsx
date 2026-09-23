@@ -115,17 +115,18 @@ export default function PropertyCard({ property }: { property: Property }) {
               </p>
             </div>
           </div>
-          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-gold-light/50 text-gold-dark transition-colors group-hover:bg-gold group-hover:text-maroon-dark">
-            <ArrowRight className="h-4 w-4" strokeWidth={1.75} />
-          </span>
+          <div className="flex items-center gap-2">
+            {property.acceptCoAgent && (
+              <span className="rounded-full bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white">
+                Ready co-ag
+              </span>
+            )}
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold-light/50 text-gold-dark transition-colors group-hover:bg-gold group-hover:text-maroon-dark">
+              <ArrowRight className="h-4 w-4" strokeWidth={1.75} />
+            </span>
+          </div>
         </div>
       </div>
-
-      {property.acceptCoAgent && (
-        <span className="absolute bottom-3 right-3 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white shadow-sm">
-          Ready co-ag
-        </span>
-      )}
     </Link>
   );
 }
