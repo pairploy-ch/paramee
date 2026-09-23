@@ -21,7 +21,7 @@ export default function PropertyCard({ property }: { property: Property }) {
   return (
     <Link
       href={`/properties/${property.slug}`}
-      className="group flex h-full flex-col overflow-hidden bg-white shadow-sm transition-all hover:-translate-y-1.5 hover:shadow-xl"
+      className="group relative flex h-full flex-col overflow-hidden bg-white shadow-sm transition-all hover:-translate-y-1.5 hover:shadow-xl"
     >
       <div className="relative">
         <PropertyImage images={property.images} name={property.name} className="h-48 w-full" />
@@ -120,6 +120,12 @@ export default function PropertyCard({ property }: { property: Property }) {
           </span>
         </div>
       </div>
+
+      {property.acceptCoAgent && (
+        <span className="absolute bottom-3 right-3 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+          Ready co-ag
+        </span>
+      )}
     </Link>
   );
 }
